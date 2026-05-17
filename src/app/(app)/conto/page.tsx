@@ -38,11 +38,18 @@ export default async function ContoPage() {
           Conto
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Tutti i movimenti del conto Matazz: entrate (sponsor, biglietti,
-          incassi bar) e uscite (fatture, fornitori, materiali). Il saldo qui
-          è il punto di partenza per ogni nuovo evento — non dimenticate di
-          registrare ogni movimento appena succede.
+          Movimenti del conto Matazz <strong>non legati a un evento
+          specifico</strong>: spese generali, donazioni, costi fissi, ecc. Il
+          saldo qui è il punto di partenza per pianificare nuovi eventi.
         </p>
+      </div>
+
+      <div className="rounded-2xl bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-900">
+        <strong>Attenzione:</strong> se una spesa o un&apos;entrata è legata a
+        un evento specifico (sponsor, materiali, fee artista, catering, ecc.),
+        <strong> non registratela qui</strong> — entrate dentro l&apos;evento e
+        usate la sezione corrispondente. Così evitiamo di contare due volte la
+        stessa cifra.
       </div>
 
       {error && (

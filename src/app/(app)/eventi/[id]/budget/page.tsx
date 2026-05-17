@@ -1,5 +1,4 @@
 import { createServerClient } from "@/lib/supabase/server";
-import { getSaldoConto } from "@/lib/conto";
 import {
   BudgetClient,
   type BudgetLine,
@@ -239,8 +238,6 @@ export default async function EventoBudgetPage({ params }: Props) {
     },
   ];
 
-  const saldoConto = await getSaldoConto();
-
   return (
     <div className="space-y-6">
       <div>
@@ -256,12 +253,7 @@ export default async function EventoBudgetPage({ params }: Props) {
         </p>
       </div>
 
-      <BudgetClient
-        eventoId={id}
-        uscite={uscite}
-        entrate={entrate}
-        saldoConto={saldoConto}
-      />
+      <BudgetClient eventoId={id} uscite={uscite} entrate={entrate} />
     </div>
   );
 }

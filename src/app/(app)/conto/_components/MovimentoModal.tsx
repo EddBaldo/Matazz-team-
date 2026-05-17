@@ -121,6 +121,13 @@ export function MovimentoModal({ mode, onClose }: Props) {
           </button>
         </div>
 
+        {!isEdit && (
+          <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-900 mb-4">
+            Solo movimenti <strong>non legati a un evento</strong>. Per spese o
+            entrate legate a un evento, inseritele dalla pagina dell&apos;evento.
+          </div>
+        )}
+
         {error && (
           <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2 mb-4">
             {error}
