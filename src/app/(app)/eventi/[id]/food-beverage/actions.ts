@@ -1,0 +1,367 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { requireCurrentIdentity } from "@/lib/auth/identity";
+import { createServerClient } from "@/lib/supabase/server";
+
+export type ActionResult = { ok: true } | { ok: false; error: string };
+
+function trimOrNull(v: string | null): string | null {
+  if (!v) return null;
+  const t = v.trim();
+  return t.length > 0 ? t : null;
+}
+
+function toNumber(v: string | null | undefined, def: number): number {
+  if (v == null || v === "") return def;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : def;
+}
+
+function revalidateFB(eventoId: string) {
+  revalidatePath(`/eventi/${eventoId}`);
+  revalidatePath(`/eventi/${eventoId}/food-beverage`);
+}
+
+// ----- BAR ---------------------------------------------------------------
+
+export type BarInput = {
+  articolo: string;
+  fonte: "Noi" | "Fornitore";
+  fornitore: string | null;
+  costo_unitario: string | null;
+  prezzo_vendita: string | null;
+  quantita_stimata: string | null;
+  note: string | null;
+};
+
+function validateBar(input: BarInput): string | null {
+  if (input.articolo.trim().length === 0)
+    return "Il nome dell'articolo è obbligatorio.";
+  if (input.fonte !== "Noi" && input.fonte !== "Fornitore")
+    return "Fonte non valida.";
+  if (input.fonte === "Fornitore" && (!input.fornitore || input.fornitore.trim().length === 0))
+    return "Il nome del fornitore è obbligatorio.";
+  return null;
+}
+
+export async function creaBarR(
+  eventoId: string,
+  input: BarInput,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const err = validateBar(input);
+  if (err) return { ok: false, error: err };
+
+  const sb = createServerClient();
+  const { error } = await sb.from("evento_bar_articoli").insert({
+    evento_id: eventoId,
+    articolo: input.articolo.trim(),
+    fonte: input.fonte,
+    fornitore: input.fonte === "Fornitore" ? trimOrNull(input.fornitore) : null,
+    costo_unitario: toNumber(input.costo_unitario, 0),
+    prezzo_vendita: toNumber(input.prezzo_vendita, 0),
+    quantita_stimata: toNumber(input.quantita_stimata, 0),
+    note: trimOrNull(input.note),
+  });
+
+  if (error) {
+    console.error("Errore crea bar articolo:", error);
+    return { ok: false, error: "Errore nel salvataggio. Riprova." };
+  }
+  revalidateFB(eventoId);
+  return { ok: true };
+}
+
+export async function aggiornaBarR(
+  eventoId: string,
+  barId: string,
+  input: BarInput,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const err = validateBar(input);
+  if (err) return { ok: false, error: err };
+
+  const sb = createServerClient();
+  const { error } = await sb
+    .from("evento_bar_articoli")
+    .update({
+      articolo: input.articolo.trim(),
+      fonte: input.fonte,
+      fornitore:
+        input.fonte === "Fornitore" ? trimOrNull(input.fornitore) : null,
+      costo_unitario: toNumber(input.costo_unitario, 0),
+      prezzo_vendita: toNumber(input.prezzo_vendita, 0),
+      quantita_stimata: toNumber(input.quantita_stimata, 0),
+      note: trimOrNull(input.note),
+    })
+    .eq("id", barId)
+    .eq("evento_id", eventoId);
+
+  if (error) {
+    console.error("Errore update bar articolo:", error);
+    return { ok: false, error: "Errore nel salvataggio. Riprova." };
+  }
+  revalidateFB(eventoId);
+  return { ok: true };
+}
+
+export async function eliminaBarR(
+  eventoId: string,
+  barId: string,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const sb = createServerClient();
+  const { error } = await sb
+    .from("evento_bar_articoli")
+    .delete()
+    .eq("id", barId)
+    .eq("evento_id", eventoId);
+
+  if (error) {
+    console.error("Errore delete bar articolo:", error);
+    return { ok: false, error: "Errore nell'eliminazione. Riprova." };
+  }
+  revalidateFB(eventoId);
+  return { ok: true };
+}
+
+// ----- CATERING ----------------------------------------------------------
+
+export type CateringInput = {
+  nome_fornitore: string;
+  descrizione: string | null;
+  prezzo_per_persona: string | null;
+  numero_persone: string | null;
+  selezionata: boolean;
+  note: string | null;
+};
+
+function validateCatering(input: CateringInput): string | null {
+  if (input.nome_fornitore.trim().length === 0)
+    return "Il nome dello chef è obbligatorio.";
+  return null;
+}
+
+export async function creaCateringR(
+  eventoId: string,
+  input: CateringInput,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const err = validateCatering(input);
+  if (err) return { ok: false, error: err };
+
+  const sb = createServerClient();
+  const { error } = await sb.from("evento_catering").insert({
+    evento_id: eventoId,
+    nome_fornitore: input.nome_fornitore.trim(),
+    descrizione: trimOrNull(input.descrizione),
+    prezzo_per_persona: toNumber(input.prezzo_per_persona, 0),
+    numero_persone: toNumber(input.numero_persone, 0),
+    selezionata: input.selezionata,
+    note: trimOrNull(input.note),
+  });
+
+  if (error) {
+    console.error("Errore crea catering:", error);
+    return { ok: false, error: "Errore nel salvataggio. Riprova." };
+  }
+  revalidateFB(eventoId);
+  return { ok: true };
+}
+
+export async function aggiornaCateringR(
+  eventoId: string,
+  catId: string,
+  input: CateringInput,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const err = validateCatering(input);
+  if (err) return { ok: false, error: err };
+
+  const sb = createServerClient();
+  const { error } = await sb
+    .from("evento_catering")
+    .update({
+      nome_fornitore: input.nome_fornitore.trim(),
+      descrizione: trimOrNull(input.descrizione),
+      prezzo_per_persona: toNumber(input.prezzo_per_persona, 0),
+      numero_persone: toNumber(input.numero_persone, 0),
+      selezionata: input.selezionata,
+      note: trimOrNull(input.note),
+    })
+    .eq("id", catId)
+    .eq("evento_id", eventoId);
+
+  if (error) {
+    console.error("Errore update catering:", error);
+    return { ok: false, error: "Errore nel salvataggio. Riprova." };
+  }
+  revalidateFB(eventoId);
+  return { ok: true };
+}
+
+export async function eliminaCateringR(
+  eventoId: string,
+  catId: string,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const sb = createServerClient();
+  const { error } = await sb
+    .from("evento_catering")
+    .delete()
+    .eq("id", catId)
+    .eq("evento_id", eventoId);
+
+  if (error) {
+    console.error("Errore delete catering:", error);
+    return { ok: false, error: "Errore nell'eliminazione. Riprova." };
+  }
+  revalidateFB(eventoId);
+  return { ok: true };
+}
+
+export async function toggleCateringSelezionata(
+  eventoId: string,
+  catId: string,
+  selezionata: boolean,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const sb = createServerClient();
+  const { error } = await sb
+    .from("evento_catering")
+    .update({ selezionata })
+    .eq("id", catId)
+    .eq("evento_id", eventoId);
+
+  if (error) return { ok: false, error: "Errore." };
+  revalidateFB(eventoId);
+  return { ok: true };
+}
+
+// ----- FOOD TRUCK --------------------------------------------------------
+
+export type FoodTruckInput = {
+  nome: string;
+  modello: "Percentuale" | "Acquisto";
+  // modello Percentuale
+  incasso_lordo_stimato: string | null;
+  percentuale_matazz: string | null;
+  // modello Acquisto
+  costo_unitario: string | null;
+  prezzo_vendita: string | null;
+  quantita_stimata: string | null;
+  // common
+  selezionata: boolean;
+  note: string | null;
+};
+
+function validateFoodTruck(input: FoodTruckInput): string | null {
+  if (input.nome.trim().length === 0) return "Il nome è obbligatorio.";
+  if (input.modello !== "Percentuale" && input.modello !== "Acquisto")
+    return "Modello non valido.";
+  return null;
+}
+
+function buildFoodTruckPayload(input: FoodTruckInput) {
+  const isAcquisto = input.modello === "Acquisto";
+  return {
+    nome: input.nome.trim(),
+    modello: input.modello,
+    incasso_lordo_stimato: isAcquisto
+      ? 0
+      : toNumber(input.incasso_lordo_stimato, 0),
+    percentuale_matazz: isAcquisto
+      ? 0
+      : toNumber(input.percentuale_matazz, 0),
+    costo_unitario: isAcquisto ? toNumber(input.costo_unitario, 0) : null,
+    prezzo_vendita: isAcquisto ? toNumber(input.prezzo_vendita, 0) : null,
+    quantita_stimata: isAcquisto ? toNumber(input.quantita_stimata, 0) : null,
+    selezionata: input.selezionata,
+    note: trimOrNull(input.note),
+  };
+}
+
+export async function creaFoodTruckR(
+  eventoId: string,
+  input: FoodTruckInput,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const err = validateFoodTruck(input);
+  if (err) return { ok: false, error: err };
+
+  const sb = createServerClient();
+  const { error } = await sb.from("evento_food_truck").insert({
+    evento_id: eventoId,
+    ...buildFoodTruckPayload(input),
+  });
+
+  if (error) {
+    console.error("Errore crea food truck:", error);
+    return { ok: false, error: "Errore nel salvataggio. Riprova." };
+  }
+  revalidateFB(eventoId);
+  return { ok: true };
+}
+
+export async function aggiornaFoodTruckR(
+  eventoId: string,
+  ftId: string,
+  input: FoodTruckInput,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const err = validateFoodTruck(input);
+  if (err) return { ok: false, error: err };
+
+  const sb = createServerClient();
+  const { error } = await sb
+    .from("evento_food_truck")
+    .update(buildFoodTruckPayload(input))
+    .eq("id", ftId)
+    .eq("evento_id", eventoId);
+
+  if (error) {
+    console.error("Errore update food truck:", error);
+    return { ok: false, error: "Errore nel salvataggio. Riprova." };
+  }
+  revalidateFB(eventoId);
+  return { ok: true };
+}
+
+export async function eliminaFoodTruckR(
+  eventoId: string,
+  ftId: string,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const sb = createServerClient();
+  const { error } = await sb
+    .from("evento_food_truck")
+    .delete()
+    .eq("id", ftId)
+    .eq("evento_id", eventoId);
+
+  if (error) {
+    console.error("Errore delete food truck:", error);
+    return { ok: false, error: "Errore nell'eliminazione. Riprova." };
+  }
+  revalidateFB(eventoId);
+  return { ok: true };
+}
+
+export async function toggleFoodTruckSelezionata(
+  eventoId: string,
+  ftId: string,
+  selezionata: boolean,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const sb = createServerClient();
+  const { error } = await sb
+    .from("evento_food_truck")
+    .update({ selezionata })
+    .eq("id", ftId)
+    .eq("evento_id", eventoId);
+
+  if (error) return { ok: false, error: "Errore." };
+  revalidateFB(eventoId);
+  return { ok: true };
+}
