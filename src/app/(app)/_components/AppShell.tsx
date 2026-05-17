@@ -90,7 +90,7 @@ export function AppShell({ identityName, eventi, children }: Props) {
           </svg>
         </button>
         <Link href="/" className="font-medium text-neutral-900">
-          Matazz Staff
+          Team Matazz
         </Link>
         <div className="w-8" />
       </div>
@@ -105,7 +105,7 @@ export function AppShell({ identityName, eventi, children }: Props) {
 
       <aside
         className={`
-          fixed md:sticky top-0 left-0 z-40 w-64 h-screen
+          fixed md:sticky top-0 left-0 z-40 w-60 h-screen
           bg-white border-r border-neutral-200
           flex flex-col
           transition-transform md:transition-none
@@ -118,7 +118,7 @@ export function AppShell({ identityName, eventi, children }: Props) {
             onClick={() => setSidebarOpen(false)}
             className="text-lg font-medium text-neutral-900"
           >
-            Matazz Staff
+            Team Matazz
           </Link>
         </div>
         <nav className="flex-1 p-2 overflow-y-auto">
@@ -258,11 +258,19 @@ export function AppShell({ identityName, eventi, children }: Props) {
             })}
           </ul>
         </nav>
-        <div className="p-3 border-t border-neutral-200">
+        <div className="p-3 border-t border-neutral-200 flex items-end justify-between gap-2">
+          <Link
+            href="/"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Vai alla home"
+            className="font-glassure text-5xl leading-none text-neutral-900 hover:text-amber-700 transition-colors px-1 select-none"
+          >
+            M
+          </Link>
           <form action={logout}>
             <button
               type="submit"
-              className="w-full text-left px-3 py-2 rounded text-sm text-neutral-800 hover:bg-red-50 hover:text-red-700"
+              className="px-3 py-2 rounded text-sm text-neutral-600 hover:bg-red-50 hover:text-red-700"
             >
               Esci
             </button>

@@ -54,7 +54,7 @@ export default async function HomePage() {
       <div className="w-full max-w-5xl">
         <div className="mb-10">
           <p className="text-sm uppercase tracking-wide text-neutral-500 font-medium">
-            Matazz Staff
+            Team Matazz
           </p>
           <h1 className="text-5xl sm:text-6xl font-semibold tracking-tight text-neutral-900 mt-2">
             Ben tornato, {me.nome}.

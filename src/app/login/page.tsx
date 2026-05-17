@@ -15,7 +15,7 @@ export default async function LoginPage({ searchParams }: Props) {
       >
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-neutral-900">
-            Matazz Staff
+            Team Matazz
           </h1>
           <p className="text-sm text-neutral-600 mt-1">
             Inserisci la password condivisa per accedere.

@@ -9,7 +9,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Matazz Staff",
+  title: "Team Matazz",
   description: "Gestionale interno Matazz",
 };
 
