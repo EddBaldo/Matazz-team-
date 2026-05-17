@@ -259,14 +259,15 @@ export function AppShell({ identityName, eventi, children }: Props) {
           </ul>
         </nav>
         <div className="p-3 border-t border-neutral-200 flex items-end justify-between gap-2">
-          <Link
-            href="/"
-            onClick={() => setSidebarOpen(false)}
-            aria-label="Vai alla home"
+          <a
+            href="https://matazz.ch"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Vai a matazz.ch"
             className="font-glassure text-5xl leading-none text-neutral-900 hover:text-amber-700 transition-colors px-1 select-none"
           >
             m
-          </Link>
+          </a>
           <form action={logout}>
             <button
               type="submit"
