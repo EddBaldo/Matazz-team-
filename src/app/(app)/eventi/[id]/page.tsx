@@ -16,6 +16,7 @@ import {
 import { createServerClient } from "@/lib/supabase/server";
 import { formatMoney } from "@/lib/format";
 import { calcolaBudgetEvento } from "@/lib/budget-evento";
+import { getSaldoConto } from "@/lib/conto";
 import {
   MACRO_TIPI_ARTE,
   MACRO_EMOJI,
@@ -103,9 +104,10 @@ export default async function EventoDashboardPage({
   const evento = eventoData as unknown as Evento;
 
   const today = new Date().toISOString().slice(0, 10);
-  const [budget, artistiRes, personaleRes, giornateRes, vociRes, compitiRes] =
+  const [budget, saldoConto, artistiRes, personaleRes, giornateRes, vociRes, compitiRes] =
     await Promise.all([
       calcolaBudgetEvento(sb, id),
+      getSaldoConto(),
       sb
         .from("evento_artisti")
         .select("confermato, artista:artisti(tipo_arte)")
@@ -315,14 +317,21 @@ export default async function EventoDashboardPage({
                 </div>
                 <ChevronRight className="w-5 h-5 text-neutral-400 group-hover:text-neutral-900 transition-colors" />
               </div>
-              <p className="text-xs text-neutral-500 mt-6">Saldo effettivo</p>
+              <p className="text-xs text-neutral-500 mt-6">
+                Saldo effettivo (include conto)
+              </p>
               <div
                 className={`text-3xl sm:text-4xl font-semibold tabular-nums mt-1 ${
-                  budget.saldo >= 0 ? "text-neutral-900" : "text-red-600"
+                  saldoConto + budget.saldo >= 0
+                    ? "text-neutral-900"
+                    : "text-red-600"
                 }`}
               >
-                {formatMoney(budget.saldo)}
+                {formatMoney(saldoConto + budget.saldo)}
               </div>
+              <p className="text-[10px] text-neutral-400 mt-1 tabular-nums">
+                Conto Matazz: {formatMoney(saldoConto)}
+              </p>
               <div className="grid grid-cols-2 gap-4 mt-8 max-w-sm">
                 <div>
                   <div className="flex items-center gap-1.5 text-xs text-neutral-500">
