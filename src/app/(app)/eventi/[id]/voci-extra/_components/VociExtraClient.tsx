@@ -24,12 +24,7 @@ export function VociExtraClient({ eventoId, rows }: Props) {
 
   return (
     <>
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <p className="text-sm text-neutral-600">
-          {rows.length === 0
-            ? "Aggiungi la prima voce extra al budget."
-            : "Clicca su una riga per modificarla."}
-        </p>
+      <div className="flex items-center justify-end gap-3 flex-wrap">
         <button
           type="button"
           onClick={() => setModal({ kind: "add" })}

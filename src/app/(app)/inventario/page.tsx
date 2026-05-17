@@ -42,8 +42,9 @@ export default async function InventarioPage() {
           Inventario
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Tutti gli articoli raggruppati per condizione. Aggiorna lo stato
-          quando qualcosa si rompe o serve buttarlo.
+          Tutto il materiale che possediamo, raggruppato per condizione.
+          Aggiornate lo stato ogni volta che qualcosa si rompe, va riparato o
+          va buttato — così sappiamo sempre cosa abbiamo davvero a disposizione.
         </p>
       </div>
 

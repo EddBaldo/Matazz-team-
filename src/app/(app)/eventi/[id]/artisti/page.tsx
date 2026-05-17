@@ -84,8 +84,10 @@ export default async function EventoArtistiPage({ params }: Props) {
           Artisti
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Artisti specifici dell&apos;evento. Confermati raggruppati per
-          disciplina, da confermare in fondo.
+          Artisti selezionati per l&apos;evento, raggruppati per disciplina.
+          In fondo trovate quelli ancora da confermare. Ricordatevi di tenere
+          aggiornate tutte le voci (fee, alloggio, intolleranze) — sono le
+          stesse informazioni che useremo per produzione e logistica.
         </p>
       </div>
 

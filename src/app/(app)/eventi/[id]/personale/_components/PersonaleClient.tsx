@@ -60,12 +60,7 @@ export function PersonaleClient({ eventoId, rows, rubrica }: Props) {
 
   return (
     <>
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <p className="text-sm text-neutral-600">
-          {rows.length === 0
-            ? "Aggiungi la prima persona allo staff dell'evento."
-            : "Clicca su una riga per modificare. Conferma con ✓ a destra."}
-        </p>
+      <div className="flex items-center justify-end gap-3 flex-wrap">
         <button
           type="button"
           onClick={() => setAddOpen(true)}

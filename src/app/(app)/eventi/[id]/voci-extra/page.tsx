@@ -26,8 +26,10 @@ export default async function EventoVociExtraPage({ params }: Props) {
           Voci extra di budget
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Entrate e uscite che non rientrano in artisti, sponsor, F&B o
-          materiali. Es. SIAE, affitto location, assicurazione.
+          Tutte le entrate e le uscite che non rientrano in artisti, sponsor,
+          food &amp; beverage o materiali — es. SIAE, affitto location,
+          assicurazione, biglietteria. Aggiungete qui ogni voce di budget che
+          non trova posto altrove: entra direttamente nel calcolo finale.
         </p>
       </div>
 

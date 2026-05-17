@@ -77,9 +77,11 @@ export default async function FoodBeveragePage({ params }: Props) {
           Food &amp; Beverage
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Bar (sempre nel budget), catering e food truck. Solo le voci catering
-          e food truck marcate &quot;selezionata&quot; vengono conteggiate nel
-          budget.
+          Organizziamo qui il cibo e le bevande che offriremo e venderemo.
+          Inserite le varie offerte che riceviamo da catering e food truck:
+          cliccando sul pallino verde una proposta diventa &ldquo;selezionata&rdquo;
+          e viene considerata nel conteggio finale del budget. Il bar invece
+          fa sempre parte del budget.
         </p>
       </div>
 

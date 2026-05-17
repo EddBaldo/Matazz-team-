@@ -29,9 +29,11 @@ export default async function EventoMaterialiPage({ params }: Props) {
           Materiali
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Tutto quello che serve per l&apos;evento. Marca come &quot;preso&quot;
-          quando lo hai materialmente. I materiali &quot;già disponibili&quot;
-          non rientrano nel totale da comprare.
+          Tutti i materiali necessari per l&apos;evento. Segnate bene quello
+          che serve e tenete aggiornato lo stato: marcate come
+          &quot;preso&quot; quando avete fisicamente in mano l&apos;oggetto.
+          I materiali &quot;già disponibili&quot; non rientrano nel totale
+          da comprare.
         </p>
       </div>
 

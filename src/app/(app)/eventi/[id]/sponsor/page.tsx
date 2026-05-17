@@ -70,8 +70,8 @@ export default async function EventoSponsorPage({ params }: Props) {
           Sponsor
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Sponsor specifici dell&apos;evento. Solo i confermati entrano nel
-          Budget come entrata · Totale confermato:{" "}
+          Sponsor che abbiamo contattato per questo evento. Solo i confermati
+          entrano nel budget come entrata · Totale confermato:{" "}
           <strong className="text-green-700">
             {formatMoney(totaleConfermato)}
           </strong>

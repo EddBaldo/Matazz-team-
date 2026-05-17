@@ -50,8 +50,9 @@ export default async function LocationsPage() {
           Scouting Location
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Potenziali location raggruppate per stato. Aggiungi qui qualsiasi
-          posto che potrebbe ospitare un evento futuro.
+          Qui a tempo perso cerchiamo location dove poter ospitare un evento.
+          Le raggruppiamo per stato — aggiungete qualsiasi posto vi colpisca,
+          anche solo per tenerlo a mente.
         </p>
       </div>
 

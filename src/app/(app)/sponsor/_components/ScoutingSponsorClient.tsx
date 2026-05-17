@@ -32,12 +32,7 @@ export function ScoutingSponsorClient({ rows }: Props) {
 
   return (
     <>
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <p className="text-sm text-neutral-600">
-          {rows.length === 0
-            ? "Aggiungi il primo sponsor alla rubrica."
-            : "Clicca su una riga per modificare lo sponsor."}
-        </p>
+      <div className="flex items-center justify-end gap-3 flex-wrap">
         <button
           type="button"
           onClick={() => setModal({ kind: "add" })}

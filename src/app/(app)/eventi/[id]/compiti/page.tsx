@@ -124,9 +124,11 @@ export default async function EventoTabellaMarciaPage({ params }: Props) {
           Tabella di marcia
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Cose da fare per l&apos;evento. Per i turni del personale usa
-          &quot;Turni&quot; nel form: un unico impegno raggruppa più persone su
-          orari diversi.
+          Questo calendario è collegato a quello globale. È il posto chiave
+          per restare organizzati: qui costruiamo i turni del personale —
+          bar, allestimento, cassa — e tutte le scadenze operative
+          dell&apos;evento. Usate il tipo &ldquo;Turni&rdquo; per raggruppare
+          più persone su orari diversi in un unico impegno.
         </p>
       </div>
 

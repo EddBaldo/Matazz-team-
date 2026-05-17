@@ -187,7 +187,8 @@ export default async function CalendarioGlobalePage({ searchParams }: Props) {
           Calendario
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Impegni di team e impegni collegati a eventi, in un&apos;unica vista.
+          Qui segniamo tutti i nostri impegni di team al di fuori dei singoli
+          eventi: meeting, scadenze, lavori trasversali.
         </p>
       </div>
 

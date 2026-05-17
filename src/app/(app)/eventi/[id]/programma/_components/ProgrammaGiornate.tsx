@@ -71,12 +71,7 @@ export function ProgrammaGiornate({
 
   return (
     <>
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <p className="text-sm text-neutral-600">
-          {giornate.length === 0
-            ? "Crea la prima giornata per iniziare a costruire il programma."
-            : "Clicca su una giornata per modificarla, su una voce per aggiornarla."}
-        </p>
+      <div className="flex items-center justify-end gap-3 flex-wrap">
         <button
           type="button"
           onClick={openAddGiornata}

@@ -44,8 +44,9 @@ export default async function PersonalePage() {
           Scouting Staff
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Rubrica delle persone esterne raggruppate per categoria. Aggiungi qui
-          chiunque potrebbe lavorare a un evento.
+          Qui a tempo perso cerchiamo persone esterne da poter coinvolgere
+          nei nostri eventi: fotografi, bar, tecnici audio, allestitori.
+          Raggruppate per categoria, aggiungete chiunque possa servire.
         </p>
       </div>
 

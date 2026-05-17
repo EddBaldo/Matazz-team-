@@ -70,8 +70,10 @@ export default async function EventoPersonalePage({ params }: Props) {
           Personale
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Staff dell&apos;evento raggruppato per categoria. Indica la presenza
-          (es. tutti i giorni, sabato sera) e nelle note specifica cosa fa.
+          Personale coinvolto durante i giorni dell&apos;evento e per
+          l&apos;allestimento nei giorni precedenti. Raggruppato per categoria
+          — indicate la presenza (es. tutti i giorni, solo sabato sera) e
+          nelle note specificate cosa fa ciascuno.
         </p>
       </div>
 

@@ -245,9 +245,11 @@ export default async function EventoBudgetPage({ params }: Props) {
           Budget
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Stima vs effettivo. La stima è la tua previsione editabile,
-          l&apos;effettivo si aggiorna da solo man mano che compili artisti,
-          sponsor, F&amp;B, materiali e voci extra.
+          Il quadro economico dell&apos;evento, stima contro effettivo. La
+          stima è la nostra previsione editabile a mano; l&apos;effettivo si
+          aggiorna automaticamente man mano che riempite artisti, sponsor,
+          food &amp; beverage, materiali e voci extra. Più tenete in ordine
+          quelle pagine, più questa diventa precisa.
         </p>
       </div>
 

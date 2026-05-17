@@ -20,8 +20,9 @@ export default async function SponsorPage() {
           Scouting Sponsor
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Potenziali sponsor per il futuro. Rubrica condivisa: aggiungi qui
-          chiunque potrebbe sostenere un evento.
+          Qui a tempo perso cerchiamo sponsor che potrebbero sostenere i
+          nostri eventi. Rubrica condivisa: aggiungete qualsiasi realtà vi
+          venga in mente, anche senza un evento specifico già pianificato.
         </p>
       </div>
 

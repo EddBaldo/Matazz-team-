@@ -62,12 +62,7 @@ export function EventiClient({ eventi, locations }: Props) {
 
   return (
     <>
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <p className="text-sm text-neutral-600">
-          {eventi.length === 0
-            ? "Crea il primo evento per iniziare."
-            : "Clicca su un evento per aprirlo."}
-        </p>
+      <div className="flex items-center justify-end gap-3 flex-wrap">
         <button
           type="button"
           onClick={() => setAddOpen(true)}

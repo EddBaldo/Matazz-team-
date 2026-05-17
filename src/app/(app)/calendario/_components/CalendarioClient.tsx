@@ -59,10 +59,7 @@ export function CalendarioClient({
 
   return (
     <>
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <p className="text-sm text-neutral-600">
-          Clicca su un impegno per modificarlo.
-        </p>
+      <div className="flex items-center justify-end gap-3 flex-wrap">
         <button
           type="button"
           onClick={() => setModal({ kind: "add" })}

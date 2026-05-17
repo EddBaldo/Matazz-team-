@@ -130,8 +130,10 @@ export default async function EventoProgrammaPage({ params }: Props) {
           Programma
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Costruisci il programma per giornata. Le voci dopo mezzanotte
-          (es. chiusura all&apos;01:30) restano nella giornata corrispondente.
+          La line-up delle giornate: questo è il programma pubblico che
+          comunicheremo all&apos;esterno. Tenetelo aggiornato — le info qui
+          dentro le useremo per flyer, social e tutto il resto della
+          comunicazione.
         </p>
       </div>
 

@@ -74,12 +74,7 @@ export function ArtistiPageClient({ eventoId, rows, rubrica, team }: Props) {
 
   return (
     <>
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <p className="text-sm text-neutral-600">
-          {rows.length === 0
-            ? "Aggiungi il primo artista per iniziare."
-            : "Clicca su una riga per modificare l'artista."}
-        </p>
+      <div className="flex items-center justify-end gap-3 flex-wrap">
         <button
           type="button"
           onClick={() => setAddOpen(true)}

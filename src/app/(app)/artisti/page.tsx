@@ -44,8 +44,9 @@ export default async function ArtistiPage() {
           Scouting Artisti
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Potenziali artisti per il futuro. Rubrica condivisa: aggiungi qui
-          chiunque potrebbe essere coinvolto in un evento.
+          Qui a tempo perso cerchiamo artisti interessanti da coinvolgere nei
+          prossimi eventi. Rubrica condivisa: aggiungete chiunque vi colpisca,
+          anche senza un evento specifico in mente.
         </p>
       </div>
 

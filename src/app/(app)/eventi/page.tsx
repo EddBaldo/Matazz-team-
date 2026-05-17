@@ -52,9 +52,6 @@ export default async function EventiPage() {
         <h2 className="text-4xl font-semibold tracking-tight text-neutral-900">
           Eventi
         </h2>
-        <p className="text-sm text-neutral-600 mt-1">
-          Tutti gli eventi di Matazz. Clicca su una card per aprire il dettaglio.
-        </p>
       </div>
 
       {eventiRes.error && (
