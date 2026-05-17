@@ -180,30 +180,46 @@ export function AppShell({ identityName, eventi, children }: Props) {
               const isActive =
                 pathname === link.href || pathname.startsWith(link.href + "/");
               const isEventiLink = link.href === "/eventi";
+              const eventiOpen = isEventiLink
+                ? isGroupOpen("Eventi", isActive)
+                : false;
 
               return (
                 <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    onClick={() => setSidebarOpen(false)}
-                    className={`flex items-center justify-between gap-2 px-3 py-2 rounded text-sm ${
+                  <div
+                    className={`flex items-center rounded text-sm ${
                       isActive
                         ? "bg-amber-100 text-amber-800 font-medium"
                         : "text-neutral-800 hover:bg-neutral-100"
                     }`}
                   >
-                    <span>{link.label}</span>
+                    <Link
+                      href={link.href}
+                      onClick={() => setSidebarOpen(false)}
+                      className="flex-1 px-3 py-2"
+                    >
+                      {link.label}
+                    </Link>
                     {isEventiLink && (
-                      <ChevronDown
-                        className={`w-4 h-4 transition-transform ${
-                          isActive ? "rotate-180" : ""
-                        }`}
-                      />
+                      <button
+                        type="button"
+                        onClick={() => toggleGroup("Eventi", isActive)}
+                        aria-label={
+                          eventiOpen ? "Chiudi menu eventi" : "Apri menu eventi"
+                        }
+                        className="px-2 py-2 text-current hover:text-neutral-900"
+                      >
+                        <ChevronDown
+                          className={`w-4 h-4 transition-transform ${
+                            eventiOpen ? "rotate-180" : ""
+                          }`}
+                        />
+                      </button>
                     )}
-                  </Link>
+                  </div>
 
                   {/* Sub-menu Eventi: se entri in un evento → tab interne; altrimenti → lista eventi */}
-                  {isEventiLink && isActive && currentEvento && (
+                  {isEventiLink && eventiOpen && currentEvento && (
                     <>
                       <div className="mt-1 ml-6 mb-0.5 px-3 py-1.5 text-sm font-medium text-neutral-800 truncate">
                         {currentEvento.nome}
@@ -237,7 +253,7 @@ export function AppShell({ identityName, eventi, children }: Props) {
                   )}
 
                   {isEventiLink &&
-                    isActive &&
+                    eventiOpen &&
                     !currentEvento &&
                     eventi.length > 0 && (
                       <ul className="mt-1 ml-6 space-y-0.5 border-l border-neutral-200 pl-3">

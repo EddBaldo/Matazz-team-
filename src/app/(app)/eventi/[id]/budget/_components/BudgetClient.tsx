@@ -15,9 +15,15 @@ type Props = {
   eventoId: string;
   uscite: BudgetLine[];
   entrate: BudgetLine[];
+  saldoConto: number;
 };
 
-export function BudgetClient({ eventoId, uscite, entrate }: Props) {
+export function BudgetClient({
+  eventoId,
+  uscite,
+  entrate,
+  saldoConto,
+}: Props) {
   // Stato locale delle stime (per immediate feedback)
   const [stimeUscite, setStimeUscite] = useState<Record<string, number>>(
     Object.fromEntries(uscite.map((l) => [l.chiave, l.stima])),
@@ -28,7 +34,8 @@ export function BudgetClient({ eventoId, uscite, entrate }: Props) {
 
   const totaleEffEntrate = entrate.reduce((s, l) => s + l.effettivo, 0);
   const totaleEffUscite = uscite.reduce((s, l) => s + l.effettivo, 0);
-  const saldoEffettivo = totaleEffEntrate - totaleEffUscite;
+  // Il saldo include il conto Matazz attuale: non partiamo da zero
+  const saldoEffettivo = saldoConto + totaleEffEntrate - totaleEffUscite;
 
   const totaleStimEntrate = Object.values(stimeEntrate).reduce(
     (s, v) => s + v,
@@ -38,7 +45,7 @@ export function BudgetClient({ eventoId, uscite, entrate }: Props) {
     (s, v) => s + v,
     0,
   );
-  const saldoStimato = totaleStimEntrate - totaleStimUscite;
+  const saldoStimato = saldoConto + totaleStimEntrate - totaleStimUscite;
 
   function updateStima(
     setter: typeof setStimeUscite,
@@ -57,6 +64,7 @@ export function BudgetClient({ eventoId, uscite, entrate }: Props) {
           entrate={totaleStimEntrate}
           uscite={totaleStimUscite}
           saldo={saldoStimato}
+          saldoConto={saldoConto}
           subtle
         />
         <SummaryColumn
@@ -64,6 +72,7 @@ export function BudgetClient({ eventoId, uscite, entrate }: Props) {
           entrate={totaleEffEntrate}
           uscite={totaleEffUscite}
           saldo={saldoEffettivo}
+          saldoConto={saldoConto}
         />
       </div>
 
@@ -95,6 +104,8 @@ export function BudgetClient({ eventoId, uscite, entrate }: Props) {
         I costi effettivi si calcolano automaticamente dalle altre tabelle
         (artisti, sponsor, F&amp;B, materiali, voci extra). Il budget è la
         nostra previsione editabile — clicca su un valore per modificarlo.
+        Il saldo finale include sempre il conto Matazz attuale (così vedete
+        dove saremo dopo l&apos;evento, non solo il netto dell&apos;evento).
       </p>
     </>
   );
@@ -105,12 +116,14 @@ function SummaryColumn({
   entrate,
   uscite,
   saldo,
+  saldoConto,
   subtle,
 }: {
   label: string;
   entrate: number;
   uscite: number;
   saldo: number;
+  saldoConto: number;
   subtle?: boolean;
 }) {
   return (
@@ -146,7 +159,7 @@ function SummaryColumn({
       </div>
       <div className="mt-4 pt-4 border-t border-neutral-100">
         <p className="text-[10px] uppercase tracking-wide text-neutral-400 font-medium">
-          Saldo
+          Saldo (include conto)
         </p>
         <p
           className={`text-3xl font-semibold tabular-nums mt-1 ${
@@ -154,6 +167,9 @@ function SummaryColumn({
           }`}
         >
           {formatMoney(saldo)}
+        </p>
+        <p className="text-[10px] text-neutral-400 mt-1 tabular-nums">
+          Conto Matazz: {formatMoney(saldoConto)}
         </p>
       </div>
     </div>
