@@ -3,7 +3,7 @@ import {
   EventiClient,
   type EventoCard,
 } from "./_components/EventiClient";
-import type { LocationOption } from "./_components/NuovoEventoModal";
+import type { LocationOption } from "./_components/EventoModal";
 
 type DbEvento = {
   id: string;
@@ -12,6 +12,7 @@ type DbEvento = {
   data_fine: string | null;
   stato: string;
   descrizione: string | null;
+  location_id: string | null;
   location: { nome: string; citta: string } | null;
   creato_da: { nome: string } | null;
 };
@@ -23,7 +24,7 @@ export default async function EventiPage() {
     sb
       .from("eventi")
       .select(
-        `id, nome, data_inizio, data_fine, stato, descrizione,
+        `id, nome, data_inizio, data_fine, stato, descrizione, location_id,
          location:locations(nome, citta),
          creato_da:team_matazz(nome)`,
       )
@@ -41,6 +42,7 @@ export default async function EventiPage() {
     data_fine: e.data_fine,
     stato: e.stato,
     descrizione: e.descrizione,
+    location_id: e.location_id,
     locationNome: e.location?.nome ?? null,
     locationCitta: e.location?.citta ?? null,
     creatoDaNome: e.creato_da?.nome ?? null,

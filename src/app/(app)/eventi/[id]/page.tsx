@@ -7,7 +7,6 @@ import {
   ListChecks,
   MapPin,
   Mic2,
-  Pencil,
   TrendingDown,
   TrendingUp,
   Users,
@@ -35,6 +34,8 @@ import {
 } from "@/lib/programma";
 import { CATEGORIA_DOT } from "@/lib/compiti";
 import { Pill } from "@/components/ui/Pill";
+import type { LocationOption } from "../_components/EventoModal";
+import { ModificaEventoButton } from "./_components/ModificaEventoButton";
 
 type Evento = {
   id: string;
@@ -43,6 +44,7 @@ type Evento = {
   data_fine: string | null;
   stato: string;
   descrizione: string | null;
+  location_id: string | null;
   location: { nome: string; citta: string } | null;
 };
 
@@ -94,7 +96,7 @@ export default async function EventoDashboardPage({
   const { data: eventoData } = await sb
     .from("eventi")
     .select(
-      `id, nome, data_inizio, data_fine, stato, descrizione,
+      `id, nome, data_inizio, data_fine, stato, descrizione, location_id,
        location:locations(nome, citta)`,
     )
     .eq("id", id)
@@ -102,6 +104,13 @@ export default async function EventoDashboardPage({
 
   if (!eventoData) notFound();
   const evento = eventoData as unknown as Evento;
+
+  // Lista location per il modal Modifica info
+  const { data: locsData } = await sb
+    .from("locations")
+    .select("id, nome, citta")
+    .order("nome");
+  const locations = (locsData ?? []) as LocationOption[];
 
   const today = new Date().toISOString().slice(0, 10);
   const [budget, saldoConto, artistiRes, personaleRes, giornateRes, vociRes, compitiRes] =
@@ -293,13 +302,18 @@ export default async function EventoDashboardPage({
             <Pill tone={stateTone}>{evento.stato}</Pill>
           </div>
         </div>
-        <Link
-          href={`/eventi/${id}/modifica`}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-900 text-white text-sm font-medium hover:bg-neutral-800 transition-colors"
-        >
-          <Pencil className="w-4 h-4" />
-          Modifica info
-        </Link>
+        <ModificaEventoButton
+          evento={{
+            id: evento.id,
+            nome: evento.nome,
+            data_inizio: evento.data_inizio,
+            data_fine: evento.data_fine,
+            location_id: evento.location_id,
+            stato: evento.stato,
+            descrizione: evento.descrizione,
+          }}
+          locations={locations}
+        />
       </div>
 
       {/* Riga 1: Budget + Programma a sinistra, Calendario alto a destra */}

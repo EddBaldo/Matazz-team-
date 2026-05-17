@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Plus, MapPin, Calendar } from "lucide-react";
+import { Plus, MapPin, Calendar, Pencil } from "lucide-react";
 import {
-  NuovoEventoModal,
+  EventoModal,
+  type EventoEdit,
   type LocationOption,
-} from "./NuovoEventoModal";
+} from "./EventoModal";
 
 const VALID_STATI = ["In pianificazione", "Concluso"] as const;
 const FILTRI = ["Tutti", ...VALID_STATI] as const;
@@ -23,6 +24,7 @@ export type EventoCard = {
   data_fine: string | null;
   stato: string;
   descrizione: string | null;
+  location_id: string | null;
   locationNome: string | null;
   locationCitta: string | null;
   creatoDaNome: string | null;
@@ -48,9 +50,23 @@ function formatRange(start: string, end: string | null): string {
   return `${s} → ${e}`;
 }
 
+function cardToEdit(c: EventoCard): EventoEdit {
+  return {
+    id: c.id,
+    nome: c.nome,
+    data_inizio: c.data_inizio,
+    data_fine: c.data_fine,
+    location_id: c.location_id,
+    stato: c.stato,
+    descrizione: c.descrizione,
+  };
+}
+
 export function EventiClient({ eventi, locations }: Props) {
   const [filtro, setFiltro] = useState<string>("Tutti");
-  const [addOpen, setAddOpen] = useState(false);
+  const [modal, setModal] = useState<
+    { kind: "add" } | { kind: "edit"; evento: EventoEdit } | null
+  >(null);
 
   const filtrati = useMemo(
     () =>
@@ -65,7 +81,7 @@ export function EventiClient({ eventi, locations }: Props) {
       <div className="flex items-center justify-end gap-3 flex-wrap">
         <button
           type="button"
-          onClick={() => setAddOpen(true)}
+          onClick={() => setModal({ kind: "add" })}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-900 text-white text-sm font-medium hover:bg-neutral-800"
         >
           <Plus className="w-4 h-4" />
@@ -104,62 +120,77 @@ export function EventiClient({ eventi, locations }: Props) {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {filtrati.map((e) => (
-            <Link
+            <div
               key={e.id}
-              href={`/eventi/${e.id}`}
-              className="group block rounded-3xl bg-white p-6 hover:-translate-y-0.5 transition-transform"
+              className="relative group rounded-3xl bg-white p-6 hover:-translate-y-0.5 transition-transform"
             >
-              <div className="flex items-start justify-between gap-3">
-                <h3 className="text-xl font-semibold text-neutral-900 truncate">
-                  {e.nome}
-                </h3>
+              <Link
+                href={`/eventi/${e.id}`}
+                aria-label={e.nome}
+                className="absolute inset-0 rounded-3xl z-0"
+              />
+              <button
+                type="button"
+                onClick={() => setModal({ kind: "edit", evento: cardToEdit(e) })}
+                aria-label={`Modifica ${e.nome}`}
+                className="absolute top-4 right-4 z-20 inline-flex items-center justify-center w-8 h-8 rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 transition-colors"
+              >
+                <Pencil className="w-4 h-4" />
+              </button>
+
+              <div className="relative z-10 pointer-events-none">
+                <div className="flex items-start justify-between gap-3 pr-10">
+                  <h3 className="text-xl font-semibold text-neutral-900 truncate">
+                    {e.nome}
+                  </h3>
+                </div>
                 <span
-                  className={`shrink-0 inline-block px-2 py-0.5 rounded-full text-[10px] font-medium ${
+                  className={`mt-2 inline-block px-2 py-0.5 rounded-full text-[10px] font-medium ${
                     STATO_BADGE[e.stato] ?? "bg-neutral-100 text-neutral-700"
                   }`}
                 >
                   {e.stato}
                 </span>
-              </div>
 
-              <div className="mt-3 space-y-1.5 text-sm text-neutral-700">
-                <p className="flex items-center gap-1.5">
-                  <Calendar className="w-4 h-4 text-neutral-500 shrink-0" />
-                  <span className="truncate">
-                    {formatRange(e.data_inizio, e.data_fine)}
-                  </span>
-                </p>
-                {e.locationNome && (
+                <div className="mt-3 space-y-1.5 text-sm text-neutral-700">
                   <p className="flex items-center gap-1.5">
-                    <MapPin className="w-4 h-4 text-neutral-500 shrink-0" />
+                    <Calendar className="w-4 h-4 text-neutral-500 shrink-0" />
                     <span className="truncate">
-                      {e.locationNome}
-                      {e.locationCitta ? ` (${e.locationCitta})` : ""}
+                      {formatRange(e.data_inizio, e.data_fine)}
                     </span>
+                  </p>
+                  {e.locationNome && (
+                    <p className="flex items-center gap-1.5">
+                      <MapPin className="w-4 h-4 text-neutral-500 shrink-0" />
+                      <span className="truncate">
+                        {e.locationNome}
+                        {e.locationCitta ? ` (${e.locationCitta})` : ""}
+                      </span>
+                    </p>
+                  )}
+                </div>
+
+                {e.descrizione && (
+                  <p className="text-sm text-neutral-600 mt-3 line-clamp-2">
+                    {e.descrizione}
+                  </p>
+                )}
+
+                {e.creatoDaNome && (
+                  <p className="text-xs text-neutral-400 mt-4 pt-3 border-t border-neutral-100">
+                    Aggiunto da {e.creatoDaNome}
                   </p>
                 )}
               </div>
-
-              {e.descrizione && (
-                <p className="text-sm text-neutral-600 mt-3 line-clamp-2">
-                  {e.descrizione}
-                </p>
-              )}
-
-              {e.creatoDaNome && (
-                <p className="text-xs text-neutral-400 mt-4 pt-3 border-t border-neutral-100">
-                  Aggiunto da {e.creatoDaNome}
-                </p>
-              )}
-            </Link>
+            </div>
           ))}
         </div>
       )}
 
-      <NuovoEventoModal
-        open={addOpen}
+      <EventoModal
+        mode={modal}
         locations={locations}
-        onClose={() => setAddOpen(false)}
+        onClose={() => setModal(null)}
       />
     </>
   );
