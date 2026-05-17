@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
-import { cambiaIdentita, logout } from "@/lib/auth/actions";
+import { cambiaIdentita } from "@/lib/auth/actions";
 import { EVENTO_TABS, extractEventoId } from "@/lib/evento-tabs";
 
 export type EventoLink = {
@@ -258,24 +258,16 @@ export function AppShell({ identityName, eventi, children }: Props) {
             })}
           </ul>
         </nav>
-        <div className="p-3 border-t border-neutral-200 flex items-end justify-between gap-2">
+        <div className="p-3 border-t border-neutral-200">
           <a
             href="https://matazz.ch"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Vai a matazz.ch"
-            className="font-glassure text-5xl leading-none text-neutral-900 hover:text-amber-700 transition-colors px-1 select-none"
+            className="font-glassure text-5xl leading-none text-neutral-900 hover:text-amber-700 transition-colors px-1 select-none inline-block"
           >
             m
           </a>
-          <form action={logout}>
-            <button
-              type="submit"
-              className="px-3 py-2 rounded text-sm text-neutral-600 hover:bg-red-50 hover:text-red-700"
-            >
-              Esci
-            </button>
-          </form>
         </div>
       </aside>
 
