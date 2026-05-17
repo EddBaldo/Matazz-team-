@@ -50,6 +50,11 @@ export function AppShell({ identityName, eventi, children }: Props) {
     ? eventi.find((e) => e.id === eventoId)
     : null;
 
+  // Home page: rendering a tutta pagina senza sidebar né header.
+  if (pathname === "/") {
+    return <>{children}</>;
+  }
+
   function toggleGroup(label: string, autoOpen: boolean) {
     setOpenGroups((prev) => {
       const current = prev[label] ?? autoOpen;

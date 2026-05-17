@@ -10,8 +10,8 @@ export default async function SelezionaIdentitaPage() {
 
   if (error || !membri) {
     return (
-      <main className="min-h-screen flex items-center justify-center p-4">
-        <p className="text-red-700">
+      <main className="min-h-screen flex items-center justify-center p-4 bg-neutral-50">
+        <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
           Errore nel caricamento dei membri del team.
         </p>
       </main>
@@ -19,21 +19,23 @@ export default async function SelezionaIdentitaPage() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-neutral-50 p-4 text-neutral-800">
-      <div className="w-full max-w-2xl">
-        <h1 className="text-xl font-medium text-center text-neutral-900">
-          Chi sei?
-        </h1>
-        <p className="text-sm text-neutral-700 text-center mt-1 mb-6">
-          Seleziona il tuo nome.
-        </p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+    <main className="min-h-screen flex flex-col items-center justify-center bg-neutral-50 p-6">
+      <div className="w-full max-w-3xl">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-semibold tracking-tight text-neutral-900">
+            Chi sei?
+          </h1>
+          <p className="text-sm text-neutral-600 mt-2">
+            Seleziona il tuo nome per continuare.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {membri.map((m) => (
             <form key={m.id} action={selezionaIdentita}>
               <input type="hidden" name="id" value={m.id} />
               <button
                 type="submit"
-                className="w-full py-6 bg-white border border-neutral-200 rounded-lg text-lg font-medium text-neutral-900 hover:bg-amber-50 hover:border-amber-400"
+                className="w-full py-6 bg-white rounded-3xl text-lg font-medium text-neutral-900 hover:-translate-y-0.5 transition-transform"
               >
                 {m.nome}
               </button>
