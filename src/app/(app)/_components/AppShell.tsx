@@ -265,7 +265,7 @@ export function AppShell({ identityName, eventi, children }: Props) {
             aria-label="Vai alla home"
             className="font-glassure text-5xl leading-none text-neutral-900 hover:text-amber-700 transition-colors px-1 select-none"
           >
-            M
+            m
           </Link>
           <form action={logout}>
             <button
