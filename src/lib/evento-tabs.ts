@@ -10,7 +10,7 @@ export const EVENTO_TABS: readonly EventoTab[] = [
   { label: "Tabella di marcia", segment: "/compiti" },
   { label: "Materiali", segment: "/materiali" },
   { label: "Voci extra", segment: "/voci-extra" },
-  { label: "Budget", segment: "/budget" },
+  { label: "Budget e Costi", segment: "/budget" },
 ];
 
 export function extractEventoId(pathname: string): string | null {

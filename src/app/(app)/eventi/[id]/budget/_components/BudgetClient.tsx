@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Wallet } from "lucide-react";
 import { formatMoney } from "@/lib/format";
 import { salvaStima } from "../actions";
 
@@ -15,9 +16,10 @@ type Props = {
   eventoId: string;
   uscite: BudgetLine[];
   entrate: BudgetLine[];
+  saldoConto: number;
 };
 
-export function BudgetClient({ eventoId, uscite, entrate }: Props) {
+export function BudgetClient({ eventoId, uscite, entrate, saldoConto }: Props) {
   // Stato locale delle stime (per immediate feedback)
   const [stimeUscite, setStimeUscite] = useState<Record<string, number>>(
     Object.fromEntries(uscite.map((l) => [l.chiave, l.stima])),
@@ -40,6 +42,9 @@ export function BudgetClient({ eventoId, uscite, entrate }: Props) {
   );
   const saldoStimato = totaleStimEntrate - totaleStimUscite;
 
+  // Conto dopo l'evento = saldo conto + saldo effettivo dell'evento
+  const contoDopoEvento = saldoConto + saldoEffettivo;
+
   function updateStima(
     setter: typeof setStimeUscite,
     chiave: string,
@@ -50,21 +55,61 @@ export function BudgetClient({ eventoId, uscite, entrate }: Props) {
 
   return (
     <>
-      {/* 2 card riepilogo: Stima | Effettivo */}
+      {/* 2 card riepilogo: Budget | Costi effettivi */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <SummaryColumn
-          label="Stima"
+          label="Budget"
           entrate={totaleStimEntrate}
           uscite={totaleStimUscite}
           saldo={saldoStimato}
           subtle
         />
         <SummaryColumn
-          label="Effettivo"
+          label="Costi effettivi"
           entrate={totaleEffEntrate}
           uscite={totaleEffUscite}
           saldo={saldoEffettivo}
         />
+      </div>
+
+      {/* Card Conto */}
+      <div className="rounded-3xl bg-[#F8F1DF] p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div>
+          <div className="flex items-center gap-2 text-neutral-700">
+            <Wallet className="w-4 h-4" />
+            <h3 className="text-sm font-medium uppercase tracking-wide text-neutral-500">
+              Conto Matazz attuale
+            </h3>
+          </div>
+          <p
+            className={`text-3xl font-semibold tabular-nums mt-2 ${
+              saldoConto >= 0 ? "text-neutral-900" : "text-red-600"
+            }`}
+          >
+            {formatMoney(saldoConto)}
+          </p>
+          <p className="text-xs text-neutral-500 mt-1">
+            Base da cui partiamo (somma dei movimenti del conto)
+          </p>
+        </div>
+        <div className="sm:border-l sm:border-neutral-300/60 sm:pl-6">
+          <div className="flex items-center gap-2 text-neutral-700">
+            <Wallet className="w-4 h-4" />
+            <h3 className="text-sm font-medium uppercase tracking-wide text-neutral-500">
+              Conto dopo l&apos;evento
+            </h3>
+          </div>
+          <p
+            className={`text-3xl font-semibold tabular-nums mt-2 ${
+              contoDopoEvento >= 0 ? "text-neutral-900" : "text-red-600"
+            }`}
+          >
+            {formatMoney(contoDopoEvento)}
+          </p>
+          <p className="text-xs text-neutral-500 mt-1">
+            Conto attuale + saldo costi effettivi dell&apos;evento
+          </p>
+        </div>
       </div>
 
       <BudgetTable
@@ -89,12 +134,17 @@ export function BudgetClient({ eventoId, uscite, entrate }: Props) {
         onStimaChange={(k, v) => updateStima(setStimeEntrate, k, v)}
         totaleEffettivo={totaleEffEntrate}
         totaleStimato={totaleStimEntrate}
+        extraInfoRow={{
+          label: "Conto (informativo)",
+          value: saldoConto,
+          hint: "Disponibile sul conto Matazz — non conteggiato nel totale entrate",
+        }}
       />
 
       <p className="text-xs text-neutral-500">
-        L&apos;effettivo si calcola automaticamente dalle altre tabelle
-        (artisti, sponsor, F&amp;B, materiali, voci extra). La stima è la tua
-        previsione editabile — clicca su un valore per modificarlo.
+        I costi effettivi si calcolano automaticamente dalle altre tabelle
+        (artisti, sponsor, F&amp;B, materiali, voci extra). Il budget è la
+        nostra previsione editabile — clicca su un valore per modificarlo.
       </p>
     </>
   );
@@ -170,6 +220,7 @@ function BudgetTable({
   onStimaChange,
   totaleEffettivo,
   totaleStimato,
+  extraInfoRow,
 }: {
   eventoId: string;
   title: string;
@@ -180,6 +231,7 @@ function BudgetTable({
   onStimaChange: (chiave: string, val: number) => void;
   totaleEffettivo: number;
   totaleStimato: number;
+  extraInfoRow?: { label: string; value: number; hint: string };
 }) {
   return (
     <section>
@@ -194,8 +246,8 @@ function BudgetTable({
           <thead className="border-b border-neutral-200">
             <tr>
               <Th align="left">Voce</Th>
-              <Th align="right">Stima</Th>
-              <Th align="right">Effettivo</Th>
+              <Th align="right">Budget</Th>
+              <Th align="right">Costi effettivi</Th>
             </tr>
           </thead>
           <tbody>
@@ -221,6 +273,24 @@ function BudgetTable({
                 </tr>
               );
             })}
+            {extraInfoRow && (
+              <tr className="border-b border-neutral-100 bg-[#F8F1DF]/40">
+                <td className="px-4 py-3">
+                  <div className="flex flex-col">
+                    <span className="text-neutral-800 italic">
+                      {extraInfoRow.label}
+                    </span>
+                    <span className="text-[10px] text-neutral-500 italic">
+                      {extraInfoRow.hint}
+                    </span>
+                  </div>
+                </td>
+                <td className="px-4 py-3" />
+                <td className="px-4 py-3 text-right tabular-nums text-neutral-700 italic">
+                  {formatMoney(extraInfoRow.value)}
+                </td>
+              </tr>
+            )}
           </tbody>
           <tfoot className="border-t border-neutral-200 bg-neutral-50">
             <tr>

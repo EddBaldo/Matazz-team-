@@ -28,6 +28,7 @@ const NAV_LINKS: NavLink[] = [
   { href: "/eventi", label: "Eventi" },
   { href: "/calendario", label: "Calendario" },
   { label: "Scouting", children: SCOUTING_CHILDREN },
+  { href: "/conto", label: "Conto" },
   { href: "/inventario", label: "Inventario" },
 ];
 

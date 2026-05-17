@@ -310,7 +310,7 @@ export default async function EventoDashboardPage({
                 <div className="flex items-center gap-2 text-neutral-700">
                   <Wallet className="w-4 h-4" />
                   <h3 className="text-sm font-medium uppercase tracking-wide text-neutral-500">
-                    Budget
+                    Budget e Costi
                   </h3>
                 </div>
                 <ChevronRight className="w-5 h-5 text-neutral-400 group-hover:text-neutral-900 transition-colors" />

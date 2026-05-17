@@ -1,4 +1,5 @@
 import { createServerClient } from "@/lib/supabase/server";
+import { getSaldoConto } from "@/lib/conto";
 import {
   BudgetClient,
   type BudgetLine,
@@ -238,22 +239,29 @@ export default async function EventoBudgetPage({ params }: Props) {
     },
   ];
 
+  const saldoConto = await getSaldoConto();
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-4xl font-semibold tracking-tight text-neutral-900">
-          Budget
+          Budget e Costi
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Il quadro economico dell&apos;evento, stima contro effettivo. La
-          stima è la nostra previsione editabile a mano; l&apos;effettivo si
-          aggiorna automaticamente man mano che riempite artisti, sponsor,
-          food &amp; beverage, materiali e voci extra. Più tenete in ordine
-          quelle pagine, più questa diventa precisa.
+          Il quadro economico dell&apos;evento: budget previsto contro costi
+          effettivi. Il budget è la nostra previsione editabile a mano; i
+          costi effettivi si aggiornano automaticamente man mano che riempite
+          artisti, sponsor, food &amp; beverage, materiali e voci extra. Più
+          tenete in ordine quelle pagine, più questa diventa precisa.
         </p>
       </div>
 
-      <BudgetClient eventoId={id} uscite={uscite} entrate={entrate} />
+      <BudgetClient
+        eventoId={id}
+        uscite={uscite}
+        entrate={entrate}
+        saldoConto={saldoConto}
+      />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import {
   Handshake,
   Users,
   Boxes,
+  Wallet,
 } from "lucide-react";
 import { requireCurrentIdentity } from "@/lib/auth/identity";
 import { cambiaIdentita, logout } from "@/lib/auth/actions";
@@ -24,6 +25,7 @@ const TILES: Tile[] = [
   { href: "/locations", label: "Scouting Location", Icon: MapPin },
   { href: "/sponsor", label: "Scouting Sponsor", Icon: Handshake },
   { href: "/personale", label: "Scouting Staff", Icon: Users },
+  { href: "/conto", label: "Conto", Icon: Wallet },
   { href: "/inventario", label: "Inventario", Icon: Boxes },
 ];
 
