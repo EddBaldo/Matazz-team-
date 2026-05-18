@@ -66,15 +66,19 @@ export function CompitiClient({
   defaultDateForNew,
 }: Props) {
   const [modal, setModal] = useState<ModalState>(null);
-  const [filtroTeam, setFiltroTeam] = useState<Set<string>>(new Set());
+  // Set dei team attualmente visibili (chip colorato).
+  // Default: tutti attivi, come nel calendario.
+  const [teamVisibili, setTeamVisibili] = useState<Set<string>>(
+    new Set(CATEGORIE_COMPITI),
+  );
 
   const fatti = rows.filter((r) => r.fatto).length;
   const totali = rows.length;
 
-  const filteredRows =
-    filtroTeam.size === 0
-      ? rows
-      : rows.filter((r) => r.categoria && filtroTeam.has(r.categoria));
+  const filteredRows = rows.filter((r) => {
+    if (!r.categoria) return true;
+    return teamVisibili.has(r.categoria);
+  });
 
   // Raggruppa per data, ordinata cronologicamente
   const grouped = new Map<string, CompitoRow[]>();
@@ -93,7 +97,7 @@ export function CompitiClient({
     }));
 
   function toggleTeam(cat: string) {
-    setFiltroTeam((prev) => {
+    setTeamVisibili((prev) => {
       const next = new Set(prev);
       if (next.has(cat)) next.delete(cat);
       else next.add(cat);
@@ -124,7 +128,7 @@ export function CompitiClient({
       {totali > 0 && (
         <div className="flex flex-wrap gap-2">
           {CATEGORIE_COMPITI.map((t) => {
-            const isActive = filtroTeam.has(t);
+            const isActive = teamVisibili.has(t);
             return (
               <button
                 key={t}
