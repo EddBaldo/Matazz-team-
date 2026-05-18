@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, TrendingUp, TrendingDown } from "lucide-react";
+import { Plus } from "lucide-react";
 import { formatMoney } from "@/lib/format";
 import { VoceExtraModal, type VoceExtraEdit } from "./VoceExtraModal";
 
@@ -15,13 +15,6 @@ export function VociExtraClient({ eventoId, rows }: Props) {
     { kind: "add" } | { kind: "edit"; voce: VoceExtraEdit } | null
   >(null);
 
-  const totaleEntrate = rows
-    .filter((r) => r.tipo === "Entrata")
-    .reduce((s, r) => s + Number(r.importo), 0);
-  const totaleUscite = rows
-    .filter((r) => r.tipo === "Uscita")
-    .reduce((s, r) => s + Number(r.importo), 0);
-
   return (
     <>
       <div className="flex items-center justify-end gap-3 flex-wrap">
@@ -34,33 +27,6 @@ export function VociExtraClient({ eventoId, rows }: Props) {
           Aggiungi voce
         </button>
       </div>
-
-      {rows.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="rounded-2xl bg-white p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-neutral-500 font-medium">
-                Totale entrate
-              </p>
-              <p className="text-2xl font-semibold text-green-700 tabular-nums mt-1">
-                {formatMoney(totaleEntrate)}
-              </p>
-            </div>
-            <TrendingUp className="w-6 h-6 text-green-600" />
-          </div>
-          <div className="rounded-2xl bg-white p-4 flex items-center justify-between">
-            <div>
-              <p className="text-xs uppercase tracking-wide text-neutral-500 font-medium">
-                Totale uscite
-              </p>
-              <p className="text-2xl font-semibold text-red-700 tabular-nums mt-1">
-                {formatMoney(totaleUscite)}
-              </p>
-            </div>
-            <TrendingDown className="w-6 h-6 text-red-500" />
-          </div>
-        </div>
-      )}
 
       {rows.length === 0 ? (
         <div className="rounded-3xl bg-white p-8 text-center">
