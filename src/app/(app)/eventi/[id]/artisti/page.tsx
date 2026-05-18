@@ -89,6 +89,18 @@ export default async function EventoArtistiPage({ params }: Props) {
           aggiornate tutte le voci (fee, alloggio, intolleranze) — sono le
           stesse informazioni che useremo per produzione e logistica.
         </p>
+        <p className="text-sm text-neutral-600 mt-2">
+          Documenti, proposal e info raccolti sugli artisti vivono qui:{" "}
+          <a
+            href="https://drive.google.com/drive/u/0/folders/1RlUrxRrUEDyvflQVbYjefuio-eXkUVzT"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-amber-700 hover:text-amber-800 underline"
+          >
+            cartella Google Drive
+          </a>
+          .
+        </p>
       </div>
 
       {evArtRes.error && (
