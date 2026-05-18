@@ -58,8 +58,8 @@ export default async function ScoutingPage() {
           Scouting
         </h2>
         <p className="text-sm text-neutral-600 mt-2 max-w-xl">
-          La rubrica permanente del collettivo: persone, posti e contatti che
-          riusiamo a ogni evento.
+          Il lavoro di ricerca: scoviamo nuovi artisti, location, sponsor e
+          collaboratori e li teniamo in rubrica per i prossimi eventi.
         </p>
       </div>
 

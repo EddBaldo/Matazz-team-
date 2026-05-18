@@ -23,7 +23,17 @@ const NAV_LINKS: NavItem[] = [
   { href: "/inventario", label: "Inventario" },
 ];
 
-const SCOUTING_PREFIXES = ["/scouting", "/artisti", "/locations", "/sponsor", "/personale"];
+const SCOUTING_CHILDREN: NavItem[] = [
+  { href: "/artisti", label: "Artisti" },
+  { href: "/locations", label: "Location" },
+  { href: "/sponsor", label: "Sponsor" },
+  { href: "/personale", label: "Staff" },
+];
+
+const SCOUTING_PREFIXES = [
+  "/scouting",
+  ...SCOUTING_CHILDREN.map((c) => c.href),
+];
 
 function isScoutingActive(pathname: string): boolean {
   return SCOUTING_PREFIXES.some(
@@ -52,6 +62,17 @@ export function AppShell({ identityName, eventi, children }: Props) {
       );
     }
   }, [eventoId]);
+
+  // Stessa cosa per Scouting: se sono in una delle sue sezioni, apro
+  // il sotto-menu così vedo subito tutte le scelte.
+  const scoutingActive = isScoutingActive(pathname);
+  useEffect(() => {
+    if (scoutingActive) {
+      setOpenGroups((prev) =>
+        prev.Scouting ? prev : { ...prev, Scouting: true },
+      );
+    }
+  }, [scoutingActive]);
 
   // Home page: rendering a tutta pagina senza sidebar né header.
   if (pathname === "/") {
@@ -133,8 +154,11 @@ export function AppShell({ identityName, eventi, children }: Props) {
                   : pathname === link.href ||
                     pathname.startsWith(link.href + "/");
               const isEventiLink = link.href === "/eventi";
-              const eventiOpen = isEventiLink
-                ? isGroupOpen("Eventi", isActive)
+              const isScoutingLink = link.href === "/scouting";
+              const hasSubmenu = isEventiLink || isScoutingLink;
+              const submenuLabel = isEventiLink ? "Eventi" : "Scouting";
+              const submenuOpen = hasSubmenu
+                ? isGroupOpen(submenuLabel, isActive)
                 : false;
 
               return (
@@ -153,27 +177,55 @@ export function AppShell({ identityName, eventi, children }: Props) {
                     >
                       {link.label}
                     </Link>
-                    {isEventiLink && (
+                    {hasSubmenu && (
                       <button
                         type="button"
-                        onClick={() => toggleGroup("Eventi", isActive)}
+                        onClick={() => toggleGroup(submenuLabel, isActive)}
                         aria-label={
-                          eventiOpen ? "Chiudi menu eventi" : "Apri menu eventi"
+                          submenuOpen
+                            ? `Chiudi menu ${submenuLabel.toLowerCase()}`
+                            : `Apri menu ${submenuLabel.toLowerCase()}`
                         }
                         className="px-2 py-2 text-current hover:text-neutral-900"
                       >
                         <ChevronDown
                           className={`w-4 h-4 transition-transform ${
-                            eventiOpen ? "rotate-180" : ""
+                            submenuOpen ? "rotate-180" : ""
                           }`}
                         />
                       </button>
                     )}
                   </div>
 
+                  {/* Sub-menu Scouting: le 4 sezioni di ricerca. */}
+                  {isScoutingLink && submenuOpen && (
+                    <ul className="mt-1 ml-6 space-y-0.5 border-l border-neutral-200 pl-3">
+                      {SCOUTING_CHILDREN.map((c) => {
+                        const cActive =
+                          pathname === c.href ||
+                          pathname.startsWith(c.href + "/");
+                        return (
+                          <li key={c.href}>
+                            <Link
+                              href={c.href}
+                              onClick={() => setSidebarOpen(false)}
+                              className={`block px-3 py-1.5 rounded text-sm ${
+                                cActive
+                                  ? "bg-amber-50 text-amber-800 font-medium"
+                                  : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
+                              }`}
+                            >
+                              {c.label}
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+
                   {/* Sub-menu Eventi: sempre la lista di tutti gli eventi.
                       Per quello attualmente aperto, tab nestati sotto. */}
-                  {isEventiLink && eventiOpen && eventi.length > 0 && (
+                  {isEventiLink && submenuOpen && eventi.length > 0 && (
                     <ul className="mt-1 ml-6 space-y-0.5 border-l border-neutral-200 pl-3">
                       {eventi.map((e) => {
                         const eventoActive = eventoId === e.id;
