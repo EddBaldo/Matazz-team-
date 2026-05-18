@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { CONDIZIONI, CONDIZIONE_BADGE, CONDIZIONE_EMOJI } from "@/lib/inventario";
+import { CONDIZIONE_BADGE } from "@/lib/inventario";
 import { InventarioModal, type InventarioEdit } from "./InventarioModal";
 
 export type InventarioRow = InventarioEdit & {
@@ -18,23 +18,9 @@ export function InventarioClient({ rows }: Props) {
     { kind: "add" } | { kind: "edit"; articolo: InventarioEdit } | null
   >(null);
 
-  const grouped = new Map<string, InventarioRow[]>();
-  for (const r of rows) {
-    const c = r.condizione || "Buono";
-    const bucket = grouped.get(c) ?? [];
-    bucket.push(r);
-    grouped.set(c, bucket);
-  }
-  for (const bucket of grouped.values()) {
-    bucket.sort((a, b) => a.articolo.localeCompare(b.articolo, "it"));
-  }
-
-  const orderedCondizioni = [
-    ...CONDIZIONI.filter((c) => grouped.has(c)),
-    ...[...grouped.keys()]
-      .filter((c) => !(CONDIZIONI as readonly string[]).includes(c))
-      .sort((a, b) => a.localeCompare(b, "it")),
-  ];
+  const sorted = [...rows].sort((a, b) =>
+    a.articolo.localeCompare(b.articolo, "it"),
+  );
 
   return (
     <>
@@ -49,36 +35,15 @@ export function InventarioClient({ rows }: Props) {
         </button>
       </div>
 
-      {rows.length === 0 ? (
+      {sorted.length === 0 ? (
         <div className="rounded-3xl bg-white p-8 text-center">
           <p className="text-neutral-600">Nessun articolo in inventario.</p>
         </div>
       ) : (
-        <div className="space-y-5">
-          {orderedCondizioni.map((cond) => {
-            const bucket = grouped.get(cond);
-            if (!bucket || bucket.length === 0) return null;
-            const emoji = CONDIZIONE_EMOJI[cond] ?? "📦";
-            const totalQty = bucket.reduce((s, r) => s + (r.quantita || 0), 0);
-            return (
-              <section key={cond}>
-                <h3 className="text-base font-semibold text-neutral-900 mb-2 flex items-baseline gap-2">
-                  <span aria-hidden>{emoji}</span>
-                  <span>{cond}</span>
-                  <span className="text-sm text-neutral-500 font-normal">
-                    ({bucket.length} {bucket.length === 1 ? "articolo" : "articoli"} · {totalQty} pz)
-                  </span>
-                </h3>
-                <InventarioTable
-                  rows={bucket}
-                  onRowClick={(r) =>
-                    setModal({ kind: "edit", articolo: r })
-                  }
-                />
-              </section>
-            );
-          })}
-        </div>
+        <InventarioTable
+          rows={sorted}
+          onRowClick={(r) => setModal({ kind: "edit", articolo: r })}
+        />
       )}
 
       <InventarioModal mode={modal} onClose={() => setModal(null)} />
