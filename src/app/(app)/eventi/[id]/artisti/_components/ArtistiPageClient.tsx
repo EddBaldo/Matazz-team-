@@ -9,7 +9,11 @@ import {
   macroFromTipoArte,
   type MacroTipoArte,
 } from "@/lib/artisti";
-import { toggleConfermaR } from "../actions";
+import {
+  toggleConfermaR,
+  toggleDocMandatiR,
+  toggleEventoArtistaBoolR,
+} from "../actions";
 import {
   AggiungiArtistaModal,
   type ArtistaRubrica,
@@ -34,14 +38,6 @@ type Props = {
   team: TeamMember[];
 };
 
-const DOC_MANDATI_BADGE: Record<string, string> = {
-  Sì: "bg-green-100 text-green-800",
-  "Non ancora": "bg-amber-100 text-amber-800",
-};
-
-function boolBadgeClass(v: boolean) {
-  return v ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800";
-}
 
 export function ArtistiPageClient({ eventoId, rows, rubrica, team }: Props) {
   const [editing, setEditing] = useState<EventoArtistaEdit | null>(null);
@@ -255,27 +251,44 @@ function ArtistaRowItem({
         {row.chiContattoNome ?? "—"}
       </td>
       <td className="px-4 py-3">
-        <span
-          className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-            DOC_MANDATI_BADGE[row.doc_mandati] ?? ""
-          }`}
-        >
-          {row.doc_mandati}
-        </span>
+        <ToggleBadge
+          on={row.doc_mandati === "Sì"}
+          onClick={async () => {
+            await toggleDocMandatiR(
+              eventoId,
+              row.id,
+              row.doc_mandati === "Sì" ? "Non ancora" : "Sì",
+            );
+          }}
+          labelOn="Sì"
+          labelOff="Non ancora"
+        />
       </td>
       <td className="px-4 py-3">
-        <span
-          className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${boolBadgeClass(row.doc_info_artisti)}`}
-        >
-          {row.doc_info_artisti ? "Sì" : "No"}
-        </span>
+        <ToggleBadge
+          on={row.doc_info_artisti}
+          onClick={async () => {
+            await toggleEventoArtistaBoolR(
+              eventoId,
+              row.id,
+              "doc_info_artisti",
+              !row.doc_info_artisti,
+            );
+          }}
+        />
       </td>
       <td className="px-4 py-3">
-        <span
-          className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${boolBadgeClass(row.doc_proposal)}`}
-        >
-          {row.doc_proposal ? "Sì" : "No"}
-        </span>
+        <ToggleBadge
+          on={row.doc_proposal}
+          onClick={async () => {
+            await toggleEventoArtistaBoolR(
+              eventoId,
+              row.id,
+              "doc_proposal",
+              !row.doc_proposal,
+            );
+          }}
+        />
       </td>
       <td className="px-4 py-3 text-neutral-900 text-right tabular-nums">
         {row.artist_fee != null ? formatMoney(Number(row.artist_fee)) : "—"}
@@ -286,8 +299,18 @@ function ArtistaRowItem({
           : "—"}
       </td>
       <td className="px-4 py-3 text-neutral-700">{row.ingombro ?? "—"}</td>
-      <td className="px-4 py-3 text-center text-neutral-700">
-        {row.necessita_alloggio ? "Sì" : "No"}
+      <td className="px-4 py-3 text-center">
+        <ToggleBadge
+          on={row.necessita_alloggio}
+          onClick={async () => {
+            await toggleEventoArtistaBoolR(
+              eventoId,
+              row.id,
+              "necessita_alloggio",
+              !row.necessita_alloggio,
+            );
+          }}
+        />
       </td>
       <td className="px-4 py-3 text-neutral-700">
         {row.intolleranze_cibo ?? "—"}
@@ -313,5 +336,38 @@ function ArtistaRowItem({
         </button>
       </td>
     </tr>
+  );
+}
+
+function ToggleBadge({
+  on,
+  onClick,
+  labelOn = "Sì",
+  labelOff = "No",
+}: {
+  on: boolean;
+  onClick: () => Promise<void> | void;
+  labelOn?: string;
+  labelOff?: string;
+}) {
+  const [pending, startTransition] = useTransition();
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        startTransition(async () => {
+          await onClick();
+        });
+      }}
+      disabled={pending}
+      className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium transition-colors disabled:opacity-50 cursor-pointer ${
+        on
+          ? "bg-green-100 text-green-800 hover:bg-green-200"
+          : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+      }`}
+    >
+      {on ? labelOn : labelOff}
+    </button>
   );
 }

@@ -116,10 +116,6 @@ export async function creaENuovoArtista(
 
 export type EventoArtistaInput = {
   chi_contatto_id: string | null;
-  doc_mandati: string;
-  doc_info_artisti: boolean;
-  doc_proposal: boolean;
-  necessita_alloggio: boolean;
   info_alloggio: string | null;
   ingombro: string | null;
   costi_produzione: string | null;
@@ -135,18 +131,11 @@ export async function aggiornaEventoArtistaR(
 ): Promise<ActionResult> {
   await requireCurrentIdentity();
 
-  if (!(DOC_MANDATI_VALIDI as readonly string[]).includes(input.doc_mandati))
-    return { ok: false, error: "Doc mandati non valido." };
-
   const sb = createServerClient();
   const { error } = await sb
     .from("evento_artisti")
     .update({
       chi_contatto_id: input.chi_contatto_id || null,
-      doc_mandati: input.doc_mandati,
-      doc_info_artisti: input.doc_info_artisti,
-      doc_proposal: input.doc_proposal,
-      necessita_alloggio: input.necessita_alloggio,
       info_alloggio: trimOrNull(input.info_alloggio),
       ingombro: trimOrNull(input.ingombro),
       costi_produzione: toNumberOrDefault(input.costi_produzione, 0),
@@ -186,6 +175,64 @@ export async function toggleConfermaR(
     return { ok: false, error: "Errore. Riprova." };
   }
 
+  revalidatePath(`/eventi/${eventoId}/artisti`);
+  revalidatePath(`/eventi/${eventoId}`);
+  return { ok: true };
+}
+
+type ToggleField = "doc_info_artisti" | "doc_proposal" | "necessita_alloggio";
+
+export async function toggleEventoArtistaBoolR(
+  eventoId: string,
+  evArtId: string,
+  field: ToggleField,
+  value: boolean,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const allowed: ToggleField[] = [
+    "doc_info_artisti",
+    "doc_proposal",
+    "necessita_alloggio",
+  ];
+  if (!allowed.includes(field))
+    return { ok: false, error: "Campo non valido." };
+
+  const sb = createServerClient();
+  const { error } = await sb
+    .from("evento_artisti")
+    .update({ [field]: value })
+    .eq("id", evArtId)
+    .eq("evento_id", eventoId);
+
+  if (error) {
+    console.error("Errore toggle bool:", error);
+    return { ok: false, error: "Errore. Riprova." };
+  }
+  revalidatePath(`/eventi/${eventoId}/artisti`);
+  revalidatePath(`/eventi/${eventoId}`);
+  return { ok: true };
+}
+
+export async function toggleDocMandatiR(
+  eventoId: string,
+  evArtId: string,
+  value: "Sì" | "Non ancora",
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  if (!(DOC_MANDATI_VALIDI as readonly string[]).includes(value))
+    return { ok: false, error: "Valore non valido." };
+
+  const sb = createServerClient();
+  const { error } = await sb
+    .from("evento_artisti")
+    .update({ doc_mandati: value })
+    .eq("id", evArtId)
+    .eq("evento_id", eventoId);
+
+  if (error) {
+    console.error("Errore toggle doc mandati:", error);
+    return { ok: false, error: "Errore. Riprova." };
+  }
   revalidatePath(`/eventi/${eventoId}/artisti`);
   revalidatePath(`/eventi/${eventoId}`);
   return { ok: true };

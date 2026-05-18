@@ -15,8 +15,6 @@ import {
 const INPUT_CLASS =
   "w-full px-3 py-2 border border-neutral-300 rounded-lg text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-amber-500";
 
-const DOC_MANDATI = ["Sì", "Non ancora"];
-
 export type EventoArtistaEdit = {
   id: string;
   chi_contatto_id: string | null;
@@ -57,9 +55,7 @@ export function ModificaArtistaModal({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [confermato, setConfermato] = useState<boolean>(false);
-  const [necessitaAlloggio, setNecessitaAlloggio] = useState<boolean>(false);
   const [chiContattoId, setChiContattoId] = useState<string>("");
-  const [docMandati, setDocMandati] = useState<string>("Non ancora");
   const [editAnagrafica, setEditAnagrafica] = useState<boolean>(false);
   const [savingAnagrafica, startSaveAnagrafica] = useTransition();
   const [editNome, setEditNome] = useState<string>("");
@@ -76,9 +72,7 @@ export function ModificaArtistaModal({
     if (artista) {
       setError(null);
       setConfermato(artista.confermato);
-      setNecessitaAlloggio(artista.necessita_alloggio);
       setChiContattoId(artista.chi_contatto_id ?? "");
-      setDocMandati(artista.doc_mandati);
       setEditAnagrafica(false);
       setEditNome(artista.artistaNome);
       setEditCognome(artista.artistaCognome);
@@ -100,10 +94,6 @@ export function ModificaArtistaModal({
     const fd = new FormData(e.currentTarget);
     const input: EventoArtistaInput = {
       chi_contatto_id: chiContattoId || null,
-      doc_mandati: docMandati || "Non ancora",
-      doc_info_artisti: fd.get("doc_info_artisti") === "on",
-      doc_proposal: fd.get("doc_proposal") === "on",
-      necessita_alloggio: necessitaAlloggio,
       info_alloggio: (fd.get("info_alloggio") as string) || null,
       ingombro: (fd.get("ingombro") as string) || null,
       costi_produzione: (fd.get("costi_produzione") as string) || null,
@@ -311,60 +301,15 @@ export function ModificaArtistaModal({
             />
           </Field>
 
-          <Field label="Documenti mandati">
-            <Select
-              value={docMandati}
-              onChange={setDocMandati}
-              options={DOC_MANDATI.map((s) => ({ value: s, label: s }))}
+          <Field label="Info alloggio (se serve)">
+            <textarea
+              name="info_alloggio"
+              rows={2}
+              defaultValue={artista.info_alloggio ?? ""}
+              className={INPUT_CLASS}
+              placeholder="Dettagli sull'alloggio se Necessita alloggio è acceso nella tabella."
             />
           </Field>
-
-          <div>
-            <span className="text-sm font-medium text-neutral-800">
-              Documenti ricevuti
-            </span>
-            <div className="grid grid-cols-2 gap-2 mt-1.5">
-              <label className="flex items-center gap-2 text-sm text-neutral-800">
-                <input
-                  type="checkbox"
-                  name="doc_info_artisti"
-                  defaultChecked={artista.doc_info_artisti}
-                  className="w-4 h-4 rounded border-neutral-300 text-amber-600 focus:ring-amber-500"
-                />
-                Info artisti
-              </label>
-              <label className="flex items-center gap-2 text-sm text-neutral-800">
-                <input
-                  type="checkbox"
-                  name="doc_proposal"
-                  defaultChecked={artista.doc_proposal}
-                  className="w-4 h-4 rounded border-neutral-300 text-amber-600 focus:ring-amber-500"
-                />
-                Proposal
-              </label>
-            </div>
-          </div>
-
-          <label className="flex items-center gap-2 text-sm text-neutral-800">
-            <input
-              type="checkbox"
-              checked={necessitaAlloggio}
-              onChange={(e) => setNecessitaAlloggio(e.target.checked)}
-              className="w-4 h-4 rounded border-neutral-300 text-amber-600 focus:ring-amber-500"
-            />
-            Necessita alloggio
-          </label>
-
-          {necessitaAlloggio && (
-            <Field label="Info alloggio">
-              <textarea
-                name="info_alloggio"
-                rows={2}
-                defaultValue={artista.info_alloggio ?? ""}
-                className={INPUT_CLASS}
-              />
-            </Field>
-          )}
 
           <Field label="Ingombro opera">
             <input
