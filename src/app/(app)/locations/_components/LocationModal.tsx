@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { X, Trash2 } from "lucide-react";
 import { STATI_LOCATION } from "@/lib/locations";
+import { Select } from "@/components/ui/Select";
 import {
   aggiornaLocationR,
   creaLocationR,
@@ -49,12 +50,14 @@ export function LocationModal({ mode, onClose }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [stato, setStato] = useState<string>("Svizzera");
 
   useEffect(() => {
     const dlg = dialogRef.current;
     if (!dlg) return;
     if (mode) {
       setError(null);
+      setStato(mode.kind === "edit" ? mode.location.stato : "Svizzera");
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
       dlg.close();
@@ -74,7 +77,7 @@ export function LocationModal({ mode, onClose }: Props) {
     const input: LocationInput = {
       nome: String(fd.get("nome") ?? ""),
       citta: String(fd.get("citta") ?? ""),
-      stato: String(fd.get("stato") ?? ""),
+      stato,
       indirizzo: (fd.get("indirizzo") as string) || null,
       capienza: parseOptionalInt(fd.get("capienza")),
       contatti_referente: (fd.get("contatti_referente") as string) || null,
@@ -156,22 +159,18 @@ export function LocationModal({ mode, onClose }: Props) {
               />
             </Field>
             <Field label="Stato" required>
-              <select
-                name="stato"
+              <Select
+                value={stato}
+                onChange={setStato}
                 required
-                defaultValue={l?.stato ?? "Svizzera"}
-                className={INPUT_CLASS}
-              >
-                {l &&
-                  !(STATI_LOCATION as readonly string[]).includes(l.stato) && (
-                    <option value={l.stato}>{l.stato}</option>
-                  )}
-                {STATI_LOCATION.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  ...(l &&
+                  !(STATI_LOCATION as readonly string[]).includes(l.stato)
+                    ? [{ value: l.stato, label: `${l.stato} (vecchio)` }]
+                    : []),
+                  ...STATI_LOCATION.map((s) => ({ value: s, label: s })),
+                ]}
+              />
             </Field>
           </div>
 

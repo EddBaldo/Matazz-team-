@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { X, Trash2 } from "lucide-react";
 import { CATEGORIE_PERSONALE } from "@/lib/personale";
+import { Select } from "@/components/ui/Select";
 import {
   aggiornaPersonaleR,
   creaPersonaleR,
@@ -34,12 +35,14 @@ export function PersonaleModal({ mode, onClose }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [categoria, setCategoria] = useState<string>("");
 
   useEffect(() => {
     const dlg = dialogRef.current;
     if (!dlg) return;
     if (mode) {
       setError(null);
+      setCategoria(mode.kind === "edit" ? mode.persona.categoria : "");
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
       dlg.close();
@@ -60,7 +63,7 @@ export function PersonaleModal({ mode, onClose }: Props) {
       nome: String(fd.get("nome") ?? ""),
       cognome: String(fd.get("cognome") ?? ""),
       ruolo_principale: String(fd.get("ruolo_principale") ?? ""),
-      categoria: String(fd.get("categoria") ?? ""),
+      categoria,
       contatti: (fd.get("contatti") as string) || null,
       note: (fd.get("note") as string) || null,
     };
@@ -143,28 +146,20 @@ export function PersonaleModal({ mode, onClose }: Props) {
           </div>
 
           <Field label="Categoria" required>
-            <select
-              name="categoria"
+            <Select
+              value={categoria}
+              onChange={setCategoria}
               required
-              defaultValue={p?.categoria ?? ""}
-              className={INPUT_CLASS}
-            >
-              <option value="" disabled>
-                — Scegli —
-              </option>
-              {p &&
+              placeholder="— Scegli —"
+              options={[
+                ...(p &&
                 p.categoria &&
-                !(CATEGORIE_PERSONALE as readonly string[]).includes(
-                  p.categoria,
-                ) && (
-                  <option value={p.categoria}>{p.categoria} (vecchio)</option>
-                )}
-              {CATEGORIE_PERSONALE.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </select>
+                !(CATEGORIE_PERSONALE as readonly string[]).includes(p.categoria)
+                  ? [{ value: p.categoria, label: `${p.categoria} (vecchio)` }]
+                  : []),
+                ...CATEGORIE_PERSONALE.map((c) => ({ value: c, label: c })),
+              ]}
+            />
           </Field>
 
           <Field label="Ruolo principale" required>

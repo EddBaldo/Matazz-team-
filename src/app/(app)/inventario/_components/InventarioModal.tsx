@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { X, Trash2 } from "lucide-react";
 import { CONDIZIONI } from "@/lib/inventario";
+import { Select } from "@/components/ui/Select";
 import {
   aggiornaInventarioR,
   creaInventarioR,
@@ -39,12 +40,14 @@ export function InventarioModal({ mode, onClose }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [condizione, setCondizione] = useState<string>("Buono");
 
   useEffect(() => {
     const dlg = dialogRef.current;
     if (!dlg) return;
     if (mode) {
       setError(null);
+      setCondizione(mode.kind === "edit" ? mode.articolo.condizione : "Buono");
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
       dlg.close();
@@ -65,7 +68,7 @@ export function InventarioModal({ mode, onClose }: Props) {
       articolo: String(fd.get("articolo") ?? ""),
       quantita: parseIntOrDefault(fd.get("quantita"), 1),
       dove_si_trova: (fd.get("dove_si_trova") as string) || null,
-      condizione: String(fd.get("condizione") ?? "Buono"),
+      condizione: condizione || "Buono",
       note: (fd.get("note") as string) || null,
     };
     startTransition(async () => {
@@ -142,24 +145,18 @@ export function InventarioModal({ mode, onClose }: Props) {
               />
             </Field>
             <Field label="Condizione" required>
-              <select
-                name="condizione"
+              <Select
+                value={condizione}
+                onChange={setCondizione}
                 required
-                defaultValue={i?.condizione ?? "Buono"}
-                className={INPUT_CLASS}
-              >
-                {i &&
-                  !(CONDIZIONI as readonly string[]).includes(i.condizione) && (
-                    <option value={i.condizione}>
-                      {i.condizione} (vecchio)
-                    </option>
-                  )}
-                {CONDIZIONI.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  ...(i &&
+                  !(CONDIZIONI as readonly string[]).includes(i.condizione)
+                    ? [{ value: i.condizione, label: `${i.condizione} (vecchio)` }]
+                    : []),
+                  ...CONDIZIONI.map((c) => ({ value: c, label: c })),
+                ]}
+              />
             </Field>
           </div>
 

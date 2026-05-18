@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { X, Trash2, ExternalLink } from "lucide-react";
+import { Select } from "@/components/ui/Select";
+import { DateInput } from "@/components/ui/DateInput";
 import {
   aggiornaEventoSponsorR,
   eliminaEventoSponsorR,
@@ -44,12 +46,18 @@ export function ModificaEventoSponsorModal({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [chiContattoId, setChiContattoId] = useState<string>("");
+  const [stato, setStato] = useState<string>("Da contattare");
+  const [dataContatto, setDataContatto] = useState<string>("");
 
   useEffect(() => {
     const dlg = dialogRef.current;
     if (!dlg) return;
     if (sponsor) {
       setError(null);
+      setChiContattoId(sponsor.chi_contatto_id ?? "");
+      setStato(sponsor.stato);
+      setDataContatto(sponsor.data_contatto ?? "");
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
       dlg.close();
@@ -63,10 +71,10 @@ export function ModificaEventoSponsorModal({
     if (!sponsor) return;
     const fd = new FormData(e.currentTarget);
     const input: EventoSponsorInput = {
-      chi_contatto_id: (fd.get("chi_contatto_id") as string) || null,
-      stato: String(fd.get("stato") ?? "Da contattare"),
+      chi_contatto_id: chiContattoId || null,
+      stato: stato || "Da contattare",
       importo: (fd.get("importo") as string) || null,
-      data_contatto: (fd.get("data_contatto") as string) || null,
+      data_contatto: dataContatto || null,
       note: (fd.get("note") as string) || null,
     };
     const id = sponsor.id;
@@ -123,41 +131,26 @@ export function ModificaEventoSponsorModal({
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-5">
           <Field label="Chi lo contatta">
-            <select
-              name="chi_contatto_id"
-              defaultValue={sponsor.chi_contatto_id ?? ""}
-              className={INPUT_CLASS}
-            >
-              <option value="">— Nessuno —</option>
-              {team.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.nome}
-                </option>
-              ))}
-            </select>
+            <Select
+              value={chiContattoId}
+              onChange={setChiContattoId}
+              options={[
+                { value: "", label: "— Nessuno —" },
+                ...team.map((m) => ({ value: m.id, label: m.nome })),
+              ]}
+            />
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Stato">
-              <select
-                name="stato"
-                defaultValue={sponsor.stato}
-                className={INPUT_CLASS}
-              >
-                {STATI_SPONSOR.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
+              <Select
+                value={stato}
+                onChange={setStato}
+                options={STATI_SPONSOR.map((s) => ({ value: s, label: s }))}
+              />
             </Field>
             <Field label="Data contatto">
-              <input
-                type="date"
-                name="data_contatto"
-                defaultValue={sponsor.data_contatto ?? ""}
-                className={INPUT_CLASS}
-              />
+              <DateInput value={dataContatto} onChange={setDataContatto} />
             </Field>
           </div>
 

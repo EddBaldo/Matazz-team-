@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { X, Trash2, ExternalLink } from "lucide-react";
 import { TIPI_ARTE } from "@/lib/artisti";
+import { Select } from "@/components/ui/Select";
 import {
   aggiornaArtistaR,
   creaArtistaR,
@@ -35,12 +36,14 @@ export function ArtistaModal({ mode, onClose }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [tipoArte, setTipoArte] = useState<string>("");
 
   useEffect(() => {
     const dlg = dialogRef.current;
     if (!dlg) return;
     if (mode) {
       setError(null);
+      setTipoArte(mode.kind === "edit" ? mode.artista.tipo_arte : "");
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
       dlg.close();
@@ -60,7 +63,7 @@ export function ArtistaModal({ mode, onClose }: Props) {
     const input: ArtistaInput = {
       nome: String(fd.get("nome") ?? ""),
       cognome: String(fd.get("cognome") ?? ""),
-      tipo_arte: String(fd.get("tipo_arte") ?? ""),
+      tipo_arte: tipoArte,
       residenza: (fd.get("residenza") as string) || null,
       link: (fd.get("link") as string) || null,
       link_opera: (fd.get("link_opera") as string) || null,
@@ -144,25 +147,19 @@ export function ArtistaModal({ mode, onClose }: Props) {
           </div>
 
           <Field label="Tipo arte" required>
-            <select
-              name="tipo_arte"
+            <Select
+              value={tipoArte}
+              onChange={setTipoArte}
               required
-              defaultValue={a?.tipo_arte ?? ""}
-              className={INPUT_CLASS}
-            >
-              <option value="" disabled>
-                — Scegli —
-              </option>
-              {a &&
-                !(TIPI_ARTE as readonly string[]).includes(a.tipo_arte) && (
-                  <option value={a.tipo_arte}>{a.tipo_arte} (vecchio)</option>
-                )}
-              {TIPI_ARTE.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
+              placeholder="— Scegli —"
+              options={[
+                ...(a &&
+                !(TIPI_ARTE as readonly string[]).includes(a.tipo_arte)
+                  ? [{ value: a.tipo_arte, label: `${a.tipo_arte} (vecchio)` }]
+                  : []),
+                ...TIPI_ARTE.map((t) => ({ value: t, label: t })),
+              ]}
+            />
           </Field>
 
           <Field label="Residenza">

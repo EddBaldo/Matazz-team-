@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { X } from "lucide-react";
 import { TIPI_ARTE } from "@/lib/artisti";
+import { Select } from "@/components/ui/Select";
 import {
   aggiungiDaRubrica,
   creaENuovoArtista,
@@ -39,6 +40,7 @@ export function AggiungiArtistaModal({
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [artistaId, setArtistaId] = useState<string>("");
+  const [tipoArte, setTipoArte] = useState<string>("");
 
   useEffect(() => {
     const dlg = dialogRef.current;
@@ -46,6 +48,7 @@ export function AggiungiArtistaModal({
     if (open) {
       setError(null);
       setArtistaId("");
+      setTipoArte("");
       setTab(rubrica.length > 0 ? "rubrica" : "nuovo");
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
@@ -70,7 +73,7 @@ export function AggiungiArtistaModal({
     const input: NuovoArtistaInput = {
       nome: String(fd.get("nome") ?? ""),
       cognome: String(fd.get("cognome") ?? ""),
-      tipo_arte: String(fd.get("tipo_arte") ?? ""),
+      tipo_arte: tipoArte,
       residenza: (fd.get("residenza") as string) || null,
       link: (fd.get("link") as string) || null,
       link_opera: (fd.get("link_opera") as string) || null,
@@ -146,21 +149,16 @@ export function AggiungiArtistaModal({
               </p>
             ) : (
               <Field label="Artista" required>
-                <select
+                <Select
                   value={artistaId}
-                  onChange={(e) => setArtistaId(e.target.value)}
+                  onChange={setArtistaId}
                   required
-                  className={INPUT_CLASS}
-                >
-                  <option value="" disabled>
-                    — Seleziona —
-                  </option>
-                  {rubrica.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.nome} {a.cognome} ({a.tipo_arte})
-                    </option>
-                  ))}
-                </select>
+                  placeholder="— Seleziona —"
+                  options={rubrica.map((a) => ({
+                    value: a.id,
+                    label: `${a.nome} ${a.cognome} (${a.tipo_arte})`,
+                  }))}
+                />
               </Field>
             )}
             <Buttons
@@ -191,21 +189,13 @@ export function AggiungiArtistaModal({
               </Field>
             </div>
             <Field label="Tipo arte" required>
-              <select
-                name="tipo_arte"
+              <Select
+                value={tipoArte}
+                onChange={setTipoArte}
                 required
-                className={INPUT_CLASS}
-                defaultValue=""
-              >
-                <option value="" disabled>
-                  — Scegli —
-                </option>
-                {TIPI_ARTE.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
+                placeholder="— Scegli —"
+                options={TIPI_ARTE.map((t) => ({ value: t, label: t }))}
+              />
             </Field>
             <Field label="Residenza">
               <input

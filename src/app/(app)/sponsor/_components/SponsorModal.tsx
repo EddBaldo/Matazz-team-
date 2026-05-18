@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { X, Trash2 } from "lucide-react";
+import { Select } from "@/components/ui/Select";
 import {
   aggiornaSponsorR,
   creaSponsorR,
@@ -35,12 +36,14 @@ export function SponsorModal({ mode, onClose }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [tipo, setTipo] = useState<string>("");
 
   useEffect(() => {
     const dlg = dialogRef.current;
     if (!dlg) return;
     if (mode) {
       setError(null);
+      setTipo(mode.kind === "edit" ? mode.sponsor.tipo : "");
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
       dlg.close();
@@ -58,7 +61,7 @@ export function SponsorModal({ mode, onClose }: Props) {
     const fd = new FormData(e.currentTarget);
     const input: SponsorInput = {
       nome: String(fd.get("nome") ?? ""),
-      tipo: String(fd.get("tipo") ?? ""),
+      tipo,
       contatto: (fd.get("contatto") as string) || null,
       indirizzo: (fd.get("indirizzo") as string) || null,
       telefono: (fd.get("telefono") as string) || null,
@@ -128,25 +131,18 @@ export function SponsorModal({ mode, onClose }: Props) {
           </Field>
 
           <Field label="Tipo" required>
-            <select
-              name="tipo"
+            <Select
+              value={tipo}
+              onChange={setTipo}
               required
-              defaultValue={s?.tipo ?? ""}
-              className={INPUT_CLASS}
-            >
-              <option value="" disabled>
-                — Scegli —
-              </option>
-              {s &&
-                !(TIPI_SPONSOR as readonly string[]).includes(s.tipo) && (
-                  <option value={s.tipo}>{s.tipo} (vecchio)</option>
-                )}
-              {TIPI_SPONSOR.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
+              placeholder="— Scegli —"
+              options={[
+                ...(s && !(TIPI_SPONSOR as readonly string[]).includes(s.tipo)
+                  ? [{ value: s.tipo, label: `${s.tipo} (vecchio)` }]
+                  : []),
+                ...TIPI_SPONSOR.map((t) => ({ value: t, label: t })),
+              ]}
+            />
           </Field>
 
           <Field label="Contatto (nome persona di riferimento)">

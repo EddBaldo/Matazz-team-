@@ -3,10 +3,8 @@
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { X } from "lucide-react";
+import { Select } from "@/components/ui/Select";
 import { aggiungiSponsorR } from "../actions";
-
-const INPUT_CLASS =
-  "w-full px-3 py-2 border border-neutral-300 rounded-lg text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-amber-500";
 
 export type SponsorRubrica = {
   id: string;
@@ -115,21 +113,16 @@ export function AggiungiSponsorModal({
         ) : (
           <form onSubmit={handleSubmit} className="space-y-4">
             <Field label="Sponsor dalla rubrica" required>
-              <select
+              <Select
                 value={sponsorId}
-                onChange={(e) => setSponsorId(e.target.value)}
+                onChange={setSponsorId}
                 required
-                className={INPUT_CLASS}
-              >
-                <option value="" disabled>
-                  — Seleziona —
-                </option>
-                {disponibili.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.nome} ({s.tipo})
-                  </option>
-                ))}
-              </select>
+                placeholder="— Seleziona —"
+                options={disponibili.map((s) => ({
+                  value: s.id,
+                  label: `${s.nome} (${s.tipo})`,
+                }))}
+              />
             </Field>
             <p className="text-xs text-neutral-500">
               Una volta aggiunto, potrai impostare chi lo contatta, stato e

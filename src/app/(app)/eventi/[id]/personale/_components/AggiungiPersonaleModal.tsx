@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { X } from "lucide-react";
 import { CATEGORIE_PERSONALE } from "@/lib/personale";
+import { Select } from "@/components/ui/Select";
 import {
   aggiungiPersonaleR,
   creaENuovaPersona,
@@ -40,6 +41,7 @@ export function AggiungiPersonaleModal({
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [tab, setTab] = useState<Tab>("rubrica");
   const [personaleId, setPersonaleId] = useState<string>("");
+  const [categoria, setCategoria] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -51,6 +53,7 @@ export function AggiungiPersonaleModal({
     if (open) {
       setError(null);
       setPersonaleId("");
+      setCategoria("");
       setTab(disponibili.length > 0 ? "rubrica" : "nuovo");
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
@@ -75,7 +78,7 @@ export function AggiungiPersonaleModal({
     const input: NuovaPersonaInput = {
       nome: String(fd.get("nome") ?? ""),
       cognome: String(fd.get("cognome") ?? ""),
-      categoria: String(fd.get("categoria") ?? ""),
+      categoria,
       ruolo_principale: String(fd.get("ruolo_principale") ?? ""),
       contatti: (fd.get("contatti") as string) || null,
       tariffa_tipica: (fd.get("tariffa_tipica") as string) || null,
@@ -153,22 +156,16 @@ export function AggiungiPersonaleModal({
               </p>
             ) : (
               <Field label="Persona" required>
-                <select
+                <Select
                   value={personaleId}
-                  onChange={(e) => setPersonaleId(e.target.value)}
+                  onChange={setPersonaleId}
                   required
-                  className={INPUT_CLASS}
-                >
-                  <option value="" disabled>
-                    — Seleziona —
-                  </option>
-                  {disponibili.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.nome} {p.cognome} ({p.ruolo_principale}
-                      {p.categoria ? ` · ${p.categoria}` : ""})
-                    </option>
-                  ))}
-                </select>
+                  placeholder="— Seleziona —"
+                  options={disponibili.map((p) => ({
+                    value: p.id,
+                    label: `${p.nome} ${p.cognome} (${p.ruolo_principale}${p.categoria ? ` · ${p.categoria}` : ""})`,
+                  }))}
+                />
               </Field>
             )}
             <Buttons
@@ -199,21 +196,13 @@ export function AggiungiPersonaleModal({
               </Field>
             </div>
             <Field label="Categoria" required>
-              <select
-                name="categoria"
+              <Select
+                value={categoria}
+                onChange={setCategoria}
                 required
-                className={INPUT_CLASS}
-                defaultValue=""
-              >
-                <option value="" disabled>
-                  — Seleziona —
-                </option>
-                {CATEGORIE_PERSONALE.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </select>
+                placeholder="— Seleziona —"
+                options={CATEGORIE_PERSONALE.map((c) => ({ value: c, label: c }))}
+              />
             </Field>
             <Field label="Ruolo principale" required>
               <input

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronDown } from "lucide-react";
@@ -47,6 +47,16 @@ export function AppShell({ identityName, eventi, children }: Props) {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const pathname = usePathname();
   const eventoId = extractEventoId(pathname);
+
+  // Quando entro in un evento, forzo l'apertura del menu Eventi
+  // così vedo subito tutte le sue sottocategorie.
+  useEffect(() => {
+    if (eventoId) {
+      setOpenGroups((prev) =>
+        prev.Eventi ? prev : { ...prev, Eventi: true },
+      );
+    }
+  }, [eventoId]);
 
   // Home page: rendering a tutta pagina senza sidebar né header.
   if (pathname === "/") {

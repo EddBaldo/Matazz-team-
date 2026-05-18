@@ -31,3 +31,15 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Nasconde la scrollbar orizzontale sui contenitori scrollabili,
+   mantenendo lo scroll attivo (tabelle larghe ecc.) */
+.overflow-x-auto::-webkit-scrollbar,
+.overflow-x-scroll::-webkit-scrollbar {
+  display: none;
+}
+.overflow-x-auto,
+.overflow-x-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}

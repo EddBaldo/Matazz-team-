@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { X, Trash2 } from "lucide-react";
+import { Select } from "@/components/ui/Select";
 import {
   aggiornaEventoArtistaR,
   eliminaEventoArtistaR,
@@ -52,6 +53,8 @@ export function ModificaArtistaModal({
   const [pending, startTransition] = useTransition();
   const [confermato, setConfermato] = useState<boolean>(false);
   const [necessitaAlloggio, setNecessitaAlloggio] = useState<boolean>(false);
+  const [chiContattoId, setChiContattoId] = useState<string>("");
+  const [docMandati, setDocMandati] = useState<string>("Non ancora");
 
   useEffect(() => {
     const dlg = dialogRef.current;
@@ -60,6 +63,8 @@ export function ModificaArtistaModal({
       setError(null);
       setConfermato(artista.confermato);
       setNecessitaAlloggio(artista.necessita_alloggio);
+      setChiContattoId(artista.chi_contatto_id ?? "");
+      setDocMandati(artista.doc_mandati);
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
       dlg.close();
@@ -73,8 +78,8 @@ export function ModificaArtistaModal({
     if (!artista) return;
     const fd = new FormData(e.currentTarget);
     const input: EventoArtistaInput = {
-      chi_contatto_id: (fd.get("chi_contatto_id") as string) || null,
-      doc_mandati: String(fd.get("doc_mandati") ?? "Non ancora"),
+      chi_contatto_id: chiContattoId || null,
+      doc_mandati: docMandati || "Non ancora",
       doc_info_artisti: fd.get("doc_info_artisti") === "on",
       doc_proposal: fd.get("doc_proposal") === "on",
       necessita_alloggio: necessitaAlloggio,
@@ -179,32 +184,22 @@ export function ModificaArtistaModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Field label="Chi lo contatta">
-            <select
-              name="chi_contatto_id"
-              defaultValue={artista.chi_contatto_id ?? ""}
-              className={INPUT_CLASS}
-            >
-              <option value="">— Nessuno —</option>
-              {team.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.nome}
-                </option>
-              ))}
-            </select>
+            <Select
+              value={chiContattoId}
+              onChange={setChiContattoId}
+              options={[
+                { value: "", label: "— Nessuno —" },
+                ...team.map((m) => ({ value: m.id, label: m.nome })),
+              ]}
+            />
           </Field>
 
           <Field label="Documenti mandati">
-            <select
-              name="doc_mandati"
-              defaultValue={artista.doc_mandati}
-              className={INPUT_CLASS}
-            >
-              {DOC_MANDATI.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+            <Select
+              value={docMandati}
+              onChange={setDocMandati}
+              options={DOC_MANDATI.map((s) => ({ value: s, label: s }))}
+            />
           </Field>
 
           <div>
