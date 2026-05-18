@@ -2,10 +2,7 @@ import Link from "next/link";
 import {
   Calendar,
   CalendarDays,
-  Mic2,
-  MapPin,
-  Handshake,
-  Users,
+  Compass,
   Boxes,
   Wallet,
 } from "lucide-react";
@@ -21,10 +18,7 @@ type Tile = {
 const TILES: Tile[] = [
   { href: "/eventi", label: "Eventi", Icon: Calendar },
   { href: "/calendario", label: "Calendario", Icon: CalendarDays },
-  { href: "/artisti", label: "Scouting Artisti", Icon: Mic2 },
-  { href: "/locations", label: "Scouting Location", Icon: MapPin },
-  { href: "/sponsor", label: "Scouting Sponsor", Icon: Handshake },
-  { href: "/personale", label: "Scouting Staff", Icon: Users },
+  { href: "/scouting", label: "Scouting", Icon: Compass },
   { href: "/conto", label: "Conto", Icon: Wallet },
   { href: "/inventario", label: "Inventario", Icon: Boxes },
 ];
@@ -61,8 +55,11 @@ export default async function HomePage() {
           <h1 className="text-5xl sm:text-6xl font-semibold tracking-tight text-neutral-900 mt-2">
             Ben tornato, {me.nome}.
           </h1>
-          <p className="text-base text-neutral-600 mt-3">
-            Dove vuoi andare?
+          <p className="text-base text-neutral-600 mt-3 max-w-2xl">
+            Gli <strong className="text-neutral-900">Eventi</strong> raccolgono
+            tutto su ogni festa: team, programma, budget. Il resto è la base
+            permanente che si accumula nel tempo — rubrica, impegni, conto e
+            magazzino.
           </p>
         </div>
 

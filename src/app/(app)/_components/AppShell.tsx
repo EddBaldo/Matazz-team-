@@ -14,26 +14,21 @@ export type EventoLink = {
 };
 
 type NavItem = { href: string; label: string };
-type NavGroup = { label: string; children: NavItem[] };
-type NavLink = NavItem | NavGroup;
 
-const SCOUTING_CHILDREN: NavItem[] = [
-  { href: "/artisti", label: "Artisti" },
-  { href: "/locations", label: "Location" },
-  { href: "/sponsor", label: "Sponsor" },
-  { href: "/personale", label: "Staff" },
-];
-
-const NAV_LINKS: NavLink[] = [
+const NAV_LINKS: NavItem[] = [
   { href: "/eventi", label: "Eventi" },
   { href: "/calendario", label: "Calendario" },
-  { label: "Scouting", children: SCOUTING_CHILDREN },
+  { href: "/scouting", label: "Scouting" },
   { href: "/conto", label: "Conto" },
   { href: "/inventario", label: "Inventario" },
 ];
 
-function isGroup(link: NavLink): link is NavGroup {
-  return "children" in link;
+const SCOUTING_PREFIXES = ["/scouting", "/artisti", "/locations", "/sponsor", "/personale"];
+
+function isScoutingActive(pathname: string): boolean {
+  return SCOUTING_PREFIXES.some(
+    (p) => pathname === p || pathname.startsWith(p + "/"),
+  );
 }
 
 type Props = {
@@ -132,60 +127,11 @@ export function AppShell({ identityName, eventi, children }: Props) {
         <nav className="flex-1 p-2 overflow-y-auto">
           <ul className="space-y-1">
             {NAV_LINKS.map((link) => {
-              if (isGroup(link)) {
-                const childActive = link.children.some(
-                  (c) =>
-                    pathname === c.href || pathname.startsWith(c.href + "/"),
-                );
-                const open = isGroupOpen(link.label, childActive);
-                return (
-                  <li key={link.label}>
-                    <button
-                      type="button"
-                      onClick={() => toggleGroup(link.label, childActive)}
-                      className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded text-sm ${
-                        childActive
-                          ? "bg-amber-100 text-amber-800 font-medium"
-                          : "text-neutral-800 hover:bg-neutral-100"
-                      }`}
-                    >
-                      <span>{link.label}</span>
-                      <ChevronDown
-                        className={`w-4 h-4 transition-transform ${
-                          open ? "rotate-180" : ""
-                        }`}
-                      />
-                    </button>
-                    {open && (
-                      <ul className="mt-1 ml-6 space-y-0.5 border-l border-neutral-200 pl-3">
-                        {link.children.map((c) => {
-                          const cActive =
-                            pathname === c.href ||
-                            pathname.startsWith(c.href + "/");
-                          return (
-                            <li key={c.href}>
-                              <Link
-                                href={c.href}
-                                onClick={() => setSidebarOpen(false)}
-                                className={`block px-3 py-1.5 rounded text-sm ${
-                                  cActive
-                                    ? "bg-amber-50 text-amber-800 font-medium"
-                                    : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
-                                }`}
-                              >
-                                {c.label}
-                              </Link>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
-                  </li>
-                );
-              }
-
               const isActive =
-                pathname === link.href || pathname.startsWith(link.href + "/");
+                link.href === "/scouting"
+                  ? isScoutingActive(pathname)
+                  : pathname === link.href ||
+                    pathname.startsWith(link.href + "/");
               const isEventiLink = link.href === "/eventi";
               const eventiOpen = isEventiLink
                 ? isGroupOpen("Eventi", isActive)
