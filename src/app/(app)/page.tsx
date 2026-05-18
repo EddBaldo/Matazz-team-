@@ -50,14 +50,18 @@ export default async function HomePage() {
 
       <div className="w-full max-w-5xl">
         <div className="mb-10">
-          <p className="text-sm uppercase tracking-wide text-neutral-500 font-medium">
-            Team Matazz
-          </p>
-          <div className="flex items-end justify-between gap-6 mt-2">
+          <div className="flex items-end justify-between gap-6">
             <h1 className="text-5xl sm:text-6xl font-semibold tracking-tight text-neutral-900 min-w-0">
               Ben tornato, {me.nome}.
             </h1>
-            <MatassaM />
+            <div className="flex items-center gap-3 shrink-0">
+              <p className="text-xs sm:text-sm uppercase tracking-wide text-neutral-500 font-medium text-right leading-tight">
+                Team
+                <br />
+                Matazz
+              </p>
+              <MatassaM />
+            </div>
           </div>
           <p className="text-base text-neutral-600 mt-3">
             Gli <strong className="text-neutral-900">Eventi</strong> raccolgono
