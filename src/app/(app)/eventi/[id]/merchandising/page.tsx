@@ -14,7 +14,7 @@ export default async function EventoMerchandisingPage({ params }: Props) {
 
   const { data, error } = await sb
     .from("evento_merchandising")
-    .select("id, articolo, quantita, costo_unitario, note")
+    .select("id, articolo, quantita, costo_totale, ricavo_stimato, note")
     .eq("evento_id", id)
     .order("articolo");
 
@@ -28,8 +28,9 @@ export default async function EventoMerchandisingPage({ params }: Props) {
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
           Articoli che produciamo per venderli all&apos;evento — t-shirt,
-          poster, sticker, tote bag. Segnate quantità da produrre e costo
-          unitario: il totale entra automaticamente fra le uscite del Budget.
+          poster, sticker, tote bag. Per ogni articolo segnate pezzi prodotti,
+          costo totale e una stima di quanto pensate di incassare. La spesa
+          va automaticamente nelle uscite del Budget, la stima nelle entrate.
         </p>
       </div>
 

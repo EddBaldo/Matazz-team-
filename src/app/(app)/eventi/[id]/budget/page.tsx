@@ -20,8 +20,8 @@ type EventoMaterialeRow = {
   gia_disponibile: boolean;
 };
 type EventoMerchRow = {
-  quantita: number;
-  costo_unitario: number;
+  costo_totale: number;
+  ricavo_stimato: number;
 };
 type BudgetExtraRow = { importo: number; tipo: string };
 type BarArticoloRow = {
@@ -73,7 +73,7 @@ export default async function EventoBudgetPage({ params }: Props) {
       .eq("evento_id", id),
     sb
       .from("evento_merchandising")
-      .select("quantita, costo_unitario")
+      .select("costo_totale, ricavo_stimato")
       .eq("evento_id", id),
     sb
       .from("evento_budget_extra")
@@ -138,8 +138,12 @@ export default async function EventoBudgetPage({ params }: Props) {
       (s, r) => s + Number(r.quantita) * Number(r.prezzo_unitario ?? 0),
       0,
     );
-  const totaleMerch = merch.reduce(
-    (s, r) => s + Number(r.quantita) * Number(r.costo_unitario),
+  const totaleMerchSpesa = merch.reduce(
+    (s, r) => s + Number(r.costo_totale),
+    0,
+  );
+  const totaleMerchStima = merch.reduce(
+    (s, r) => s + Number(r.ricavo_stimato),
     0,
   );
   const barRicavo = bar.reduce(
@@ -209,7 +213,7 @@ export default async function EventoBudgetPage({ params }: Props) {
     {
       chiave: "merchandising",
       label: "Merchandising (produzione)",
-      effettivo: totaleMerch,
+      effettivo: totaleMerchSpesa,
       stima: stimaOf("merchandising"),
     },
     {
@@ -250,6 +254,12 @@ export default async function EventoBudgetPage({ params }: Props) {
       label: "Sponsor (confermati)",
       effettivo: totaleSponsor,
       stima: stimaOf("sponsor"),
+    },
+    {
+      chiave: "merchandising_stima",
+      label: "Merchandising (stima vendite)",
+      effettivo: totaleMerchStima,
+      stima: stimaOf("merchandising_stima"),
     },
     {
       chiave: "voci_extra_entrate",

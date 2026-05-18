@@ -16,7 +16,8 @@ export type MerchandisingEdit = {
   id: string;
   articolo: string;
   quantita: number;
-  costo_unitario: number;
+  costo_totale: number;
+  ricavo_stimato: number;
   note: string | null;
 };
 
@@ -56,7 +57,8 @@ export function MerchandisingModal({ eventoId, mode, onClose }: Props) {
     const input: MerchandisingInput = {
       articolo: String(fd.get("articolo") ?? ""),
       quantita: (fd.get("quantita") as string) || null,
-      costo_unitario: (fd.get("costo_unitario") as string) || null,
+      costo_totale: (fd.get("costo_totale") as string) || null,
+      ricavo_stimato: (fd.get("ricavo_stimato") as string) || null,
       note: (fd.get("note") as string) || null,
     };
     startTransition(async () => {
@@ -123,7 +125,7 @@ export function MerchandisingModal({ eventoId, mode, onClose }: Props) {
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Quantità da produrre">
+            <Field label="Pezzi prodotti">
               <input
                 type="number"
                 step="1"
@@ -133,17 +135,29 @@ export function MerchandisingModal({ eventoId, mode, onClose }: Props) {
                 className={INPUT_CLASS}
               />
             </Field>
-            <Field label="Costo unit. (CHF)">
+            <Field label="Costo totale (CHF)">
               <input
                 type="number"
                 step="0.01"
                 min="0"
-                name="costo_unitario"
-                defaultValue={m?.costo_unitario ?? 0}
+                name="costo_totale"
+                defaultValue={m?.costo_totale ?? 0}
                 className={INPUT_CLASS}
               />
             </Field>
           </div>
+
+          <Field label="Stima ricavo vendite (CHF)">
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              name="ricavo_stimato"
+              defaultValue={m?.ricavo_stimato ?? 0}
+              className={INPUT_CLASS}
+              placeholder="Quanto pensiamo di incassare"
+            />
+          </Field>
 
           <Field label="Note">
             <textarea
@@ -151,7 +165,7 @@ export function MerchandisingModal({ eventoId, mode, onClose }: Props) {
               rows={2}
               defaultValue={m?.note ?? ""}
               className={INPUT_CLASS}
-              placeholder="Fornitore, taglia, varianti…"
+              placeholder="Fornitore, taglie, varianti…"
             />
           </Field>
 

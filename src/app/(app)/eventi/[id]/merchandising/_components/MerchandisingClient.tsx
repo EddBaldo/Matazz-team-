@@ -20,10 +20,9 @@ export function MerchandisingClient({ eventoId, rows }: Props) {
     { kind: "add" } | { kind: "edit"; merch: MerchandisingEdit } | null
   >(null);
 
-  const totale = rows.reduce(
-    (s, r) => s + Number(r.costo_unitario) * Number(r.quantita),
-    0,
-  );
+  const totaleSpesa = rows.reduce((s, r) => s + Number(r.costo_totale), 0);
+  const totaleStima = rows.reduce((s, r) => s + Number(r.ricavo_stimato), 0);
+  const margine = totaleStima - totaleSpesa;
 
   return (
     <>
@@ -31,7 +30,7 @@ export function MerchandisingClient({ eventoId, rows }: Props) {
         <p className="text-sm text-neutral-600">
           {rows.length === 0
             ? "Aggiungi il primo articolo merch."
-            : `${rows.length} ${rows.length === 1 ? "articolo" : "articoli"} · Totale produzione ${formatMoney(totale)}`}
+            : `${rows.length} ${rows.length === 1 ? "articolo" : "articoli"} · spesa ${formatMoney(totaleSpesa)} · stima ricavo ${formatMoney(totaleStima)} · margine stimato ${margine >= 0 ? "+" : ""}${formatMoney(margine)}`}
         </p>
         <button
           type="button"
@@ -53,15 +52,16 @@ export function MerchandisingClient({ eventoId, rows }: Props) {
             <thead className="border-b border-neutral-200">
               <tr>
                 <Th align="left">Articolo</Th>
-                <Th align="right">Qt.</Th>
-                <Th align="right">Costo unit.</Th>
-                <Th align="right">Totale</Th>
+                <Th align="right">Pezzi</Th>
+                <Th align="right">Costo tot.</Th>
+                <Th align="right">Stima ricavo</Th>
+                <Th align="right">Margine stimato</Th>
                 <Th align="left">Note</Th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r) => {
-                const subtotale = Number(r.costo_unitario) * Number(r.quantita);
+                const m = Number(r.ricavo_stimato) - Number(r.costo_totale);
                 return (
                   <tr
                     key={r.id}
@@ -75,10 +75,18 @@ export function MerchandisingClient({ eventoId, rows }: Props) {
                       {r.quantita}
                     </td>
                     <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
-                      {formatMoney(Number(r.costo_unitario))}
+                      {formatMoney(Number(r.costo_totale))}
                     </td>
-                    <td className="px-4 py-3 text-neutral-900 text-right tabular-nums font-medium">
-                      {formatMoney(subtotale)}
+                    <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
+                      {formatMoney(Number(r.ricavo_stimato))}
+                    </td>
+                    <td
+                      className={`px-4 py-3 text-right tabular-nums font-medium ${
+                        m >= 0 ? "text-green-700" : "text-red-700"
+                      }`}
+                    >
+                      {m >= 0 ? "+" : ""}
+                      {formatMoney(m)}
                     </td>
                     <td className="px-4 py-3 text-neutral-700 text-sm">
                       {r.note ?? "—"}
@@ -90,13 +98,24 @@ export function MerchandisingClient({ eventoId, rows }: Props) {
             <tfoot className="border-t border-neutral-200 bg-neutral-50">
               <tr>
                 <td
-                  colSpan={3}
+                  colSpan={2}
                   className="px-4 py-3 text-xs uppercase tracking-wide text-neutral-500 text-right font-medium"
                 >
-                  Totale produzione
+                  Totali
                 </td>
                 <td className="px-4 py-3 text-sm text-neutral-900 text-right font-semibold tabular-nums">
-                  {formatMoney(totale)}
+                  {formatMoney(totaleSpesa)}
+                </td>
+                <td className="px-4 py-3 text-sm text-neutral-900 text-right font-semibold tabular-nums">
+                  {formatMoney(totaleStima)}
+                </td>
+                <td
+                  className={`px-4 py-3 text-sm text-right font-semibold tabular-nums ${
+                    margine >= 0 ? "text-green-700" : "text-red-700"
+                  }`}
+                >
+                  {margine >= 0 ? "+" : ""}
+                  {formatMoney(margine)}
                 </td>
                 <td />
               </tr>

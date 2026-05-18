@@ -33,7 +33,8 @@ function revalidateMerch(eventoId: string) {
 export type MerchandisingInput = {
   articolo: string;
   quantita: string | null;
-  costo_unitario: string | null;
+  costo_totale: string | null;
+  ricavo_stimato: string | null;
   note: string | null;
 };
 
@@ -46,7 +47,8 @@ function normalize(input: MerchandisingInput) {
   return {
     articolo: input.articolo.trim(),
     quantita: toInt(input.quantita, 1),
-    costo_unitario: toNumber(input.costo_unitario, 0),
+    costo_totale: toNumber(input.costo_totale, 0),
+    ricavo_stimato: toNumber(input.ricavo_stimato, 0),
     note: trimOrNull(input.note),
   };
 }
