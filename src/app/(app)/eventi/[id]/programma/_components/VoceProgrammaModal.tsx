@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { X, Trash2, Plus } from "lucide-react";
 import { MACRO_EMOJI, type MacroTipoArte } from "@/lib/artisti";
+import { Select } from "@/components/ui/Select";
+import { TimeInput } from "@/components/ui/TimeInput";
 import {
   aggiornaVoce,
   creaVoce,
@@ -58,6 +60,7 @@ export function VoceProgrammaModal({
   const [oraFine, setOraFine] = useState<string>("");
   const [showFine, setShowFine] = useState<boolean>(false);
   const [titolo, setTitolo] = useState<string>("");
+  const [artistaId, setArtistaId] = useState<string>("");
 
   useEffect(() => {
     const dlg = dialogRef.current;
@@ -65,12 +68,18 @@ export function VoceProgrammaModal({
     if (mode) {
       setError(null);
       const initialInizio =
-        mode.kind === "edit" ? mode.voce.ora_inizio ?? "" : "";
-      const initialFine = mode.kind === "edit" ? mode.voce.ora_fine ?? "" : "";
+        mode.kind === "edit"
+          ? (mode.voce.ora_inizio ?? "").slice(0, 5)
+          : "";
+      const initialFine =
+        mode.kind === "edit"
+          ? (mode.voce.ora_fine ?? "").slice(0, 5)
+          : "";
       setOraInizio(initialInizio);
       setOraFine(initialFine);
       setShowFine(initialFine.length > 0);
       setTitolo(mode.kind === "edit" ? mode.voce.titolo : "");
+      setArtistaId(mode.kind === "edit" ? mode.voce.artista_id ?? "" : "");
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
       dlg.close();
@@ -82,8 +91,6 @@ export function VoceProgrammaModal({
   const isEdit = mode.kind === "edit";
   const descrizioneDefault =
     mode.kind === "edit" ? mode.voce.descrizione ?? "" : "";
-  const artistaIdDefault =
-    mode.kind === "edit" ? mode.voce.artista_id ?? "" : "";
 
   const hasPerformer = performer.some((p) => p.artisti.length > 0);
 
@@ -97,7 +104,7 @@ export function VoceProgrammaModal({
       ora_fine: showFine && oraFine ? oraFine : null,
       titolo: titolo,
       descrizione: (fd.get("descrizione") as string) || null,
-      artista_id: (fd.get("artista_id") as string) || null,
+      artista_id: artistaId || null,
     };
     startTransition(async () => {
       const res =
@@ -163,23 +170,13 @@ export function VoceProgrammaModal({
           <div>
             <div className="grid grid-cols-2 gap-3 items-end">
               <Field label="Ora inizio">
-                <input
-                  type="time"
-                  value={oraInizio}
-                  onChange={(e) => setOraInizio(e.target.value)}
-                  className={INPUT_CLASS}
-                />
+                <TimeInput value={oraInizio} onChange={setOraInizio} />
               </Field>
               {showFine ? (
                 <div className="flex items-end gap-1">
                   <div className="flex-1">
                     <Field label="Ora fine">
-                      <input
-                        type="time"
-                        value={oraFine}
-                        onChange={(e) => setOraFine(e.target.value)}
-                        className={INPUT_CLASS}
-                      />
+                      <TimeInput value={oraFine} onChange={setOraFine} />
                     </Field>
                   </div>
                   <button
@@ -250,27 +247,19 @@ export function VoceProgrammaModal({
 
           {hasPerformer && (
             <Field label="Artista del cast (opzionale)">
-              <select
-                name="artista_id"
-                defaultValue={artistaIdDefault}
-                className={INPUT_CLASS}
-              >
-                <option value="">— Nessuno / voce libera —</option>
-                {performer.map((p) =>
-                  p.artisti.length === 0 ? null : (
-                    <optgroup
-                      key={p.macro}
-                      label={`${MACRO_EMOJI[p.macro]} ${p.macro}`}
-                    >
-                      {p.artisti.map((a) => (
-                        <option key={a.id} value={a.id}>
-                          {a.nome} {a.cognome} — {a.tipo_arte}
-                        </option>
-                      ))}
-                    </optgroup>
+              <Select
+                value={artistaId}
+                onChange={setArtistaId}
+                options={[
+                  { value: "", label: "— Nessuno / voce libera —" },
+                  ...performer.flatMap((p) =>
+                    p.artisti.map((a) => ({
+                      value: a.id,
+                      label: `${MACRO_EMOJI[p.macro]} ${a.nome} ${a.cognome} — ${a.tipo_arte}`,
+                    })),
                   ),
-                )}
-              </select>
+                ]}
+              />
             </Field>
           )}
 

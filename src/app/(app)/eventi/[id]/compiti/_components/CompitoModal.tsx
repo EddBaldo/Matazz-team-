@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { X, Trash2, Plus } from "lucide-react";
 import { CATEGORIE_COMPITI } from "@/lib/compiti";
+import { Select } from "@/components/ui/Select";
+import { DateInput } from "@/components/ui/DateInput";
+import { TimeInput } from "@/components/ui/TimeInput";
 import {
   aggiornaCompitoR,
   creaCompitoR,
@@ -80,6 +83,12 @@ export function CompitoModal({
   const [showOraFine, setShowOraFine] = useState<boolean>(false);
   const [tipo, setTipo] = useState<"singolo" | "turni">("singolo");
   const [turni, setTurni] = useState<TurnoEdit[]>([]);
+  const [data, setData] = useState<string>("");
+  const [dataFine, setDataFine] = useState<string>("");
+  const [ora, setOra] = useState<string>("");
+  const [oraFine, setOraFine] = useState<string>("");
+  const [categoria, setCategoria] = useState<string>("");
+  const [assegnatoAId, setAssegnatoAId] = useState<string>("");
 
   useEffect(() => {
     const dlg = dialogRef.current;
@@ -93,11 +102,24 @@ export function CompitoModal({
         mode.kind === "edit" && (mode.compito.ora_fine?.length ?? 0) > 0,
       );
       if (mode.kind === "edit") {
-        setTipo(mode.compito.tipo);
-        setTurni(mode.compito.turni.length > 0 ? mode.compito.turni : []);
+        const c = mode.compito;
+        setTipo(c.tipo);
+        setTurni(c.turni.length > 0 ? c.turni : []);
+        setData(c.data ?? "");
+        setDataFine(c.data_fine ?? "");
+        setOra(c.ora ? c.ora.slice(0, 5) : "");
+        setOraFine(c.ora_fine ? c.ora_fine.slice(0, 5) : "");
+        setCategoria(c.categoria ?? "");
+        setAssegnatoAId(c.assegnato_a_id ?? "");
       } else {
         setTipo("singolo");
         setTurni([]);
+        setData(mode.defaultDate);
+        setDataFine("");
+        setOra("");
+        setOraFine("");
+        setCategoria("");
+        setAssegnatoAId("");
       }
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
@@ -109,8 +131,6 @@ export function CompitoModal({
 
   const isEdit = mode.kind === "edit";
   const c = mode.kind === "edit" ? mode.compito : null;
-  const dataDefault =
-    mode.kind === "edit" ? mode.compito.data : mode.defaultDate;
   const currentMode = mode;
 
   function updateTurno(i: number, patch: Partial<TurnoEdit>) {
@@ -128,19 +148,13 @@ export function CompitoModal({
     const fd = new FormData(e.currentTarget);
     const input: CompitoInput = {
       titolo: String(fd.get("titolo") ?? ""),
-      data: String(fd.get("data") ?? ""),
-      data_fine: showFine ? (fd.get("data_fine") as string) || null : null,
+      data,
+      data_fine: showFine ? dataFine || null : null,
       tipo,
-      ora: tipo === "singolo" ? (fd.get("ora") as string) || null : null,
-      ora_fine:
-        tipo === "singolo" && showOraFine
-          ? (fd.get("ora_fine") as string) || null
-          : null,
-      categoria: (fd.get("categoria") as string) || null,
-      assegnato_a_id:
-        tipo === "singolo"
-          ? (fd.get("assegnato_a_id") as string) || null
-          : null,
+      ora: tipo === "singolo" ? ora || null : null,
+      ora_fine: tipo === "singolo" && showOraFine ? oraFine || null : null,
+      categoria: categoria || null,
+      assegnato_a_id: tipo === "singolo" ? assegnatoAId || null : null,
       descrizione: (fd.get("descrizione") as string) || null,
       turni: tipo === "turni" ? turni.map((t) => ({ ...t })) : [],
     };
@@ -245,35 +259,19 @@ export function CompitoModal({
           </Field>
 
           <Field label="Data" required>
-            <input
-              type="date"
-              name="data"
-              required
-              defaultValue={dataDefault}
-              className={INPUT_CLASS}
-            />
+            <DateInput value={data} onChange={setData} required />
           </Field>
 
           {tipo === "singolo" && (
             <div className="grid grid-cols-2 gap-3 items-end">
               <Field label="Ora inizio">
-                <input
-                  type="time"
-                  name="ora"
-                  defaultValue={c?.ora ?? ""}
-                  className={INPUT_CLASS}
-                />
+                <TimeInput value={ora} onChange={setOra} />
               </Field>
               {showOraFine ? (
                 <div className="flex items-end gap-1">
                   <div className="flex-1">
                     <Field label="Ora fine">
-                      <input
-                        type="time"
-                        name="ora_fine"
-                        defaultValue={c?.ora_fine ?? ""}
-                        className={INPUT_CLASS}
-                      />
+                      <TimeInput value={oraFine} onChange={setOraFine} />
                     </Field>
                   </div>
                   <button
@@ -301,12 +299,7 @@ export function CompitoModal({
             <div className="flex items-end gap-1">
               <div className="flex-1">
                 <Field label="Data fine (range)">
-                  <input
-                    type="date"
-                    name="data_fine"
-                    defaultValue={c?.data_fine ?? ""}
-                    className={INPUT_CLASS}
-                  />
+                  <DateInput value={dataFine} onChange={setDataFine} />
                 </Field>
               </div>
               <button
@@ -330,33 +323,28 @@ export function CompitoModal({
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Categoria">
-              <select
-                name="categoria"
-                defaultValue={c?.categoria ?? ""}
-                className={INPUT_CLASS}
-              >
-                <option value="">— Nessuna —</option>
-                {CATEGORIE_COMPITI.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
+              <Select
+                value={categoria}
+                onChange={setCategoria}
+                options={[
+                  { value: "", label: "— Nessuna —" },
+                  ...CATEGORIE_COMPITI.map((cat) => ({
+                    value: cat,
+                    label: cat,
+                  })),
+                ]}
+              />
             </Field>
             {tipo === "singolo" && (
               <Field label="Assegnato a">
-                <select
-                  name="assegnato_a_id"
-                  defaultValue={c?.assegnato_a_id ?? ""}
-                  className={INPUT_CLASS}
-                >
-                  <option value="">— Nessuno —</option>
-                  {team.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.nome}
-                    </option>
-                  ))}
-                </select>
+                <Select
+                  value={assegnatoAId}
+                  onChange={setAssegnatoAId}
+                  options={[
+                    { value: "", label: "— Nessuno —" },
+                    ...team.map((m) => ({ value: m.id, label: m.nome })),
+                  ]}
+                />
               </Field>
             )}
           </div>
@@ -391,26 +379,22 @@ export function CompitoModal({
                     >
                       <div className="flex items-start gap-2">
                         <div className="flex-1 space-y-2">
-                          <select
+                          <Select
                             value={t.personale_id ?? ""}
-                            onChange={(e) =>
+                            onChange={(v) =>
                               updateTurno(i, {
-                                personale_id: e.target.value || null,
-                                nome_libero: e.target.value
-                                  ? null
-                                  : t.nome_libero,
+                                personale_id: v || null,
+                                nome_libero: v ? null : t.nome_libero,
                               })
                             }
-                            className={INPUT_CLASS}
-                          >
-                            <option value="">— Dalla rubrica —</option>
-                            {personale.map((p) => (
-                              <option key={p.id} value={p.id}>
-                                {p.nome} {p.cognome}
-                                {p.categoria ? ` · ${p.categoria}` : ""}
-                              </option>
-                            ))}
-                          </select>
+                            options={[
+                              { value: "", label: "— Dalla rubrica —" },
+                              ...personale.map((p) => ({
+                                value: p.id,
+                                label: `${p.nome} ${p.cognome}${p.categoria ? ` · ${p.categoria}` : ""}`,
+                              })),
+                            ]}
+                          />
                           {!t.personale_id && (
                             <input
                               type="text"
@@ -425,25 +409,17 @@ export function CompitoModal({
                             />
                           )}
                           <div className="grid grid-cols-2 gap-2">
-                            <input
-                              type="time"
-                              value={t.ora_inizio ?? ""}
-                              onChange={(e) =>
-                                updateTurno(i, {
-                                  ora_inizio: e.target.value || null,
-                                })
+                            <TimeInput
+                              value={t.ora_inizio ? t.ora_inizio.slice(0, 5) : ""}
+                              onChange={(v) =>
+                                updateTurno(i, { ora_inizio: v || null })
                               }
-                              className={INPUT_CLASS}
                             />
-                            <input
-                              type="time"
-                              value={t.ora_fine ?? ""}
-                              onChange={(e) =>
-                                updateTurno(i, {
-                                  ora_fine: e.target.value || null,
-                                })
+                            <TimeInput
+                              value={t.ora_fine ? t.ora_fine.slice(0, 5) : ""}
+                              onChange={(v) =>
+                                updateTurno(i, { ora_fine: v || null })
                               }
-                              className={INPUT_CLASS}
                             />
                           </div>
                           <input

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { X, Trash2 } from "lucide-react";
+import { DateInput } from "@/components/ui/DateInput";
 import {
   aggiornaMovimentoR,
   creaMovimentoR,
@@ -38,6 +39,7 @@ export function MovimentoModal({ mode, onClose }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [direzione, setDirezione] = useState<"entrata" | "uscita">("entrata");
+  const [data, setData] = useState<string>("");
 
   useEffect(() => {
     const dlg = dialogRef.current;
@@ -46,8 +48,10 @@ export function MovimentoModal({ mode, onClose }: Props) {
       setError(null);
       if (mode.kind === "edit") {
         setDirezione(mode.movimento.importo >= 0 ? "entrata" : "uscita");
+        setData(mode.movimento.data);
       } else {
         setDirezione("entrata");
+        setData(todayISO());
       }
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
@@ -67,7 +71,7 @@ export function MovimentoModal({ mode, onClose }: Props) {
     const raw = Number(fd.get("importo"));
     const signed = direzione === "uscita" ? -Math.abs(raw) : Math.abs(raw);
     const input: MovimentoInput = {
-      data: String(fd.get("data") ?? ""),
+      data,
       descrizione: String(fd.get("descrizione") ?? ""),
       importo: signed,
     };
@@ -161,13 +165,7 @@ export function MovimentoModal({ mode, onClose }: Props) {
           </div>
 
           <Field label="Data" required>
-            <input
-              type="date"
-              name="data"
-              required
-              defaultValue={m?.data ?? todayISO()}
-              className={INPUT_CLASS}
-            />
+            <DateInput value={data} onChange={setData} required />
           </Field>
 
           <Field label="Descrizione" required>

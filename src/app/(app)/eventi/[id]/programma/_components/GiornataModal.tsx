@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { X, Trash2 } from "lucide-react";
+import { DateInput } from "@/components/ui/DateInput";
 import {
   aggiornaGiornata,
   creaGiornata,
@@ -33,12 +34,14 @@ export function GiornataModal({ eventoId, mode, onClose }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [data, setData] = useState<string>("");
 
   useEffect(() => {
     const dlg = dialogRef.current;
     if (!dlg) return;
     if (mode) {
       setError(null);
+      setData(mode.kind === "edit" ? mode.giornata.data : mode.defaultDate);
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
       dlg.close();
@@ -48,8 +51,6 @@ export function GiornataModal({ eventoId, mode, onClose }: Props) {
   if (!mode) return null;
 
   const isEdit = mode.kind === "edit";
-  const dataDefault =
-    mode.kind === "edit" ? mode.giornata.data : mode.defaultDate;
   const descrizioneDefault =
     mode.kind === "edit" ? mode.giornata.descrizione ?? "" : "";
 
@@ -59,7 +60,7 @@ export function GiornataModal({ eventoId, mode, onClose }: Props) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const input: GiornataInput = {
-      data: String(fd.get("data") ?? ""),
+      data,
       descrizione: (fd.get("descrizione") as string) || null,
     };
     startTransition(async () => {
@@ -126,13 +127,7 @@ export function GiornataModal({ eventoId, mode, onClose }: Props) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <Field label="Data" required>
-            <input
-              type="date"
-              name="data"
-              required
-              defaultValue={dataDefault}
-              className={INPUT_CLASS}
-            />
+            <DateInput value={data} onChange={setData} required />
           </Field>
 
           <Field label="Descrizione breve">

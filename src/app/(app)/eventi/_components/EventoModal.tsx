@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { X, Trash2 } from "lucide-react";
+import { Select } from "@/components/ui/Select";
+import { DateInput } from "@/components/ui/DateInput";
 import {
   aggiornaEventoR,
   creaEventoR,
@@ -43,15 +45,27 @@ export function EventoModal({ mode, locations, onClose }: Props) {
   const [statoSelected, setStatoSelected] = useState<string>(
     "In pianificazione",
   );
+  const [dataInizio, setDataInizio] = useState<string>("");
+  const [dataFine, setDataFine] = useState<string>("");
+  const [locationId, setLocationId] = useState<string>("");
 
   useEffect(() => {
     const dlg = dialogRef.current;
     if (!dlg) return;
     if (mode) {
       setError(null);
-      setStatoSelected(
-        mode.kind === "edit" ? mode.evento.stato : "In pianificazione",
-      );
+      if (mode.kind === "edit") {
+        const ev = mode.evento;
+        setStatoSelected(ev.stato);
+        setDataInizio(ev.data_inizio ?? "");
+        setDataFine(ev.data_fine ?? "");
+        setLocationId(ev.location_id ?? "");
+      } else {
+        setStatoSelected("In pianificazione");
+        setDataInizio("");
+        setDataFine("");
+        setLocationId("");
+      }
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
       dlg.close();
@@ -76,10 +90,10 @@ export function EventoModal({ mode, locations, onClose }: Props) {
     const fd = new FormData(ev.currentTarget);
     const input: EventoInput = {
       nome: String(fd.get("nome") ?? ""),
-      data_inizio: String(fd.get("data_inizio") ?? ""),
-      data_fine: (fd.get("data_fine") as string) || null,
-      location_id: (fd.get("location_id") as string) || null,
-      stato: String(fd.get("stato") ?? "In pianificazione"),
+      data_inizio: dataInizio,
+      data_fine: dataFine || null,
+      location_id: locationId || null,
+      stato: statoSelected,
       descrizione: (fd.get("descrizione") as string) || null,
     };
 
@@ -181,38 +195,24 @@ export function EventoModal({ mode, locations, onClose }: Props) {
 
           <div className="grid grid-cols-2 gap-3">
             <Field label="Data inizio" required>
-              <input
-                type="date"
-                name="data_inizio"
+              <DateInput
+                value={dataInizio}
+                onChange={setDataInizio}
                 required
-                defaultValue={e?.data_inizio ?? ""}
-                className={INPUT_CLASS}
               />
             </Field>
             <Field label="Data fine">
-              <input
-                type="date"
-                name="data_fine"
-                defaultValue={e?.data_fine ?? ""}
-                className={INPUT_CLASS}
-              />
+              <DateInput value={dataFine} onChange={setDataFine} />
             </Field>
           </div>
 
           <Field label="Stato" required>
-            <select
-              name="stato"
-              required
+            <Select
               value={statoSelected}
-              onChange={(ev) => setStatoSelected(ev.target.value)}
-              className={INPUT_CLASS}
-            >
-              {STATI.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+              onChange={setStatoSelected}
+              options={STATI.map((s) => ({ value: s, label: s }))}
+              required
+            />
           </Field>
 
           {transizioneAConcluso && (
@@ -231,18 +231,17 @@ export function EventoModal({ mode, locations, onClose }: Props) {
           )}
 
           <Field label="Location">
-            <select
-              name="location_id"
-              defaultValue={e?.location_id ?? ""}
-              className={INPUT_CLASS}
-            >
-              <option value="">— Nessuna —</option>
-              {locations.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {l.nome} ({l.citta})
-                </option>
-              ))}
-            </select>
+            <Select
+              value={locationId}
+              onChange={setLocationId}
+              options={[
+                { value: "", label: "— Nessuna —" },
+                ...locations.map((l) => ({
+                  value: l.id,
+                  label: `${l.nome} (${l.citta})`,
+                })),
+              ]}
+            />
           </Field>
 
           <Field label="Descrizione">
