@@ -90,10 +90,8 @@ export function ProgrammaGiornate({
         </div>
       ) : (
         <div
-          className="grid gap-4"
-          style={{
-            gridTemplateColumns: `repeat(${giornate.length}, minmax(0, 1fr))`,
-          }}
+          className="grid gap-4 grid-cols-1 md:[grid-template-columns:repeat(var(--giornate),minmax(0,1fr))]"
+          style={{ ["--giornate" as string]: giornate.length }}
         >
           {giornate.map((g) => {
             const h = formatGiornoHeaderProgramma(g.data);

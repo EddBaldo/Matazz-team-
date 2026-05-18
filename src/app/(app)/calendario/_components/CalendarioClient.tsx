@@ -133,7 +133,7 @@ export function CalendarioClient({
                     }`}
                   ></span>
                   <span className="flex-1 min-w-0">
-                    <span className="block text-sm text-neutral-600 font-normal truncate">
+                    <span className="block text-sm text-neutral-600 font-normal md:truncate">
                       {c.titolo}
                       {c.eventoNome && (
                         <span className="text-neutral-400">
@@ -143,7 +143,7 @@ export function CalendarioClient({
                       )}
                     </span>
                     {c.descrizione && (
-                      <span className="block text-xs text-neutral-500 mt-0.5 line-clamp-2">
+                      <span className="block text-xs text-neutral-500 mt-0.5 md:line-clamp-2">
                         {c.descrizione}
                       </span>
                     )}
