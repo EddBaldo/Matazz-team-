@@ -122,38 +122,27 @@ export function CompitiClient({
       </div>
 
       {totali > 0 && (
-        <div className="flex items-center gap-2 flex-wrap">
-          {CATEGORIE_COMPITI.map((cat) => {
-            const active = filtroTeam.has(cat);
+        <div className="flex flex-wrap gap-2">
+          {CATEGORIE_COMPITI.map((t) => {
+            const isActive = filtroTeam.has(t);
             return (
               <button
-                key={cat}
+                key={t}
                 type="button"
-                onClick={() => toggleTeam(cat)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                  active
-                    ? "border-neutral-900 bg-neutral-900 text-white"
-                    : "border-neutral-200 bg-white text-neutral-700 hover:border-neutral-300"
+                onClick={() => toggleTeam(t)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-colors ${
+                  isActive
+                    ? `${CATEGORIA_BADGE[t] ?? "bg-neutral-200 text-neutral-800"} font-medium`
+                    : "bg-white text-neutral-500 border border-neutral-200 hover:bg-neutral-50"
                 }`}
               >
                 <span
-                  className={`w-2 h-2 rounded-full ${
-                    CATEGORIA_DOT[cat] ?? "bg-neutral-400"
-                  }`}
-                />
-                {cat}
+                  className={`w-2 h-2 rounded-full ${CATEGORIA_DOT[t]}`}
+                ></span>
+                {t}
               </button>
             );
           })}
-          {filtroTeam.size > 0 && (
-            <button
-              type="button"
-              onClick={() => setFiltroTeam(new Set())}
-              className="text-xs text-neutral-500 hover:text-neutral-900 underline ml-1"
-            >
-              Mostra tutto
-            </button>
-          )}
         </div>
       )}
 
@@ -168,32 +157,35 @@ export function CompitiClient({
           </p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {giornate.map((g) => {
-            const h = formatGiornoHeader(g.data);
-            const singoli = g.voci.filter((v) => v.tipo !== "turni");
-            const turniBlocks = g.voci.filter((v) => v.tipo === "turni");
-            const doneCount = singoli.filter((v) => v.fatto).length;
-            const onOpenEdit = (v: CompitoRow) =>
-              setModal({
-                kind: "edit",
-                compito: {
-                  id: v.id,
-                  titolo: v.titolo,
-                  data: v.data,
-                  data_fine: v.data_fine,
-                  tipo: v.tipo,
-                  ora: v.ora,
-                  ora_fine: v.ora_fine,
-                  categoria: v.categoria,
-                  assegnato_a_id: v.assegnato_a_id,
-                  descrizione: v.descrizione,
-                  turni: v.turni,
-                },
-              });
-            return (
-              <div key={g.data} className="flex flex-col gap-3">
-                {singoli.length > 0 && (
+        <div className="-mx-6 sm:-mx-8 px-6 sm:px-8 overflow-x-auto">
+          <div className="flex gap-4 pb-2 snap-x snap-mandatory items-start">
+            {giornate.map((g) => {
+              const h = formatGiornoHeader(g.data);
+              const singoli = g.voci.filter((v) => v.tipo !== "turni");
+              const turniBlocks = g.voci.filter((v) => v.tipo === "turni");
+              const doneCount = singoli.filter((v) => v.fatto).length;
+              const onOpenEdit = (v: CompitoRow) =>
+                setModal({
+                  kind: "edit",
+                  compito: {
+                    id: v.id,
+                    titolo: v.titolo,
+                    data: v.data,
+                    data_fine: v.data_fine,
+                    tipo: v.tipo,
+                    ora: v.ora,
+                    ora_fine: v.ora_fine,
+                    categoria: v.categoria,
+                    assegnato_a_id: v.assegnato_a_id,
+                    descrizione: v.descrizione,
+                    turni: v.turni,
+                  },
+                });
+              return (
+                <div
+                  key={g.data}
+                  className="snap-start shrink-0 w-[320px] sm:w-[360px] flex flex-col gap-3"
+                >
                   <section className="rounded-3xl bg-white p-5 sm:p-6 flex flex-col">
                     <div className="flex items-baseline justify-between gap-3 mb-4">
                       <h3 className="flex items-baseline gap-2">
@@ -207,48 +199,42 @@ export function CompitiClient({
                           {h.mese}
                         </span>
                       </h3>
-                      <span className="text-xs uppercase tracking-wide text-neutral-500 whitespace-nowrap">
-                        {doneCount}/{singoli.length}
-                      </span>
+                      {singoli.length > 0 && (
+                        <span className="text-xs uppercase tracking-wide text-neutral-500 whitespace-nowrap">
+                          {doneCount}/{singoli.length}
+                        </span>
+                      )}
                     </div>
 
-                    <ul className="divide-y divide-neutral-100">
-                      {singoli.map((v) => (
-                        <CompitoRowItem
-                          key={v.id}
-                          eventoId={eventoId}
-                          row={v}
-                          onClick={() => onOpenEdit(v)}
-                        />
-                      ))}
-                    </ul>
+                    {singoli.length === 0 ? (
+                      <p className="text-xs text-neutral-400">
+                        Nessun impegno singolo.
+                      </p>
+                    ) : (
+                      <ul className="divide-y divide-neutral-100">
+                        {singoli.map((v) => (
+                          <CompitoRowItem
+                            key={v.id}
+                            eventoId={eventoId}
+                            row={v}
+                            onClick={() => onOpenEdit(v)}
+                          />
+                        ))}
+                      </ul>
+                    )}
                   </section>
-                )}
 
-                {singoli.length === 0 && turniBlocks.length > 0 && (
-                  <div className="flex items-baseline gap-2 px-1">
-                    <span className="text-xs uppercase tracking-wide text-neutral-500 font-medium">
-                      {h.weekday}
-                    </span>
-                    <span className="text-xl font-semibold text-neutral-900">
-                      {h.num}
-                    </span>
-                    <span className="text-xs uppercase tracking-wide text-neutral-500">
-                      {h.mese}
-                    </span>
-                  </div>
-                )}
-
-                {turniBlocks.map((t) => (
-                  <TurnoCard
-                    key={t.id}
-                    row={t}
-                    onClick={() => onOpenEdit(t)}
-                  />
-                ))}
-              </div>
-            );
-          })}
+                  {turniBlocks.map((t) => (
+                    <TurnoCard
+                      key={t.id}
+                      row={t}
+                      onClick={() => onOpenEdit(t)}
+                    />
+                  ))}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
