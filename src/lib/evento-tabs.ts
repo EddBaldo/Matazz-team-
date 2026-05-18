@@ -9,6 +9,7 @@ export const EVENTO_TABS: readonly EventoTab[] = [
   { label: "Personale", segment: "/personale" },
   { label: "Tabella di marcia", segment: "/compiti" },
   { label: "Materiali", segment: "/materiali" },
+  { label: "Merchandising", segment: "/merchandising" },
   { label: "Voci extra", segment: "/voci-extra" },
   { label: "Budget e Costi", segment: "/budget" },
 ];

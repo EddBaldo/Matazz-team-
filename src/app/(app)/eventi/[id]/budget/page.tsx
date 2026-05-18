@@ -19,6 +19,10 @@ type EventoMaterialeRow = {
   prezzo_unitario: number | null;
   gia_disponibile: boolean;
 };
+type EventoMerchRow = {
+  quantita: number;
+  costo_unitario: number;
+};
 type BudgetExtraRow = { importo: number; tipo: string };
 type BarArticoloRow = {
   costo_unitario: number | null;
@@ -50,6 +54,7 @@ export default async function EventoBudgetPage({ params }: Props) {
     artistiRes,
     personaleRes,
     materialiRes,
+    merchRes,
     budgetExtraRes,
     barRes,
     cateringRes,
@@ -65,6 +70,10 @@ export default async function EventoBudgetPage({ params }: Props) {
     sb
       .from("evento_materiali")
       .select("quantita, prezzo_unitario, gia_disponibile")
+      .eq("evento_id", id),
+    sb
+      .from("evento_merchandising")
+      .select("quantita, costo_unitario")
       .eq("evento_id", id),
     sb
       .from("evento_budget_extra")
@@ -97,6 +106,7 @@ export default async function EventoBudgetPage({ params }: Props) {
   const artisti = (artistiRes.data ?? []) as EventoArtistaRow[];
   const personale = (personaleRes.data ?? []) as EventoPersonaleRow[];
   const materiali = (materialiRes.data ?? []) as EventoMaterialeRow[];
+  const merch = (merchRes.data ?? []) as EventoMerchRow[];
   const budgetExtra = (budgetExtraRes.data ?? []) as BudgetExtraRow[];
   const bar = (barRes.data ?? []) as BarArticoloRow[];
   const catering = (cateringRes.data ?? []) as CateringRow[];
@@ -128,6 +138,10 @@ export default async function EventoBudgetPage({ params }: Props) {
       (s, r) => s + Number(r.quantita) * Number(r.prezzo_unitario ?? 0),
       0,
     );
+  const totaleMerch = merch.reduce(
+    (s, r) => s + Number(r.quantita) * Number(r.costo_unitario),
+    0,
+  );
   const barRicavo = bar.reduce(
     (s, r) => s + Number(r.prezzo_vendita ?? 0) * Number(r.quantita_stimata),
     0,
@@ -191,6 +205,12 @@ export default async function EventoBudgetPage({ params }: Props) {
       label: "Materiali (da comprare)",
       effettivo: totaleMateriali,
       stima: stimaOf("materiali"),
+    },
+    {
+      chiave: "merchandising",
+      label: "Merchandising (produzione)",
+      effettivo: totaleMerch,
+      stima: stimaOf("merchandising"),
     },
     {
       chiave: "bar_costo",
