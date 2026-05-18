@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { X, Trash2 } from "lucide-react";
 import { CATEGORIE_COMPITI } from "@/lib/compiti";
+import { Select } from "@/components/ui/Select";
+import { DateInput } from "@/components/ui/DateInput";
+import { TimeInput } from "@/components/ui/TimeInput";
 import {
   aggiornaCompitoR,
   creaCompitoR,
@@ -43,11 +46,35 @@ export function CompitoModal({ mode, team, eventi, onClose }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  // Stato controllato dei campi custom (Select / DateInput / TimeInput)
+  const [data, setData] = useState<string>("");
+  const [dataFine, setDataFine] = useState<string>("");
+  const [ora, setOra] = useState<string>("");
+  const [categoria, setCategoria] = useState<string>("");
+  const [assegnatoA, setAssegnatoA] = useState<string>("");
+  const [eventoId, setEventoId] = useState<string>("");
+
   useEffect(() => {
     const dlg = dialogRef.current;
     if (!dlg) return;
     if (mode) {
       setError(null);
+      if (mode.kind === "edit") {
+        const c = mode.compito;
+        setData(c.data ?? "");
+        setDataFine(c.data_fine ?? "");
+        setOra(c.ora ? c.ora.slice(0, 5) : "");
+        setCategoria(c.categoria ?? "");
+        setAssegnatoA(c.assegnato_a_id ?? "");
+        setEventoId(c.evento_id ?? "");
+      } else {
+        setData("");
+        setDataFine("");
+        setOra("");
+        setCategoria("");
+        setAssegnatoA("");
+        setEventoId("");
+      }
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
       dlg.close();
@@ -64,15 +91,14 @@ export function CompitoModal({ mode, team, eventi, onClose }: Props) {
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    const dataFine = (fd.get("data_fine") as string) || null;
     const input: CompitoInput = {
       titolo: String(fd.get("titolo") ?? ""),
-      data: String(fd.get("data") ?? ""),
+      data,
       data_fine: dataFine && dataFine.length > 0 ? dataFine : null,
-      ora: (fd.get("ora") as string) || null,
-      categoria: (fd.get("categoria") as string) || null,
-      assegnato_a_id: (fd.get("assegnato_a_id") as string) || null,
-      evento_id: (fd.get("evento_id") as string) || null,
+      ora: ora && ora.length > 0 ? ora : null,
+      categoria: categoria || null,
+      assegnato_a_id: assegnatoA || null,
+      evento_id: eventoId || null,
       descrizione: (fd.get("descrizione") as string) || null,
       fatto: fd.get("fatto") === "on",
     };
@@ -97,6 +123,25 @@ export function CompitoModal({ mode, team, eventi, onClose }: Props) {
     });
   }
 
+  const categoriaOptions = [
+    { value: "", label: "— Nessun team —" },
+    ...(c?.categoria &&
+    !(CATEGORIE_COMPITI as readonly string[]).includes(c.categoria)
+      ? [{ value: c.categoria, label: `${c.categoria} (vecchio)` }]
+      : []),
+    ...CATEGORIE_COMPITI.map((cat) => ({ value: cat, label: cat })),
+  ];
+
+  const teamOptions = [
+    { value: "", label: "— Nessuno —" },
+    ...team.map((m) => ({ value: m.id, label: m.nome })),
+  ];
+
+  const eventiOptions = [
+    { value: "", label: "— Nessuno —" },
+    ...eventi.map((ev) => ({ value: ev.id, label: ev.nome })),
+  ];
+
   return (
     <dialog
       ref={dialogRef}
@@ -106,7 +151,7 @@ export function CompitoModal({ mode, team, eventi, onClose }: Props) {
       }}
       className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:left-[calc(50%+7.5rem)] m-0 rounded-3xl p-0 backdrop:bg-black/40 w-[calc(100vw-2rem)] max-w-md max-h-[90vh]"
     >
-      <div className="bg-white rounded-3xl p-6 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-3xl p-6 max-h-[90vh] overflow-y-auto overflow-x-visible">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-base font-semibold text-neutral-900">
             {isEdit ? "Modifica impegno" : "Nuovo impegno"}
@@ -153,88 +198,56 @@ export function CompitoModal({ mode, team, eventi, onClose }: Props) {
           </Field>
 
           <div className="grid grid-cols-3 gap-3">
-            <Field label="Data inizio" required>
-              <input
-                type="date"
-                name="data"
+            <Field label="Data" required>
+              <DateInput
+                value={data}
+                onChange={setData}
                 required
-                defaultValue={c?.data ?? ""}
-                className={INPUT_CLASS}
+                name="data"
               />
             </Field>
-            <Field label="Fine periodo">
-              <input
-                type="date"
+            <Field label="Fine">
+              <DateInput
+                value={dataFine}
+                onChange={setDataFine}
                 name="data_fine"
-                defaultValue={c?.data_fine ?? ""}
-                className={INPUT_CLASS}
               />
             </Field>
             <Field label="Ora">
-              <input
-                type="time"
-                name="ora"
-                defaultValue={c?.ora ? c.ora.slice(0, 5) : ""}
-                className={INPUT_CLASS}
-              />
+              <TimeInput value={ora} onChange={setOra} name="ora" />
             </Field>
           </div>
           <p className="text-xs text-neutral-500 -mt-2">
-            Compila <strong>Fine periodo</strong> per impegni multi-giorno
-            (es. &ldquo;in questi giorni pubblichiamo X&rdquo;) — appariranno
-            come striscia nel calendario. Lascia vuoto per un impegno di un
-            giorno solo.
+            Compila <strong>Fine</strong> per impegni multi-giorno (es. &ldquo;in
+            questi giorni pubblichiamo X&rdquo;) — appariranno come striscia
+            nel calendario.
           </p>
 
           <Field label="Team / categoria">
-            <select
+            <Select
+              value={categoria}
+              onChange={setCategoria}
+              options={categoriaOptions}
               name="categoria"
-              defaultValue={c?.categoria ?? ""}
-              className={INPUT_CLASS}
-            >
-              <option value="">— Nessun team —</option>
-              {c?.categoria &&
-                !(CATEGORIE_COMPITI as readonly string[]).includes(
-                  c.categoria,
-                ) && (
-                  <option value={c.categoria}>{c.categoria} (vecchio)</option>
-                )}
-              {CATEGORIE_COMPITI.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
+            />
           </Field>
 
           <Field label="Assegnato a">
-            <select
+            <Select
+              value={assegnatoA}
+              onChange={setAssegnatoA}
+              options={teamOptions}
               name="assegnato_a_id"
-              defaultValue={c?.assegnato_a_id ?? ""}
-              className={INPUT_CLASS}
-            >
-              <option value="">— Nessuno —</option>
-              {team.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.nome}
-                </option>
-              ))}
-            </select>
+            />
           </Field>
 
           <Field label="Collegato a evento">
-            <select
+            <Select
+              value={eventoId}
+              onChange={setEventoId}
+              options={eventiOptions}
               name="evento_id"
-              defaultValue={c?.evento_id ?? ""}
-              className={INPUT_CLASS}
-            >
-              <option value="">— Nessuno —</option>
-              {eventi.map((e) => (
-                <option key={e.id} value={e.id}>
-                  {e.nome}
-                </option>
-              ))}
-            </select>
+            />
           </Field>
 
           <Field label="Descrizione">
