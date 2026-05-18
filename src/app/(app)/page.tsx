@@ -57,9 +57,10 @@ export default async function HomePage() {
           </h1>
           <p className="text-base text-neutral-600 mt-3 max-w-2xl">
             Gli <strong className="text-neutral-900">Eventi</strong> raccolgono
-            tutto su ogni festa: team, programma, budget. Il resto è la base
-            permanente che si accumula nel tempo — rubrica, impegni, conto e
-            magazzino.
+            tutto su una singola Matazz Exhibition: team, programma, budget,
+            sponsor, materiali. Il resto è la base permanente che cresce nel
+            tempo — la rubrica di chi e dove, gli impegni del team, il conto
+            comune e il magazzino.
           </p>
         </div>
 
