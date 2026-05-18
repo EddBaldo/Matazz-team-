@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { requireCurrentIdentity } from "@/lib/auth/identity";
 import { cambiaIdentita, logout } from "@/lib/auth/actions";
+import { MatassaM } from "./_components/MatassaM";
 
 type Tile = {
   href: string;
@@ -52,9 +53,12 @@ export default async function HomePage() {
           <p className="text-sm uppercase tracking-wide text-neutral-500 font-medium">
             Team Matazz
           </p>
-          <h1 className="text-5xl sm:text-6xl font-semibold tracking-tight text-neutral-900 mt-2">
-            Ben tornato, {me.nome}.
-          </h1>
+          <div className="flex items-end justify-between gap-6 mt-2">
+            <h1 className="text-5xl sm:text-6xl font-semibold tracking-tight text-neutral-900 min-w-0">
+              Ben tornato, {me.nome}.
+            </h1>
+            <MatassaM />
+          </div>
           <p className="text-base text-neutral-600 mt-3">
             Gli <strong className="text-neutral-900">Eventi</strong> raccolgono
             tutto su una singola Matazz Exhibition: team, programma, budget,
