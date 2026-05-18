@@ -37,6 +37,7 @@ export function TimeInput({
   className = "",
 }: Props) {
   const [open, setOpen] = useState(false);
+  const [alignRight, setAlignRight] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const hoursRef = useRef<HTMLDivElement>(null);
   const minutesRef = useRef<HTMLDivElement>(null);
@@ -46,6 +47,14 @@ export function TimeInput({
   const hours = Array.from({ length: 24 }, (_, i) => i);
   const minutes: number[] = [];
   for (let m = 0; m < 60; m += minuteStep) minutes.push(m);
+
+  // Auto-flip popover to right edge se sforerebbe il viewport
+  useEffect(() => {
+    if (!open || !wrapRef.current) return;
+    const rect = wrapRef.current.getBoundingClientRect();
+    const dropdownWidth = 176; // w-44 = 11rem = 176px
+    setAlignRight(rect.left + dropdownWidth > window.innerWidth - 16);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -107,7 +116,11 @@ export function TimeInput({
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-44 bg-white border border-neutral-200 rounded-xl shadow-lg overflow-hidden">
+        <div
+          className={`absolute z-50 mt-1 w-44 bg-white border border-neutral-200 rounded-xl shadow-lg overflow-hidden ${
+            alignRight ? "right-0" : "left-0"
+          }`}
+        >
           <div className="grid grid-cols-2 divide-x divide-neutral-100">
             <div
               ref={hoursRef}

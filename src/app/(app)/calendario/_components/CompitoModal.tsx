@@ -217,11 +217,6 @@ export function CompitoModal({ mode, team, eventi, onClose }: Props) {
               <TimeInput value={ora} onChange={setOra} name="ora" />
             </Field>
           </div>
-          <p className="text-xs text-neutral-500 -mt-2">
-            Compila <strong>Fine</strong> per impegni multi-giorno (es. &ldquo;in
-            questi giorni pubblichiamo X&rdquo;) — appariranno come striscia
-            nel calendario.
-          </p>
 
           <Field label="Team / categoria">
             <Select
@@ -248,6 +243,10 @@ export function CompitoModal({ mode, team, eventi, onClose }: Props) {
               options={eventiOptions}
               name="evento_id"
             />
+            <p className="text-xs text-neutral-500 mt-1.5">
+              Indica se l&apos;impegno è legato a un evento. Se l&apos;evento
+              non esiste ancora, ricordati di crearlo prima.
+            </p>
           </Field>
 
           <Field label="Descrizione">

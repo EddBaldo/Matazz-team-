@@ -57,6 +57,7 @@ export function DateInput({
   className = "",
 }: Props) {
   const [open, setOpen] = useState(false);
+  const [alignRight, setAlignRight] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   const parsed = parseISO(value);
@@ -65,6 +66,14 @@ export function DateInput({
   const [viewM, setViewM] = useState<number>(
     parsed?.m ?? today.getMonth(),
   );
+
+  // Auto-flip popover a destra se sforerebbe il viewport
+  useEffect(() => {
+    if (!open || !wrapRef.current) return;
+    const rect = wrapRef.current.getBoundingClientRect();
+    const dropdownWidth = 288; // w-72
+    setAlignRight(rect.left + dropdownWidth > window.innerWidth - 16);
+  }, [open]);
 
   useEffect(() => {
     if (open && parsed) {
@@ -143,7 +152,11 @@ export function DateInput({
       </button>
 
       {open && (
-        <div className="absolute z-50 mt-1 w-72 bg-white border border-neutral-200 rounded-xl shadow-lg p-3">
+        <div
+          className={`absolute z-50 mt-1 w-72 bg-white border border-neutral-200 rounded-xl shadow-lg p-3 ${
+            alignRight ? "right-0" : "left-0"
+          }`}
+        >
           <div className="flex items-center justify-between mb-2">
             <button
               type="button"
