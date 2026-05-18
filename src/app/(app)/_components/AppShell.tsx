@@ -302,7 +302,7 @@ export function AppShell({ identityName, eventi, children }: Props) {
           <form action={cambiaIdentita}>
             <button
               type="submit"
-              className="text-amber-700 hover:text-amber-800 underline"
+              className="px-3 py-1.5 rounded-full text-sm text-neutral-700 hover:bg-neutral-100"
             >
               Cambia identità
             </button>
@@ -316,7 +316,7 @@ export function AppShell({ identityName, eventi, children }: Props) {
           <form action={cambiaIdentita}>
             <button
               type="submit"
-              className="text-amber-700 hover:text-amber-800 underline"
+              className="px-3 py-1.5 rounded-full text-sm text-neutral-700 hover:bg-neutral-100"
             >
               Cambia identità
             </button>
