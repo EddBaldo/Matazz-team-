@@ -50,15 +50,13 @@ export default async function HomePage() {
 
       <div className="w-full max-w-5xl">
         <div className="mb-10">
-          <div className="flex items-end justify-between gap-6">
+          <div className="flex items-baseline justify-between gap-6">
             <h1 className="text-5xl sm:text-6xl font-semibold tracking-tight text-neutral-900 min-w-0">
               Ben tornato, {me.nome}.
             </h1>
-            <div className="flex items-center gap-3 shrink-0">
-              <p className="text-xs sm:text-sm uppercase tracking-wide text-neutral-500 font-medium text-right leading-tight">
-                Team
-                <br />
-                Matazz
+            <div className="flex flex-col items-end shrink-0">
+              <p className="text-xs sm:text-sm uppercase tracking-wide text-neutral-500 font-medium leading-tight">
+                Team Matazz
               </p>
               <MatassaM />
             </div>

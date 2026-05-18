@@ -4,7 +4,7 @@
 // l'effetto di una matassa che si avvolge e si srotola. Pure CSS.
 
 const STRAND_BASE =
-  "absolute inset-0 flex items-center justify-center font-glassure text-[7rem] sm:text-[9rem] leading-none transition-all duration-[2000ms] ease-in-out origin-center pointer-events-none";
+  "absolute inset-0 flex items-center justify-center font-glassure text-[5.5rem] sm:text-[7rem] leading-none transition-all duration-[2000ms] ease-in-out origin-center pointer-events-none";
 
 const OUTLINE_STYLE: React.CSSProperties = {
   color: "transparent",
@@ -13,10 +13,10 @@ const OUTLINE_STYLE: React.CSSProperties = {
 
 export function MatassaM() {
   return (
-    <div className="relative group shrink-0 select-none w-28 h-28 sm:w-40 sm:h-40 flex items-center justify-center">
+    <div className="relative group shrink-0 select-none w-24 h-24 sm:w-32 sm:h-32 flex items-center justify-center">
       {/* m piena: stato di riposo, ruota dolcemente */}
       <span
-        className="font-glassure text-[7rem] sm:text-[9rem] leading-none text-neutral-900 group-hover:text-amber-700 group-active:text-amber-700 transition-all duration-[2000ms] ease-in-out group-hover:rotate-[720deg] group-active:rotate-[720deg] inline-block origin-center"
+        className="font-glassure text-[5.5rem] sm:text-[7rem] leading-none text-neutral-900 group-hover:text-amber-700 group-active:text-amber-700 transition-all duration-[2000ms] ease-in-out group-hover:rotate-[720deg] group-active:rotate-[720deg] inline-block origin-center"
         aria-hidden
       >
         m
