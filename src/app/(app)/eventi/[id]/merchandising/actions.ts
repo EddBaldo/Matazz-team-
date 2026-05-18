@@ -3,8 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { requireCurrentIdentity } from "@/lib/auth/identity";
 import { createServerClient } from "@/lib/supabase/server";
+import { salvaStima } from "../budget/actions";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
+
+export const MERCH_STIMA_CHIAVE = "merchandising_stima";
 
 function trimOrNull(v: string | null): string | null {
   if (!v) return null;
@@ -34,7 +37,6 @@ export type MerchandisingInput = {
   articolo: string;
   quantita: string | null;
   costo_totale: string | null;
-  ricavo_stimato: string | null;
   note: string | null;
 };
 
@@ -48,7 +50,6 @@ function normalize(input: MerchandisingInput) {
     articolo: input.articolo.trim(),
     quantita: toInt(input.quantita, 1),
     costo_totale: toNumber(input.costo_totale, 0),
-    ricavo_stimato: toNumber(input.ricavo_stimato, 0),
     note: trimOrNull(input.note),
   };
 }
@@ -118,4 +119,17 @@ export async function eliminaMerchandisingR(
   }
   revalidateMerch(eventoId);
   return { ok: true };
+}
+
+/**
+ * Salva la stima vendite merch (unica per evento). Wrapper su salvaStima del
+ * budget che assicura il revalidate anche della pagina /merchandising.
+ */
+export async function salvaStimaVenditeMerchR(
+  eventoId: string,
+  importo: number,
+): Promise<ActionResult> {
+  const res = await salvaStima(eventoId, MERCH_STIMA_CHIAVE, importo);
+  if (res.ok) revalidatePath(`/eventi/${eventoId}/merchandising`);
+  return res;
 }

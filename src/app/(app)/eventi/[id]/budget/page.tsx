@@ -21,7 +21,6 @@ type EventoMaterialeRow = {
 };
 type EventoMerchRow = {
   costo_totale: number;
-  ricavo_stimato: number;
 };
 type BudgetExtraRow = { importo: number; tipo: string };
 type BarArticoloRow = {
@@ -73,7 +72,7 @@ export default async function EventoBudgetPage({ params }: Props) {
       .eq("evento_id", id),
     sb
       .from("evento_merchandising")
-      .select("costo_totale, ricavo_stimato")
+      .select("costo_totale")
       .eq("evento_id", id),
     sb
       .from("evento_budget_extra")
@@ -140,10 +139,6 @@ export default async function EventoBudgetPage({ params }: Props) {
     );
   const totaleMerchSpesa = merch.reduce(
     (s, r) => s + Number(r.costo_totale),
-    0,
-  );
-  const totaleMerchStima = merch.reduce(
-    (s, r) => s + Number(r.ricavo_stimato),
     0,
   );
   const barRicavo = bar.reduce(
@@ -258,7 +253,7 @@ export default async function EventoBudgetPage({ params }: Props) {
     {
       chiave: "merchandising_stima",
       label: "Merchandising (stima vendite)",
-      effettivo: totaleMerchStima,
+      effettivo: 0,
       stima: stimaOf("merchandising_stima"),
     },
     {

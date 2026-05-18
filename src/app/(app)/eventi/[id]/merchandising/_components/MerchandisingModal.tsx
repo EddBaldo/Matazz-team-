@@ -17,7 +17,6 @@ export type MerchandisingEdit = {
   articolo: string;
   quantita: number;
   costo_totale: number;
-  ricavo_stimato: number;
   note: string | null;
 };
 
@@ -58,7 +57,6 @@ export function MerchandisingModal({ eventoId, mode, onClose }: Props) {
       articolo: String(fd.get("articolo") ?? ""),
       quantita: (fd.get("quantita") as string) || null,
       costo_totale: (fd.get("costo_totale") as string) || null,
-      ricavo_stimato: (fd.get("ricavo_stimato") as string) || null,
       note: (fd.get("note") as string) || null,
     };
     startTransition(async () => {
@@ -146,18 +144,6 @@ export function MerchandisingModal({ eventoId, mode, onClose }: Props) {
               />
             </Field>
           </div>
-
-          <Field label="Stima ricavo vendite (CHF)">
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              name="ricavo_stimato"
-              defaultValue={m?.ricavo_stimato ?? 0}
-              className={INPUT_CLASS}
-              placeholder="Quanto pensiamo di incassare"
-            />
-          </Field>
 
           <Field label="Note">
             <textarea
