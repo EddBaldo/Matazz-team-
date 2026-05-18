@@ -22,7 +22,7 @@ type EventoMaterialeRow = {
 type EventoMerchRow = {
   costo_totale: number;
 };
-type BudgetExtraRow = { importo: number; tipo: string };
+type BudgetExtraRow = { id: string; voce: string; importo: number; tipo: string };
 type BarArticoloRow = {
   costo_unitario: number | null;
   prezzo_vendita: number | null;
@@ -76,8 +76,9 @@ export default async function EventoBudgetPage({ params }: Props) {
       .eq("evento_id", id),
     sb
       .from("evento_budget_extra")
-      .select("importo, tipo")
-      .eq("evento_id", id),
+      .select("id, voce, importo, tipo")
+      .eq("evento_id", id)
+      .order("voce"),
     sb
       .from("evento_bar_articoli")
       .select("costo_unitario, prezzo_vendita, quantita_stimata")
@@ -173,12 +174,15 @@ export default async function EventoBudgetPage({ params }: Props) {
   const totaleSponsor = sponsor
     .filter((r) => r.stato === "Confermato")
     .reduce((s, r) => s + Number(r.importo), 0);
-  const totaleUsciteExtra = budgetExtra
-    .filter((r) => r.tipo === "Uscita")
-    .reduce((s, r) => s + Number(r.importo), 0);
-  const totaleEntrateExtra = budgetExtra
-    .filter((r) => r.tipo === "Entrata")
-    .reduce((s, r) => s + Number(r.importo), 0);
+
+  const usciteExtra = budgetExtra.filter((r) => r.tipo === "Uscita");
+  const entrateExtra = budgetExtra.filter((r) => r.tipo === "Entrata");
+  const voceExtraLines = (r: BudgetExtraRow): BudgetLine => ({
+    chiave: `voce_extra_${r.id}`,
+    label: r.voce,
+    effettivo: Number(r.importo),
+    stima: stimaOf(`voce_extra_${r.id}`),
+  });
 
   const uscite: BudgetLine[] = [
     {
@@ -223,12 +227,7 @@ export default async function EventoBudgetPage({ params }: Props) {
       effettivo: totaleCatering,
       stima: stimaOf("catering"),
     },
-    {
-      chiave: "voci_extra_uscite",
-      label: "Voci extra",
-      effettivo: totaleUsciteExtra,
-      stima: stimaOf("voci_extra_uscite"),
-    },
+    ...usciteExtra.map(voceExtraLines),
   ];
 
   const entrate: BudgetLine[] = [
@@ -256,12 +255,7 @@ export default async function EventoBudgetPage({ params }: Props) {
       effettivo: 0,
       stima: stimaOf("merchandising_stima"),
     },
-    {
-      chiave: "voci_extra_entrate",
-      label: "Voci extra",
-      effettivo: totaleEntrateExtra,
-      stima: stimaOf("voci_extra_entrate"),
-    },
+    ...entrateExtra.map(voceExtraLines),
   ];
 
   const saldoConto = await getSaldoConto();
