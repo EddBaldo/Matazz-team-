@@ -3,7 +3,7 @@ import {
   MerchandisingClient,
   type MerchandisingRow,
 } from "./_components/MerchandisingClient";
-import { MERCH_STIMA_CHIAVE } from "./actions";
+import { MERCH_STIMA_CHIAVE } from "./constants";
 
 type Props = {
   params: Promise<{ id: string }>;

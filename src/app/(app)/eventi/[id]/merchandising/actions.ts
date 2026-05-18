@@ -4,10 +4,9 @@ import { revalidatePath } from "next/cache";
 import { requireCurrentIdentity } from "@/lib/auth/identity";
 import { createServerClient } from "@/lib/supabase/server";
 import { salvaStima } from "../budget/actions";
+import { MERCH_STIMA_CHIAVE } from "./constants";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
-
-export const MERCH_STIMA_CHIAVE = "merchandising_stima";
 
 function trimOrNull(v: string | null): string | null {
   if (!v) return null;
