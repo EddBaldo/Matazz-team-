@@ -55,6 +55,43 @@ export async function creaArtistaR(input: ArtistaInput): Promise<ActionResult> {
   return { ok: true };
 }
 
+export type AnagraficaInput = {
+  nome: string;
+  cognome: string;
+  tipo_arte: string;
+};
+
+export async function aggiornaArtistaAnagraficaR(
+  id: string,
+  input: AnagraficaInput,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  if (input.nome.trim().length === 0 || input.cognome.trim().length === 0)
+    return { ok: false, error: "Nome e cognome sono obbligatori." };
+  if (!(TIPI_ARTE as readonly string[]).includes(input.tipo_arte))
+    return { ok: false, error: "Tipo arte obbligatorio." };
+
+  const sb = createServerClient();
+  const { error } = await sb
+    .from("artisti")
+    .update({
+      nome: input.nome.trim(),
+      cognome: input.cognome.trim(),
+      tipo_arte: input.tipo_arte,
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Errore update anagrafica:", error);
+    return { ok: false, error: "Errore nel salvataggio. Riprova." };
+  }
+
+  revalidatePath("/artisti");
+  revalidatePath(`/artisti/${id}`);
+  revalidatePath("/eventi/[id]/artisti", "page");
+  return { ok: true };
+}
+
 export async function aggiornaArtistaR(
   id: string,
   input: ArtistaInput,

@@ -20,7 +20,7 @@ type DbRow = {
   intolleranze_cibo: string | null;
   commenti: string | null;
   confermato: boolean;
-  artista: { nome: string; cognome: string; tipo_arte: string } | null;
+  artista: { id: string; nome: string; cognome: string; tipo_arte: string } | null;
   chi_contatto: { nome: string } | null;
 };
 
@@ -39,7 +39,7 @@ export default async function EventoArtistiPage({ params }: Props) {
         `id, chi_contatto_id, doc_mandati, doc_info_artisti, doc_proposal,
          artist_fee, costi_produzione, ingombro, necessita_alloggio,
          info_alloggio, intolleranze_cibo, commenti, confermato,
-         artista:artisti(nome, cognome, tipo_arte),
+         artista:artisti(id, nome, cognome, tipo_arte),
          chi_contatto:team_matazz!chi_contatto_id(nome)`,
       )
       .eq("evento_id", id),
@@ -70,6 +70,7 @@ export default async function EventoArtistiPage({ params }: Props) {
       intolleranze_cibo: r.intolleranze_cibo,
       commenti: r.commenti,
       confermato: r.confermato,
+      artistaId: r.artista!.id,
       artistaLabel: `${r.artista!.nome} ${r.artista!.cognome}`,
       artistaTipoArte: r.artista!.tipo_arte,
       artistaNome: r.artista!.nome,

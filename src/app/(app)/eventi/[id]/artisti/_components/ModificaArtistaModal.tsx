@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { X, Trash2 } from "lucide-react";
+import { X, Trash2, Pencil, Check } from "lucide-react";
 import { Select } from "@/components/ui/Select";
+import { TIPI_ARTE } from "@/lib/artisti";
+import { aggiornaArtistaAnagraficaR } from "@/app/(app)/artisti/actions";
 import {
   aggiornaEventoArtistaR,
   eliminaEventoArtistaR,
@@ -29,8 +31,11 @@ export type EventoArtistaEdit = {
   intolleranze_cibo: string | null;
   commenti: string | null;
   confermato: boolean;
+  artistaId: string;
   artistaLabel: string;
   artistaTipoArte: string;
+  artistaNome: string;
+  artistaCognome: string;
 };
 
 export type TeamMember = { id: string; nome: string };
@@ -55,6 +60,15 @@ export function ModificaArtistaModal({
   const [necessitaAlloggio, setNecessitaAlloggio] = useState<boolean>(false);
   const [chiContattoId, setChiContattoId] = useState<string>("");
   const [docMandati, setDocMandati] = useState<string>("Non ancora");
+  const [editAnagrafica, setEditAnagrafica] = useState<boolean>(false);
+  const [savingAnagrafica, startSaveAnagrafica] = useTransition();
+  const [editNome, setEditNome] = useState<string>("");
+  const [editCognome, setEditCognome] = useState<string>("");
+  const [editTipoArte, setEditTipoArte] = useState<string>("");
+  // Copia locale dell'anagrafica mostrata in header (si aggiorna dopo save)
+  const [shownNome, setShownNome] = useState<string>("");
+  const [shownCognome, setShownCognome] = useState<string>("");
+  const [shownTipoArte, setShownTipoArte] = useState<string>("");
 
   useEffect(() => {
     const dlg = dialogRef.current;
@@ -65,6 +79,13 @@ export function ModificaArtistaModal({
       setNecessitaAlloggio(artista.necessita_alloggio);
       setChiContattoId(artista.chi_contatto_id ?? "");
       setDocMandati(artista.doc_mandati);
+      setEditAnagrafica(false);
+      setEditNome(artista.artistaNome);
+      setEditCognome(artista.artistaCognome);
+      setEditTipoArte(artista.artistaTipoArte);
+      setShownNome(artista.artistaNome);
+      setShownCognome(artista.artistaCognome);
+      setShownTipoArte(artista.artistaTipoArte);
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
       dlg.close();
@@ -110,6 +131,27 @@ export function ModificaArtistaModal({
     });
   }
 
+  function handleSaveAnagrafica() {
+    if (!artista) return;
+    const artistaId = artista.artistaId;
+    startSaveAnagrafica(async () => {
+      const res = await aggiornaArtistaAnagraficaR(artistaId, {
+        nome: editNome,
+        cognome: editCognome,
+        tipo_arte: editTipoArte,
+      });
+      if (res.ok) {
+        setShownNome(editNome.trim());
+        setShownCognome(editCognome.trim());
+        setShownTipoArte(editTipoArte);
+        setEditAnagrafica(false);
+        setError(null);
+      } else {
+        setError(res.error);
+      }
+    });
+  }
+
   function handleDelete() {
     if (!artista) return;
     if (!confirm(`Rimuovere ${artista.artistaLabel} dall'evento?`)) return;
@@ -131,12 +173,87 @@ export function ModificaArtistaModal({
       className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 md:left-[calc(50%+7.5rem)] m-0 rounded-3xl p-0 backdrop:bg-black/40 w-[calc(100vw-2rem)] max-w-md max-h-[90vh]"
     >
       <div className="bg-white rounded-3xl p-6 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-start justify-between mb-1 gap-3">
-          <div className="min-w-0">
-            <h2 className="text-base font-semibold text-neutral-900 truncate">
-              {artista.artistaLabel}
-            </h2>
-            <p className="text-xs text-neutral-500">{artista.artistaTipoArte}</p>
+        <div className="flex items-start justify-between mb-3 gap-3">
+          <div className="min-w-0 flex-1">
+            {editAnagrafica ? (
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    value={editNome}
+                    onChange={(e) => setEditNome(e.target.value)}
+                    placeholder="Nome"
+                    className={INPUT_CLASS}
+                  />
+                  <input
+                    type="text"
+                    value={editCognome}
+                    onChange={(e) => setEditCognome(e.target.value)}
+                    placeholder="Cognome"
+                    className={INPUT_CLASS}
+                  />
+                </div>
+                <Select
+                  value={editTipoArte}
+                  onChange={setEditTipoArte}
+                  options={[
+                    ...(editTipoArte &&
+                    !(TIPI_ARTE as readonly string[]).includes(editTipoArte)
+                      ? [
+                          {
+                            value: editTipoArte,
+                            label: `${editTipoArte} (vecchio)`,
+                          },
+                        ]
+                      : []),
+                    ...TIPI_ARTE.map((t) => ({ value: t, label: t })),
+                  ]}
+                />
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleSaveAnagrafica}
+                    disabled={savingAnagrafica}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-neutral-900 text-white text-xs font-medium hover:bg-neutral-800 disabled:opacity-50"
+                  >
+                    <Check className="w-3.5 h-3.5" />
+                    {savingAnagrafica ? "Salvataggio…" : "Salva anagrafica"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditAnagrafica(false);
+                      setEditNome(shownNome);
+                      setEditCognome(shownCognome);
+                      setEditTipoArte(shownTipoArte);
+                    }}
+                    disabled={savingAnagrafica}
+                    className="px-3 py-1.5 rounded-full text-xs text-neutral-700 hover:bg-neutral-100"
+                  >
+                    Annulla
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-start gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-2xl font-semibold text-neutral-900 leading-tight">
+                    {shownNome} {shownCognome}
+                  </h2>
+                  <p className="text-sm text-neutral-500 mt-0.5">
+                    {shownTipoArte}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditAnagrafica(true)}
+                  aria-label="Modifica anagrafica artista"
+                  className="inline-flex items-center justify-center w-7 h-7 rounded-full text-neutral-400 hover:bg-neutral-100 hover:text-neutral-900 shrink-0 mt-1"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
           </div>
           <button
             type="button"
