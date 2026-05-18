@@ -38,7 +38,16 @@ export function ScoutingPageClient({ rows }: Props) {
 
   return (
     <>
-      <div className="flex items-center justify-end gap-3 flex-wrap">
+      <div className="flex items-center justify-end gap-2 flex-wrap">
+        <a
+          href="https://drive.google.com/drive/u/0/folders/1RlUrxRrUEDyvflQVbYjefuio-eXkUVzT"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-amber-300 bg-amber-50 text-amber-800 text-sm font-medium hover:bg-amber-100"
+        >
+          <ExternalLink className="w-4 h-4" />
+          Documenti su Drive
+        </a>
         <button
           type="button"
           onClick={() => setModal({ kind: "add" })}
