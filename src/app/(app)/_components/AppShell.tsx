@@ -47,9 +47,6 @@ export function AppShell({ identityName, eventi, children }: Props) {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
   const pathname = usePathname();
   const eventoId = extractEventoId(pathname);
-  const currentEvento = eventoId
-    ? eventi.find((e) => e.id === eventoId)
-    : null;
 
   // Home page: rendering a tutta pagina senza sidebar né header.
   if (pathname === "/") {
@@ -218,58 +215,59 @@ export function AppShell({ identityName, eventi, children }: Props) {
                     )}
                   </div>
 
-                  {/* Sub-menu Eventi: se entri in un evento → tab interne; altrimenti → lista eventi */}
-                  {isEventiLink && eventiOpen && currentEvento && (
-                    <>
-                      <div className="mt-1 ml-6 mb-0.5 px-3 py-1.5 text-sm font-medium text-neutral-800 truncate">
-                        {currentEvento.nome}
-                      </div>
-                      <ul className="ml-6 space-y-0.5 border-l border-neutral-200 pl-3">
-                        {EVENTO_TABS.map((tab) => {
-                          const tabHref = `/eventi/${eventoId}${tab.segment}`;
-                          const tabActive =
-                            tab.segment === ""
-                              ? pathname === tabHref
-                              : pathname === tabHref ||
-                                pathname.startsWith(tabHref + "/");
-                          return (
-                            <li key={tab.label}>
-                              <Link
-                                href={tabHref}
-                                onClick={() => setSidebarOpen(false)}
-                                className={`block px-3 py-1.5 rounded text-sm ${
-                                  tabActive
-                                    ? "bg-amber-50 text-amber-800 font-medium"
-                                    : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
-                                }`}
-                              >
-                                {tab.label}
-                              </Link>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </>
-                  )}
-
-                  {isEventiLink &&
-                    eventiOpen &&
-                    !currentEvento &&
-                    eventi.length > 0 && (
-                      <ul className="mt-1 ml-6 space-y-0.5 border-l border-neutral-200 pl-3">
-                        {eventi.map((e) => (
+                  {/* Sub-menu Eventi: sempre la lista di tutti gli eventi.
+                      Per quello attualmente aperto, tab nestati sotto. */}
+                  {isEventiLink && eventiOpen && eventi.length > 0 && (
+                    <ul className="mt-1 ml-6 space-y-0.5 border-l border-neutral-200 pl-3">
+                      {eventi.map((e) => {
+                        const eventoActive = eventoId === e.id;
+                        return (
                           <li key={e.id}>
                             <Link
                               href={`/eventi/${e.id}`}
                               onClick={() => setSidebarOpen(false)}
-                              className="block px-3 py-1.5 rounded text-sm text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 truncate"
+                              className={`block px-3 py-1.5 rounded text-sm truncate ${
+                                eventoActive
+                                  ? "text-neutral-900 font-medium"
+                                  : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
+                              }`}
                             >
                               {e.nome}
                             </Link>
+                            {eventoActive && (
+                              <ul className="mt-0.5 ml-3 space-y-0.5 border-l border-neutral-200 pl-3">
+                                {EVENTO_TABS.map((tab) => {
+                                  const tabHref = `/eventi/${e.id}${tab.segment}`;
+                                  const tabActive =
+                                    tab.segment === ""
+                                      ? pathname === tabHref
+                                      : pathname === tabHref ||
+                                        pathname.startsWith(tabHref + "/");
+                                  return (
+                                    <li key={tab.label}>
+                                      <Link
+                                        href={tabHref}
+                                        onClick={() =>
+                                          setSidebarOpen(false)
+                                        }
+                                        className={`block px-3 py-1.5 rounded text-sm ${
+                                          tabActive
+                                            ? "bg-amber-50 text-amber-800 font-medium"
+                                            : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800"
+                                        }`}
+                                      >
+                                        {tab.label}
+                                      </Link>
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            )}
                           </li>
-                        ))}
-                      </ul>
-                    )}
+                        );
+                      })}
+                    </ul>
+                  )}
                 </li>
               );
             })}

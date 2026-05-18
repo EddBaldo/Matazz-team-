@@ -30,26 +30,17 @@ export type CompitoEdit = {
   fatto: boolean;
 };
 
-export type TeamMember = { id: string; nome: string };
-export type StaffMember = {
-  id: string;
-  nome: string;
-  cognome: string;
-  ruolo_principale: string;
-};
 export type EventoOption = { id: string; nome: string };
 
 type Mode = { kind: "add" } | { kind: "edit"; compito: CompitoEdit };
 
 type Props = {
   mode: Mode | null;
-  team: TeamMember[];
-  staff: StaffMember[];
   eventi: EventoOption[];
   onClose: () => void;
 };
 
-export function CompitoModal({ mode, team, staff, eventi, onClose }: Props) {
+export function CompitoModal({ mode, eventi, onClose }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -59,8 +50,6 @@ export function CompitoModal({ mode, team, staff, eventi, onClose }: Props) {
   const [dataFine, setDataFine] = useState<string>("");
   const [ora, setOra] = useState<string>("");
   const [categoria, setCategoria] = useState<string>("");
-  // Valore con prefisso: "team:uuid" o "staff:uuid" o "" per nessuno
-  const [assegnatoKey, setAssegnatoKey] = useState<string>("");
   const [eventoId, setEventoId] = useState<string>("");
 
   useEffect(() => {
@@ -74,19 +63,12 @@ export function CompitoModal({ mode, team, staff, eventi, onClose }: Props) {
         setDataFine(c.data_fine ?? "");
         setOra(c.ora ? c.ora.slice(0, 5) : "");
         setCategoria(c.categoria ?? "");
-        const initialKey = c.assegnato_a_id
-          ? `team:${c.assegnato_a_id}`
-          : c.assegnato_personale_id
-            ? `staff:${c.assegnato_personale_id}`
-            : "";
-        setAssegnatoKey(initialKey);
         setEventoId(c.evento_id ?? "");
       } else {
         setData("");
         setDataFine("");
         setOra("");
         setCategoria("");
-        setAssegnatoKey("");
         setEventoId("");
       }
       if (!dlg.open) dlg.showModal();
@@ -105,21 +87,14 @@ export function CompitoModal({ mode, team, staff, eventi, onClose }: Props) {
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
-    let assegnatoTeam: string | null = null;
-    let assegnatoStaff: string | null = null;
-    if (assegnatoKey.startsWith("team:")) {
-      assegnatoTeam = assegnatoKey.slice("team:".length);
-    } else if (assegnatoKey.startsWith("staff:")) {
-      assegnatoStaff = assegnatoKey.slice("staff:".length);
-    }
     const input: CompitoInput = {
       titolo: String(fd.get("titolo") ?? ""),
       data,
       data_fine: dataFine && dataFine.length > 0 ? dataFine : null,
       ora: ora && ora.length > 0 ? ora : null,
       categoria: categoria || null,
-      assegnato_a_id: assegnatoTeam,
-      assegnato_personale_id: assegnatoStaff,
+      assegnato_a_id: null,
+      assegnato_personale_id: null,
       evento_id: eventoId || null,
       descrizione: (fd.get("descrizione") as string) || null,
       fatto: fd.get("fatto") === "on",
@@ -152,18 +127,6 @@ export function CompitoModal({ mode, team, staff, eventi, onClose }: Props) {
       ? [{ value: c.categoria, label: `${c.categoria} (vecchio)` }]
       : []),
     ...CATEGORIE_COMPITI.map((cat) => ({ value: cat, label: cat })),
-  ];
-
-  const assegnatoOptions = [
-    { value: "", label: "— Nessuno —" },
-    ...team.map((m) => ({
-      value: `team:${m.id}`,
-      label: `${m.nome} · team Matazz`,
-    })),
-    ...staff.map((s) => ({
-      value: `staff:${s.id}`,
-      label: `${s.nome} ${s.cognome} · ${s.ruolo_principale}`,
-    })),
   ];
 
   const eventiOptions = [
@@ -256,20 +219,6 @@ export function CompitoModal({ mode, team, staff, eventi, onClose }: Props) {
             />
           </Field>
 
-          <Field label="Assegnato a">
-            <Select
-              value={assegnatoKey}
-              onChange={setAssegnatoKey}
-              options={assegnatoOptions}
-            />
-            <p className="text-xs text-neutral-500 mt-1.5">
-              Scegli un membro del team Matazz o una persona dello staff
-              esterno. Se la persona non c&apos;è, aggiungila prima dallo
-              Scouting Staff — così evitiamo nomignoli diversi per la stessa
-              persona.
-            </p>
-          </Field>
-
           <Field label="Collegato a evento">
             <Select
               value={eventoId}
@@ -289,6 +238,7 @@ export function CompitoModal({ mode, team, staff, eventi, onClose }: Props) {
               rows={3}
               defaultValue={c?.descrizione ?? ""}
               className={INPUT_CLASS}
+              placeholder="Cosa va fatto, chi se ne occupa, dettagli..."
             />
           </Field>
 

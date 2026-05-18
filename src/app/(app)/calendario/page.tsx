@@ -4,11 +4,7 @@ import {
   CalendarioClient,
   type CompitoRow,
 } from "./_components/CalendarioClient";
-import type {
-  TeamMember,
-  StaffMember,
-  EventoOption,
-} from "./_components/CompitoModal";
+import type { EventoOption } from "./_components/CompitoModal";
 
 type DbCompito = {
   id: string;
@@ -107,20 +103,13 @@ export default async function CalendarioGlobalePage({ searchParams }: Props) {
     .filter((c) => c.categoria !== null && teamsAttivi.includes(c.categoria))
     .map(toRow);
 
-  const [teamRes, staffRes, eventiRes, eventiTuttiRes] = await Promise.all([
-    sb.from("team_matazz").select("id, nome").order("nome"),
-    sb
-      .from("personale_esterno")
-      .select("id, nome, cognome, ruolo_principale")
-      .order("cognome"),
+  const [eventiRes, eventiTuttiRes] = await Promise.all([
     sb
       .from("eventi")
       .select("id, nome")
       .order("data_inizio", { ascending: false }),
     sb.from("eventi").select("data_inizio, data_fine"),
   ]);
-  const team = (teamRes.data ?? []) as TeamMember[];
-  const staff = (staffRes.data ?? []) as StaffMember[];
   const eventi = (eventiRes.data ?? []) as EventoOption[];
 
   type EventoRange = { data_inizio: string; data_fine: string | null };
@@ -207,8 +196,6 @@ export default async function CalendarioGlobalePage({ searchParams }: Props) {
         compitiMese={compitiMese}
         prossimiCompiti={prossimiCompiti}
         eventiDays={[...eventiDays]}
-        team={team}
-        staff={staff}
         eventi={eventi}
         hrefMesePrev={hrefMese(prevYear, prevMonth)}
         hrefMeseNext={hrefMese(nextYear, nextMonth)}

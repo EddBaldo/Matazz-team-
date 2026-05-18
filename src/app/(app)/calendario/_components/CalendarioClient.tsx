@@ -9,8 +9,6 @@ import { CalendarioMese } from "@/components/CalendarioMese";
 import {
   CompitoModal,
   type CompitoEdit,
-  type TeamMember,
-  type StaffMember,
   type EventoOption,
 } from "./CompitoModal";
 
@@ -25,8 +23,6 @@ type Props = {
   compitiMese: CompitoRow[];
   prossimiCompiti: CompitoRow[];
   eventiDays: string[];
-  team: TeamMember[];
-  staff: StaffMember[];
   eventi: EventoOption[];
   hrefMesePrev: string;
   hrefMeseNext: string;
@@ -40,8 +36,6 @@ export function CalendarioClient({
   compitiMese,
   prossimiCompiti,
   eventiDays,
-  team,
-  staff,
   eventi,
   hrefMesePrev,
   hrefMeseNext,
@@ -122,9 +116,9 @@ export function CalendarioClient({
                 <button
                   type="button"
                   onClick={() => openEdit(c.id)}
-                  className="w-full flex items-center gap-3 bg-white rounded-2xl px-4 py-3 hover:bg-neutral-50 text-left"
+                  className="w-full flex items-start gap-3 bg-white rounded-2xl px-4 py-3 hover:bg-neutral-50 text-left"
                 >
-                  <span className="text-sm text-neutral-900 whitespace-nowrap font-semibold tabular-nums">
+                  <span className="text-sm text-neutral-900 whitespace-nowrap font-semibold tabular-nums pt-0.5">
                     {formatDateIT(c.data)}
                     {c.data_fine && c.data_fine !== c.data
                       ? ` → ${formatDateIT(c.data_fine)}`
@@ -132,18 +126,25 @@ export function CalendarioClient({
                     {c.ora ? ` · ${formatTime(c.ora)}` : ""}
                   </span>
                   <span
-                    className={`w-2 h-2 rounded-full shrink-0 ${
+                    className={`w-2 h-2 rounded-full shrink-0 mt-2 ${
                       c.categoria
                         ? CATEGORIA_DOT[c.categoria] ?? "bg-neutral-400"
                         : "bg-neutral-400"
                     }`}
                   ></span>
-                  <span className="text-sm text-neutral-600 font-normal flex-1 truncate">
-                    {c.titolo}
-                    {c.eventoNome && (
-                      <span className="text-neutral-400">
-                        {" "}
-                        · {c.eventoNome}
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-sm text-neutral-600 font-normal truncate">
+                      {c.titolo}
+                      {c.eventoNome && (
+                        <span className="text-neutral-400">
+                          {" "}
+                          · {c.eventoNome}
+                        </span>
+                      )}
+                    </span>
+                    {c.descrizione && (
+                      <span className="block text-xs text-neutral-500 mt-0.5 line-clamp-2">
+                        {c.descrizione}
                       </span>
                     )}
                   </span>
@@ -156,8 +157,6 @@ export function CalendarioClient({
 
       <CompitoModal
         mode={modal}
-        team={team}
-        staff={staff}
         eventi={eventi}
         onClose={() => setModal(null)}
       />
