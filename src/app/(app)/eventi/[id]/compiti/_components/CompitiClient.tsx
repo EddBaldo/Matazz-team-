@@ -98,8 +98,15 @@ export function CompitiClient({
 
   function toggleTeam(cat: string) {
     setTeamVisibili((prev) => {
+      const totale = CATEGORIE_COMPITI.length;
+      const isActive = prev.has(cat);
+      // Tutti accesi → click su uno = solo quello (spegne gli altri)
+      if (prev.size === totale) return new Set([cat]);
+      // Solo quello acceso → click su lui = spegne tutto
+      if (isActive && prev.size === 1) return new Set();
+      // Altrimenti toggle normale
       const next = new Set(prev);
-      if (next.has(cat)) next.delete(cat);
+      if (isActive) next.delete(cat);
       else next.add(cat);
       return next;
     });
