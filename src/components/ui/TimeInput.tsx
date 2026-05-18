@@ -48,12 +48,23 @@ export function TimeInput({
   const minutes: number[] = [];
   for (let m = 0; m < 60; m += minuteStep) minutes.push(m);
 
-  // Auto-flip popover to right edge se sforerebbe il viewport
+  // Auto-flip popover a destra se sforerebbe il container (modal o viewport)
   useEffect(() => {
     if (!open || !wrapRef.current) return;
     const rect = wrapRef.current.getBoundingClientRect();
-    const dropdownWidth = 176; // w-44 = 11rem = 176px
-    setAlignRight(rect.left + dropdownWidth > window.innerWidth - 16);
+    const dropdownWidth = 176; // w-44
+
+    // Cerca il dialog/modal antenato; se non c'è usa il viewport
+    let containerRight = window.innerWidth;
+    let el: HTMLElement | null = wrapRef.current.parentElement;
+    while (el) {
+      if (el.tagName === "DIALOG" || el.getAttribute("role") === "dialog") {
+        containerRight = el.getBoundingClientRect().right;
+        break;
+      }
+      el = el.parentElement;
+    }
+    setAlignRight(rect.left + dropdownWidth > containerRight - 16);
   }, [open]);
 
   useEffect(() => {

@@ -67,12 +67,22 @@ export function DateInput({
     parsed?.m ?? today.getMonth(),
   );
 
-  // Auto-flip popover a destra se sforerebbe il viewport
+  // Auto-flip popover a destra se sforerebbe il container (modal o viewport)
   useEffect(() => {
     if (!open || !wrapRef.current) return;
     const rect = wrapRef.current.getBoundingClientRect();
     const dropdownWidth = 288; // w-72
-    setAlignRight(rect.left + dropdownWidth > window.innerWidth - 16);
+
+    let containerRight = window.innerWidth;
+    let el: HTMLElement | null = wrapRef.current.parentElement;
+    while (el) {
+      if (el.tagName === "DIALOG" || el.getAttribute("role") === "dialog") {
+        containerRight = el.getBoundingClientRect().right;
+        break;
+      }
+      el = el.parentElement;
+    }
+    setAlignRight(rect.left + dropdownWidth > containerRight - 16);
   }, [open]);
 
   useEffect(() => {

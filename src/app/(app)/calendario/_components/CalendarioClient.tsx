@@ -10,6 +10,7 @@ import {
   CompitoModal,
   type CompitoEdit,
   type TeamMember,
+  type StaffMember,
   type EventoOption,
 } from "./CompitoModal";
 
@@ -25,6 +26,7 @@ type Props = {
   prossimiCompiti: CompitoRow[];
   eventiDays: string[];
   team: TeamMember[];
+  staff: StaffMember[];
   eventi: EventoOption[];
   hrefMesePrev: string;
   hrefMeseNext: string;
@@ -39,6 +41,7 @@ export function CalendarioClient({
   prossimiCompiti,
   eventiDays,
   team,
+  staff,
   eventi,
   hrefMesePrev,
   hrefMeseNext,
@@ -154,6 +157,7 @@ export function CalendarioClient({
       <CompitoModal
         mode={modal}
         team={team}
+        staff={staff}
         eventi={eventi}
         onClose={() => setModal(null)}
       />

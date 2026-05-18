@@ -6,6 +6,7 @@ import {
 } from "./_components/CalendarioClient";
 import type {
   TeamMember,
+  StaffMember,
   EventoOption,
 } from "./_components/CompitoModal";
 
@@ -18,6 +19,7 @@ type DbCompito = {
   categoria: string | null;
   fatto: boolean;
   assegnato_a_id: string | null;
+  assegnato_personale_id: string | null;
   evento_id: string | null;
   descrizione: string | null;
   evento: { nome: string } | null;
@@ -37,6 +39,7 @@ function toRow(c: DbCompito): CompitoRow {
     categoria: c.categoria,
     fatto: c.fatto,
     assegnato_a_id: c.assegnato_a_id,
+    assegnato_personale_id: c.assegnato_personale_id,
     evento_id: c.evento_id,
     descrizione: c.descrizione,
     eventoNome: c.evento?.nome ?? null,
@@ -72,7 +75,7 @@ export default async function CalendarioGlobalePage({ searchParams }: Props) {
   const { data: meseData } = await sb
     .from("compiti")
     .select(
-      `id, titolo, data, data_fine, ora, categoria, fatto, assegnato_a_id, evento_id, descrizione,
+      `id, titolo, data, data_fine, ora, categoria, fatto, assegnato_a_id, assegnato_personale_id, evento_id, descrizione,
        evento:eventi(nome)`,
     )
     .lte("data", endDate)
@@ -91,7 +94,7 @@ export default async function CalendarioGlobalePage({ searchParams }: Props) {
   const { data: prossimiData } = await sb
     .from("compiti")
     .select(
-      `id, titolo, data, data_fine, ora, categoria, fatto, assegnato_a_id, evento_id, descrizione,
+      `id, titolo, data, data_fine, ora, categoria, fatto, assegnato_a_id, assegnato_personale_id, evento_id, descrizione,
        evento:eventi(nome)`,
     )
     .eq("fatto", false)
@@ -104,8 +107,12 @@ export default async function CalendarioGlobalePage({ searchParams }: Props) {
     .filter((c) => c.categoria !== null && teamsAttivi.includes(c.categoria))
     .map(toRow);
 
-  const [teamRes, eventiRes, eventiTuttiRes] = await Promise.all([
+  const [teamRes, staffRes, eventiRes, eventiTuttiRes] = await Promise.all([
     sb.from("team_matazz").select("id, nome").order("nome"),
+    sb
+      .from("personale_esterno")
+      .select("id, nome, cognome, ruolo_principale")
+      .order("cognome"),
     sb
       .from("eventi")
       .select("id, nome")
@@ -113,6 +120,7 @@ export default async function CalendarioGlobalePage({ searchParams }: Props) {
     sb.from("eventi").select("data_inizio, data_fine"),
   ]);
   const team = (teamRes.data ?? []) as TeamMember[];
+  const staff = (staffRes.data ?? []) as StaffMember[];
   const eventi = (eventiRes.data ?? []) as EventoOption[];
 
   type EventoRange = { data_inizio: string; data_fine: string | null };
@@ -200,6 +208,7 @@ export default async function CalendarioGlobalePage({ searchParams }: Props) {
         prossimiCompiti={prossimiCompiti}
         eventiDays={[...eventiDays]}
         team={team}
+        staff={staff}
         eventi={eventi}
         hrefMesePrev={hrefMese(prevYear, prevMonth)}
         hrefMeseNext={hrefMese(nextYear, nextMonth)}

@@ -14,6 +14,7 @@ export type CompitoInput = {
   ora: string | null;
   categoria: string | null;
   assegnato_a_id: string | null;
+  assegnato_personale_id: string | null;
   evento_id: string | null;
   descrizione: string | null;
   fatto: boolean;
@@ -74,6 +75,7 @@ export async function creaCompitoR(
     ora: n.ora,
     categoria: n.categoria,
     assegnato_a_id: n.assegnato_a_id,
+    assegnato_personale_id: n.assegnato_personale_id,
     evento_id: n.evento_id,
     descrizione: trimOrNull(n.descrizione),
     fatto: n.fatto,
@@ -111,6 +113,7 @@ export async function aggiornaCompitoR(
       ora: n.ora,
       categoria: n.categoria,
       assegnato_a_id: n.assegnato_a_id,
+      assegnato_personale_id: n.assegnato_personale_id,
       evento_id: n.evento_id,
       descrizione: trimOrNull(n.descrizione),
       fatto: n.fatto,
