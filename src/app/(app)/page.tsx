@@ -55,7 +55,7 @@ export default async function HomePage() {
           <h1 className="text-5xl sm:text-6xl font-semibold tracking-tight text-neutral-900 mt-2">
             Ben tornato, {me.nome}.
           </h1>
-          <p className="text-base text-neutral-600 mt-3 max-w-2xl">
+          <p className="text-base text-neutral-600 mt-3">
             Gli <strong className="text-neutral-900">Eventi</strong> raccolgono
             tutto su una singola Matazz Exhibition: team, programma, budget,
             sponsor, materiali. Il resto è la base permanente che cresce nel
