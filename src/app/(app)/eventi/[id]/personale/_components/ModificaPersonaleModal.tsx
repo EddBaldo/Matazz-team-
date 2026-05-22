@@ -20,6 +20,7 @@ export type EventoPersonaleEdit = {
   note: string | null;
   confermato: boolean;
   presente_cena: boolean;
+  intolleranze_cibo: string | null;
   personaLabel: string;
   ruoloRubrica: string;
   categoria: string | null;
@@ -64,6 +65,7 @@ export function ModificaPersonaleModal({
       presenza: (fd.get("presenza") as string) || null,
       compenso: (fd.get("compenso") as string) || null,
       note: (fd.get("note") as string) || null,
+      intolleranze_cibo: (fd.get("intolleranze_cibo") as string) || null,
     };
     const id = persona.id;
     const wasConf = persona.confermato;
@@ -195,13 +197,23 @@ export function ModificaPersonaleModal({
             />
           </Field>
 
+          <Field label="Intolleranze cibo">
+            <input
+              type="text"
+              name="intolleranze_cibo"
+              defaultValue={persona.intolleranze_cibo ?? ""}
+              className={INPUT_CLASS}
+              placeholder="Es. vegetariano, lattosio, glutine…"
+            />
+          </Field>
+
           <Field label="Note">
             <textarea
               name="note"
               rows={3}
               defaultValue={persona.note ?? ""}
               className={INPUT_CLASS}
-              placeholder="Cosa fa nello specifico, equipaggiamento, intolleranze…"
+              placeholder="Cosa fa nello specifico, equipaggiamento…"
             />
           </Field>
 

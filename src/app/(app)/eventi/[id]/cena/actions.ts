@@ -139,7 +139,7 @@ export async function toggleCateringSelezionata(
 export async function aggiungiOspiteR(
   eventoId: string,
   nome: string,
-  note: string | null,
+  intolleranze: string | null,
 ): Promise<ActionResult> {
   const me = await requireCurrentIdentity();
   const nomeTrim = nome.trim();
@@ -149,7 +149,7 @@ export async function aggiungiOspiteR(
   const { error } = await sb.from("evento_cena_ospiti").insert({
     evento_id: eventoId,
     nome: nomeTrim,
-    note: trimOrNull(note),
+    intolleranze_cibo: trimOrNull(intolleranze),
     creato_da_id: me.id,
   });
 

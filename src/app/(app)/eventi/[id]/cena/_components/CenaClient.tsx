@@ -7,12 +7,18 @@ import { toggleCateringSelezionata } from "../actions";
 import { CateringModal, type CateringEdit } from "./CateringModal";
 import { OspitiModal, type OspiteCena } from "./OspitiModal";
 
+export type OspitoCenaItem = {
+  id: string;
+  nome: string;
+  intolleranze_cibo: string | null;
+};
+
 type Props = {
   eventoId: string;
   catering: CateringEdit[];
   ospiti: OspiteCena[];
-  numeroArtistiCena: number;
-  numeroPersonaleCena: number;
+  artistiCena: OspitoCenaItem[];
+  personaleCena: OspitoCenaItem[];
 };
 
 type CatModalState =
@@ -24,15 +30,22 @@ export function CenaClient({
   eventoId,
   catering,
   ospiti,
-  numeroArtistiCena,
-  numeroPersonaleCena,
+  artistiCena,
+  personaleCena,
 }: Props) {
   const [catModal, setCatModal] = useState<CatModalState>(null);
   const [ospitiOpen, setOspitiOpen] = useState(false);
 
-  const numeroFamily = ospiti.length;
-  const totaleOspiti =
-    numeroArtistiCena + numeroPersonaleCena + numeroFamily;
+  const familyItems: OspitoCenaItem[] = ospiti.map((o) => ({
+    id: o.id,
+    nome: o.nome,
+    intolleranze_cibo: o.intolleranze_cibo,
+  }));
+
+  const numeroArtisti = artistiCena.length;
+  const numeroPersonale = personaleCena.length;
+  const numeroFamily = familyItems.length;
+  const totaleOspiti = numeroArtisti + numeroPersonale + numeroFamily;
 
   const catTotaleSel = catering
     .filter((r) => r.selezionata)
@@ -117,29 +130,30 @@ export function CenaClient({
             </span>
           </h3>
           <p className="text-sm text-neutral-600 mt-0.5">
-            Il numero di persone presenti alla cena. Per artisti e personale si
-            aggiorna dai loro pulsanti &ldquo;Cena&rdquo; nelle relative pagine.
+            Solo chi ha il toggle &ldquo;Cena&rdquo; attivo. Modifica artisti e
+            personale dalle rispettive pagine; Family &amp; Friends si aggiunge
+            qui sotto.
           </p>
         </div>
 
-        <div className="bg-white rounded-3xl overflow-hidden">
-          <ul className="divide-y divide-neutral-100">
-            <OspitoRow label="Artisti" count={numeroArtistiCena} />
-            <OspitoRow label="Personale" count={numeroPersonaleCena} />
-            <FamilyRow
-              count={numeroFamily}
-              ospiti={ospiti}
-              onEdit={() => setOspitiOpen(true)}
-            />
-            <li className="flex items-center justify-between px-4 py-3 bg-neutral-50">
-              <span className="text-sm font-semibold text-neutral-900">
-                Totale ospiti
-              </span>
-              <span className="text-sm font-semibold text-neutral-900 tabular-nums">
-                {totaleOspiti}
-              </span>
-            </li>
-          </ul>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <OspitiColumn title="Artisti" items={artistiCena} />
+          <OspitiColumn title="Personale" items={personaleCena} />
+          <OspitiColumn
+            title="Family & Friends"
+            items={familyItems}
+            actionLabel="Modifica"
+            onAction={() => setOspitiOpen(true)}
+          />
+        </div>
+
+        <div className="bg-white rounded-3xl px-4 py-3 flex items-center justify-between">
+          <span className="text-sm font-semibold text-neutral-900">
+            Totale ospiti
+          </span>
+          <span className="text-sm font-semibold text-neutral-900 tabular-nums">
+            {totaleOspiti}
+          </span>
         </div>
       </section>
 
@@ -158,57 +172,55 @@ export function CenaClient({
   );
 }
 
-function OspitoRow({ label, count }: { label: string; count: number }) {
-  return (
-    <li className="flex items-center justify-between px-4 py-3">
-      <span className="text-sm text-neutral-900">{label}</span>
-      <span className="text-sm text-neutral-900 tabular-nums font-medium">
-        {count}
-      </span>
-    </li>
-  );
-}
-
-function FamilyRow({
-  count,
-  ospiti,
-  onEdit,
+function OspitiColumn({
+  title,
+  items,
+  actionLabel,
+  onAction,
 }: {
-  count: number;
-  ospiti: OspiteCena[];
-  onEdit: () => void;
+  title: string;
+  items: OspitoCenaItem[];
+  actionLabel?: string;
+  onAction?: () => void;
 }) {
-  const anteprima = ospiti
-    .slice(0, 3)
-    .map((o) => o.nome)
-    .join(", ");
-  const altri = ospiti.length - 3;
   return (
-    <li className="px-4 py-3 hover:bg-neutral-50">
-      <button
-        type="button"
-        onClick={onEdit}
-        className="w-full flex items-center justify-between gap-3 text-left"
-      >
-        <div className="min-w-0">
-          <span className="text-sm text-neutral-900">Family &amp; Friends</span>
-          {ospiti.length > 0 && (
-            <p className="text-xs text-neutral-500 truncate">
-              {anteprima}
-              {altri > 0 ? ` +${altri}` : ""}
-            </p>
-          )}
-        </div>
-        <span className="shrink-0 inline-flex items-center gap-2">
-          <span className="text-sm text-neutral-900 tabular-nums font-medium">
-            {count}
+    <div className="bg-white rounded-3xl p-4 flex flex-col gap-3">
+      <div className="flex items-baseline justify-between gap-2">
+        <h4 className="text-sm font-semibold text-neutral-900 flex items-baseline gap-1.5">
+          <span>{title}</span>
+          <span className="text-xs text-neutral-500 font-normal">
+            ({items.length})
           </span>
-          <span className="inline-flex items-center justify-center w-7 h-7 rounded-full text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100">
+        </h4>
+        {onAction && (
+          <button
+            type="button"
+            onClick={onAction}
+            className="inline-flex items-center gap-1 text-xs text-neutral-600 hover:text-neutral-900"
+          >
             <Pencil className="w-3.5 h-3.5" />
-          </span>
-        </span>
-      </button>
-    </li>
+            {actionLabel}
+          </button>
+        )}
+      </div>
+      {items.length === 0 ? (
+        <p className="text-sm text-neutral-500">—</p>
+      ) : (
+        <ul className="space-y-1.5">
+          {items.map((i) => (
+            <li key={i.id} className="text-sm">
+              <span className="text-neutral-900">{i.nome}</span>
+              {i.intolleranze_cibo && (
+                <span className="text-neutral-500 italic">
+                  {" — "}
+                  {i.intolleranze_cibo}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
   );
 }
 

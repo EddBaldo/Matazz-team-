@@ -177,7 +177,6 @@ function ArtistiTable({
             <Th align="right">Costi prod.</Th>
             <Th align="left">Ingombro</Th>
             <Th align="center">Alloggio</Th>
-            <Th align="left">Intolleranze</Th>
             <Th align="center">Cena</Th>
             <Th align="center">
               <span className="sr-only">Conferma</span>
@@ -312,9 +311,6 @@ function ArtistaRowItem({
             );
           }}
         />
-      </td>
-      <td className="px-4 py-3 text-neutral-700">
-        {row.intolleranze_cibo ?? "—"}
       </td>
       <td className="px-4 py-3 text-center">
         <ToggleBadge

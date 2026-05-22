@@ -10,7 +10,7 @@ const INPUT_CLASS =
 export type OspiteCena = {
   id: string;
   nome: string;
-  note: string | null;
+  intolleranze_cibo: string | null;
 };
 
 type Props = {
@@ -24,7 +24,7 @@ export function OspitiModal({ eventoId, open, ospiti, onClose }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [nome, setNome] = useState("");
-  const [note, setNote] = useState("");
+  const [intolleranze, setIntolleranze] = useState("");
   const [pending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export function OspitiModal({ eventoId, open, ospiti, onClose }: Props) {
     if (open) {
       setError(null);
       setNome("");
-      setNote("");
+      setIntolleranze("");
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
       dlg.close();
@@ -52,11 +52,11 @@ export function OspitiModal({ eventoId, open, ospiti, onClose }: Props) {
       const res = await aggiungiOspiteR(
         eventoId,
         nome,
-        note.length > 0 ? note : null,
+        intolleranze.length > 0 ? intolleranze : null,
       );
       if (res.ok) {
         setNome("");
-        setNote("");
+        setIntolleranze("");
         setError(null);
       } else {
         setError(res.error);
@@ -119,13 +119,13 @@ export function OspitiModal({ eventoId, open, ospiti, onClose }: Props) {
             </label>
             <label className="block">
               <span className="text-sm font-medium text-neutral-800">
-                Note
+                Intolleranze
               </span>
               <input
                 type="text"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Es. sorella di Edu"
+                value={intolleranze}
+                onChange={(e) => setIntolleranze(e.target.value)}
+                placeholder="Es. vegetariano, lattosio…"
                 className={`${INPUT_CLASS} mt-1`}
                 disabled={pending}
               />
@@ -160,9 +160,9 @@ export function OspitiModal({ eventoId, open, ospiti, onClose }: Props) {
                     <p className="text-sm font-medium text-neutral-900 truncate">
                       {o.nome}
                     </p>
-                    {o.note && (
+                    {o.intolleranze_cibo && (
                       <p className="text-xs text-neutral-600 truncate">
-                        {o.note}
+                        {o.intolleranze_cibo}
                       </p>
                     )}
                   </div>

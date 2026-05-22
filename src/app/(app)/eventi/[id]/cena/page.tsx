@@ -1,5 +1,5 @@
 import { createServerClient } from "@/lib/supabase/server";
-import { CenaClient } from "./_components/CenaClient";
+import { CenaClient, type OspitoCenaItem } from "./_components/CenaClient";
 import type { CateringEdit } from "./_components/CateringModal";
 import type { OspiteCena } from "./_components/OspitiModal";
 
@@ -10,6 +10,18 @@ type CateringRow = {
   prezzo_per_persona: number;
   selezionata: boolean;
   note: string | null;
+};
+
+type ArtistaCenaRow = {
+  id: string;
+  intolleranze_cibo: string | null;
+  artista: { nome: string; cognome: string } | null;
+};
+
+type PersonaleCenaRow = {
+  id: string;
+  intolleranze_cibo: string | null;
+  persona: { nome: string; cognome: string } | null;
 };
 
 type Props = {
@@ -30,25 +42,47 @@ export default async function CenaPage({ params }: Props) {
       .order("nome_fornitore"),
     sb
       .from("evento_cena_ospiti")
-      .select("id, nome, note")
+      .select("id, nome, intolleranze_cibo")
       .eq("evento_id", id)
       .order("created_at"),
     sb
       .from("evento_artisti")
-      .select("id", { count: "exact", head: true })
+      .select("id, intolleranze_cibo, artista:artisti(nome, cognome)")
       .eq("evento_id", id)
       .eq("presente_cena", true),
     sb
       .from("evento_personale")
-      .select("id", { count: "exact", head: true })
+      .select(
+        "id, intolleranze_cibo, persona:personale_esterno(nome, cognome)",
+      )
       .eq("evento_id", id)
       .eq("presente_cena", true),
   ]);
 
   const catering = ((catRes.data ?? []) as CateringRow[]) as CateringEdit[];
   const ospiti = (ospitiRes.data ?? []) as OspiteCena[];
-  const numeroArtistiCena = artistiRes.count ?? 0;
-  const numeroPersonaleCena = personaleRes.count ?? 0;
+
+  const artistiCena: OspitoCenaItem[] = (
+    (artistiRes.data ?? []) as unknown as ArtistaCenaRow[]
+  )
+    .filter((r) => r.artista !== null)
+    .map((r) => ({
+      id: r.id,
+      nome: `${r.artista!.nome} ${r.artista!.cognome}`,
+      intolleranze_cibo: r.intolleranze_cibo,
+    }))
+    .sort((a, b) => a.nome.localeCompare(b.nome, "it"));
+
+  const personaleCena: OspitoCenaItem[] = (
+    (personaleRes.data ?? []) as unknown as PersonaleCenaRow[]
+  )
+    .filter((r) => r.persona !== null)
+    .map((r) => ({
+      id: r.id,
+      nome: `${r.persona!.nome} ${r.persona!.cognome}`,
+      intolleranze_cibo: r.intolleranze_cibo,
+    }))
+    .sort((a, b) => a.nome.localeCompare(b.nome, "it"));
 
   const err =
     catRes.error ??
@@ -64,9 +98,9 @@ export default async function CenaPage({ params }: Props) {
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
           Le offerte cena dei vari chef e l&apos;elenco degli ospiti che cenano
-          con noi. Il totale ospiti combina artisti, personale e Family &amp;
-          Friends — il numero entra automaticamente nel costo per ogni offerta
-          selezionata.
+          con noi, con le rispettive intolleranze. Il totale ospiti combina
+          artisti, personale e Family &amp; Friends — il numero entra
+          automaticamente nel costo per ogni offerta selezionata.
         </p>
       </div>
 
@@ -80,8 +114,8 @@ export default async function CenaPage({ params }: Props) {
         eventoId={id}
         catering={catering}
         ospiti={ospiti}
-        numeroArtistiCena={numeroArtistiCena}
-        numeroPersonaleCena={numeroPersonaleCena}
+        artistiCena={artistiCena}
+        personaleCena={personaleCena}
       />
     </div>
   );

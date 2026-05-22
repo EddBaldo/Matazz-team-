@@ -155,6 +155,7 @@ create table if not exists evento_personale (
   ruolo_specifico text,
   compenso numeric not null default 0,
   note text,
+  intolleranze_cibo text,
   presente_cena boolean not null default false,
   creato_da_id uuid references team_matazz(id) on delete set null
 );
@@ -163,7 +164,7 @@ create table if not exists evento_cena_ospiti (
   id uuid primary key default gen_random_uuid(),
   evento_id uuid not null references eventi(id) on delete cascade,
   nome text not null,
-  note text,
+  intolleranze_cibo text,
   creato_da_id uuid references team_matazz(id) on delete set null,
   created_at timestamptz not null default now()
 );

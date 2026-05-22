@@ -120,6 +120,7 @@ export type EventoPersonaleInput = {
   presenza: string | null;
   compenso: string | null;
   note: string | null;
+  intolleranze_cibo: string | null;
 };
 
 export async function aggiornaEventoPersonaleR(
@@ -137,6 +138,7 @@ export async function aggiornaEventoPersonaleR(
       presenza: trimOrNull(input.presenza),
       compenso: toNumberOrNull(input.compenso),
       note: trimOrNull(input.note),
+      intolleranze_cibo: trimOrNull(input.intolleranze_cibo),
     })
     .eq("id", evPersId)
     .eq("evento_id", eventoId);
