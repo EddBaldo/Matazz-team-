@@ -131,7 +131,13 @@ export async function allineaCateringPersoneR(
   await requireCurrentIdentity();
   const sb = createServerClient();
 
-  const [artistiCount, personaleCount, ospitiCount] = await Promise.all([
+  const [
+    artistiCount,
+    personaleCount,
+    ospitiCount,
+    teamCount,
+    teamEsclusiCount,
+  ] = await Promise.all([
     sb
       .from("evento_artisti")
       .select("id", { count: "exact", head: true })
@@ -146,12 +152,18 @@ export async function allineaCateringPersoneR(
       .from("evento_cena_ospiti")
       .select("id", { count: "exact", head: true })
       .eq("evento_id", eventoId),
+    sb.from("team_matazz").select("id", { count: "exact", head: true }),
+    sb
+      .from("evento_team_cena_esclusi")
+      .select("id", { count: "exact", head: true })
+      .eq("evento_id", eventoId),
   ]);
 
   const totale =
     (artistiCount.count ?? 0) +
     (personaleCount.count ?? 0) +
-    (ospitiCount.count ?? 0);
+    (ospitiCount.count ?? 0) +
+    Math.max(0, (teamCount.count ?? 0) - (teamEsclusiCount.count ?? 0));
 
   const { error } = await sb
     .from("evento_catering")
@@ -207,6 +219,42 @@ export async function aggiungiOspiteR(
   if (error) {
     console.error("Errore aggiungi ospite cena:", error);
     return { ok: false, error: "Errore nel salvataggio. Riprova." };
+  }
+  revalidateCena(eventoId);
+  return { ok: true };
+}
+
+// ----- TEAM MATAZZ ALLA CENA --------------------------------------------
+
+export async function toggleTeamCenaR(
+  eventoId: string,
+  teamMatazzId: string,
+  presente: boolean,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const sb = createServerClient();
+
+  if (presente) {
+    // includere: rimuovi eventuale esclusione
+    const { error } = await sb
+      .from("evento_team_cena_esclusi")
+      .delete()
+      .eq("evento_id", eventoId)
+      .eq("team_matazz_id", teamMatazzId);
+    if (error) {
+      console.error("Errore includi team cena:", error);
+      return { ok: false, error: "Errore. Riprova." };
+    }
+  } else {
+    // escludere: inserisci (idempotente per via dell'unique)
+    const { error } = await sb.from("evento_team_cena_esclusi").upsert(
+      { evento_id: eventoId, team_matazz_id: teamMatazzId },
+      { onConflict: "evento_id,team_matazz_id" },
+    );
+    if (error) {
+      console.error("Errore escludi team cena:", error);
+      return { ok: false, error: "Errore. Riprova." };
+    }
   }
   revalidateCena(eventoId);
   return { ok: true };

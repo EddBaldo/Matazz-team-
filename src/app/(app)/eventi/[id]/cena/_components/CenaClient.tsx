@@ -6,6 +6,7 @@ import { formatMoney } from "@/lib/format";
 import {
   allineaCateringPersoneR,
   toggleCateringSelezionata,
+  toggleTeamCenaR,
 } from "../actions";
 import { CateringModal, type CateringEdit } from "./CateringModal";
 import { OspitiModal, type OspiteCena } from "./OspitiModal";
@@ -16,12 +17,19 @@ export type OspitoCenaItem = {
   intolleranze_cibo: string | null;
 };
 
+export type TeamCenaItem = {
+  id: string;
+  nome: string;
+  presente: boolean;
+};
+
 type Props = {
   eventoId: string;
   catering: CateringEdit[];
   ospiti: OspiteCena[];
   artistiCena: OspitoCenaItem[];
   personaleCena: OspitoCenaItem[];
+  teamCena: TeamCenaItem[];
 };
 
 type CatModalState =
@@ -40,12 +48,13 @@ export function CenaClient({
   ospiti,
   artistiCena,
   personaleCena,
+  teamCena,
 }: Props) {
   const [catModal, setCatModal] = useState<CatModalState>(null);
   const [ospitiOpen, setOspitiOpen] = useState(false);
   const [aligning, startAligning] = useTransition();
 
-  const familyItems: OspitoCenaItem[] = ospiti.map((o) => ({
+  const specialiItems: OspitoCenaItem[] = ospiti.map((o) => ({
     id: o.id,
     nome: o.nome,
     intolleranze_cibo: o.intolleranze_cibo,
@@ -53,8 +62,10 @@ export function CenaClient({
 
   const numeroArtisti = artistiCena.length;
   const numeroPersonale = personaleCena.length;
-  const numeroFamily = familyItems.length;
-  const totaleOspiti = numeroArtisti + numeroPersonale + numeroFamily;
+  const numeroTeam = teamCena.filter((t) => t.presente).length;
+  const numeroSpeciali = specialiItems.length;
+  const totaleOspiti =
+    numeroArtisti + numeroPersonale + numeroTeam + numeroSpeciali;
 
   const catTotaleSel = catering
     .filter((r) => r.selezionata)
@@ -153,7 +164,7 @@ export function CenaClient({
               <span className="text-neutral-500">
                 {" "}
                 ({numeroArtisti} artisti · {numeroPersonale} personale ·{" "}
-                {numeroFamily} family)
+                {numeroTeam} team · {numeroSpeciali} speciali)
               </span>
             </p>
           </div>
@@ -169,12 +180,13 @@ export function CenaClient({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
           <OspitiColumn title="Artisti" items={artistiCena} />
           <OspitiColumn title="Personale" items={personaleCena} />
+          <TeamColumn eventoId={eventoId} items={teamCena} />
           <OspitiColumn
-            title="Family & Friends"
-            items={familyItems}
+            title="Ospiti speciali"
+            items={specialiItems}
             actionLabel="Modifica"
             onAction={() => setOspitiOpen(true)}
           />
@@ -245,6 +257,70 @@ function OspitiColumn({
         </ul>
       )}
     </div>
+  );
+}
+
+function TeamColumn({
+  eventoId,
+  items,
+}: {
+  eventoId: string;
+  items: TeamCenaItem[];
+}) {
+  const presenti = items.filter((t) => t.presente).length;
+  return (
+    <div className="bg-white rounded-3xl p-4 flex flex-col gap-3">
+      <div className="flex items-baseline justify-between gap-2">
+        <h4 className="text-sm font-semibold text-neutral-900 flex items-baseline gap-1.5">
+          <span>Team Matazz</span>
+          <span className="text-xs text-neutral-500 font-normal">
+            ({presenti}/{items.length})
+          </span>
+        </h4>
+      </div>
+      {items.length === 0 ? (
+        <p className="text-sm text-neutral-500">—</p>
+      ) : (
+        <ul className="space-y-1">
+          {items.map((t) => (
+            <TeamRow key={t.id} eventoId={eventoId} item={t} />
+          ))}
+        </ul>
+      )}
+      <p className="text-xs text-neutral-500 mt-1">
+        Click su un nome per escluderlo / reinserirlo.
+      </p>
+    </div>
+  );
+}
+
+function TeamRow({
+  eventoId,
+  item,
+}: {
+  eventoId: string;
+  item: TeamCenaItem;
+}) {
+  const [pending, startTransition] = useTransition();
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={() => {
+          startTransition(async () => {
+            await toggleTeamCenaR(eventoId, item.id, !item.presente);
+          });
+        }}
+        disabled={pending}
+        className={`w-full text-left text-sm px-2 py-1 rounded-lg transition-colors disabled:opacity-50 ${
+          item.presente
+            ? "text-neutral-900 hover:bg-neutral-100"
+            : "text-neutral-400 line-through hover:bg-neutral-100"
+        }`}
+      >
+        {item.nome}
+      </button>
+    </li>
   );
 }
 

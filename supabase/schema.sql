@@ -169,6 +169,14 @@ create table if not exists evento_cena_ospiti (
   created_at timestamptz not null default now()
 );
 
+create table if not exists evento_team_cena_esclusi (
+  id uuid primary key default gen_random_uuid(),
+  evento_id uuid not null references eventi(id) on delete cascade,
+  team_matazz_id uuid not null references team_matazz(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  unique (evento_id, team_matazz_id)
+);
+
 create table if not exists compiti (
   id uuid primary key default gen_random_uuid(),
   evento_id uuid references eventi(id) on delete cascade,
@@ -272,6 +280,7 @@ alter table evento_materiali enable row level security;
 alter table evento_budget_extra enable row level security;
 alter table evento_programma enable row level security;
 alter table evento_cena_ospiti enable row level security;
+alter table evento_team_cena_esclusi enable row level security;
 
 -- =====================================================
 -- Pre-populate: 9 membri del team Matazz

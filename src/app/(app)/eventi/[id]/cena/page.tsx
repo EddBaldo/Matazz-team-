@@ -1,5 +1,9 @@
 import { createServerClient } from "@/lib/supabase/server";
-import { CenaClient, type OspitoCenaItem } from "./_components/CenaClient";
+import {
+  CenaClient,
+  type OspitoCenaItem,
+  type TeamCenaItem,
+} from "./_components/CenaClient";
 import type { CateringEdit } from "./_components/CateringModal";
 import type { OspiteCena } from "./_components/OspitiModal";
 
@@ -35,7 +39,14 @@ export default async function CenaPage({ params }: Props) {
   const { id } = await params;
   const sb = createServerClient();
 
-  const [catRes, ospitiRes, artistiRes, personaleRes] = await Promise.all([
+  const [
+    catRes,
+    ospitiRes,
+    artistiRes,
+    personaleRes,
+    teamRes,
+    teamEsclusiRes,
+  ] = await Promise.all([
     sb
       .from("evento_catering")
       .select(
@@ -60,6 +71,11 @@ export default async function CenaPage({ params }: Props) {
       )
       .eq("evento_id", id)
       .eq("presente_cena", true),
+    sb.from("team_matazz").select("id, nome").order("nome"),
+    sb
+      .from("evento_team_cena_esclusi")
+      .select("team_matazz_id")
+      .eq("evento_id", id),
   ]);
 
   const catering: CateringEdit[] = ((catRes.data ?? []) as CateringRow[]).map(
@@ -92,11 +108,26 @@ export default async function CenaPage({ params }: Props) {
     }))
     .sort((a, b) => a.nome.localeCompare(b.nome, "it"));
 
+  const esclusi = new Set(
+    ((teamEsclusiRes.data ?? []) as { team_matazz_id: string }[]).map(
+      (r) => r.team_matazz_id,
+    ),
+  );
+  const teamCena: TeamCenaItem[] = (
+    (teamRes.data ?? []) as { id: string; nome: string }[]
+  ).map((t) => ({
+    id: t.id,
+    nome: t.nome,
+    presente: !esclusi.has(t.id),
+  }));
+
   const err =
     catRes.error ??
     ospitiRes.error ??
     artistiRes.error ??
-    personaleRes.error;
+    personaleRes.error ??
+    teamRes.error ??
+    teamEsclusiRes.error;
 
   return (
     <div className="space-y-6">
@@ -107,8 +138,9 @@ export default async function CenaPage({ params }: Props) {
         <p className="text-sm text-neutral-600 mt-1">
           Le offerte cena dei vari chef e l&apos;elenco degli ospiti che cenano
           con noi, con le rispettive intolleranze. Il totale ospiti combina
-          artisti, personale e Family &amp; Friends — il numero entra
-          automaticamente nel costo per ogni offerta selezionata.
+          artisti, personale, team Matazz e ospiti speciali. Usa il bottone
+          &ldquo;Aggiorna offerte col totale&rdquo; quando la lista è
+          definitiva.
         </p>
       </div>
 
@@ -124,6 +156,7 @@ export default async function CenaPage({ params }: Props) {
         ospiti={ospiti}
         artistiCena={artistiCena}
         personaleCena={personaleCena}
+        teamCena={teamCena}
       />
     </div>
   );
