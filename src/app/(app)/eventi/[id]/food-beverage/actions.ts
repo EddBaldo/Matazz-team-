@@ -23,6 +23,31 @@ function revalidateFB(eventoId: string) {
   revalidatePath(`/eventi/${eventoId}/food-beverage`);
 }
 
+// ----- STIME EVENTO (persone + bevande/persona) --------------------------
+
+export async function aggiornaStimePersoneR(
+  eventoId: string,
+  persone: string | null,
+  bevandePerPersona: string | null,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const sb = createServerClient();
+  const { error } = await sb
+    .from("eventi")
+    .update({
+      persone_stimati: Math.max(0, Math.floor(toNumber(persone, 0))),
+      bevande_per_persona: Math.max(0, toNumber(bevandePerPersona, 0)),
+    })
+    .eq("id", eventoId);
+
+  if (error) {
+    console.error("Errore update stime persone:", error);
+    return { ok: false, error: "Errore nel salvataggio. Riprova." };
+  }
+  revalidateFB(eventoId);
+  return { ok: true };
+}
+
 // ----- BAR ---------------------------------------------------------------
 
 export type BarInput = {
@@ -31,7 +56,7 @@ export type BarInput = {
   fornitore: string | null;
   costo_unitario: string | null;
   prezzo_vendita: string | null;
-  quantita_stimata: string | null;
+  quota_stimata: string | null;
   note: string | null;
 };
 
@@ -61,7 +86,7 @@ export async function creaBarR(
     fornitore: input.fonte === "Fornitore" ? trimOrNull(input.fornitore) : null,
     costo_unitario: toNumber(input.costo_unitario, 0),
     prezzo_vendita: toNumber(input.prezzo_vendita, 0),
-    quantita_stimata: toNumber(input.quantita_stimata, 0),
+    quota_stimata: toNumber(input.quota_stimata, 0),
     note: trimOrNull(input.note),
   });
 
@@ -92,7 +117,7 @@ export async function aggiornaBarR(
         input.fonte === "Fornitore" ? trimOrNull(input.fornitore) : null,
       costo_unitario: toNumber(input.costo_unitario, 0),
       prezzo_vendita: toNumber(input.prezzo_vendita, 0),
-      quantita_stimata: toNumber(input.quantita_stimata, 0),
+      quota_stimata: toNumber(input.quota_stimata, 0),
       note: trimOrNull(input.note),
     })
     .eq("id", barId)
@@ -137,7 +162,7 @@ export type FoodTruckInput = {
   // modello Acquisto
   costo_unitario: string | null;
   prezzo_vendita: string | null;
-  quantita_stimata: string | null;
+  quota_stimata: string | null;
   // common
   selezionata: boolean;
   note: string | null;
@@ -163,7 +188,7 @@ function buildFoodTruckPayload(input: FoodTruckInput) {
       : toNumber(input.percentuale_matazz, 0),
     costo_unitario: isAcquisto ? toNumber(input.costo_unitario, 0) : null,
     prezzo_vendita: isAcquisto ? toNumber(input.prezzo_vendita, 0) : null,
-    quantita_stimata: isAcquisto ? toNumber(input.quantita_stimata, 0) : null,
+    quota_stimata: isAcquisto ? toNumber(input.quota_stimata, 0) : 0,
     selezionata: input.selezionata,
     note: trimOrNull(input.note),
   };

@@ -20,7 +20,7 @@ export type FoodTruckEdit = {
   percentuale_matazz: number;
   costo_unitario: number | null;
   prezzo_vendita: number | null;
-  quantita_stimata: number | null;
+  quota_stimata: number;
   selezionata: boolean;
   note: string | null;
 };
@@ -77,7 +77,7 @@ export function FoodTruckModal({ eventoId, mode, onClose }: Props) {
       percentuale_matazz: (fd.get("percentuale_matazz") as string) || null,
       costo_unitario: (fd.get("costo_unitario") as string) || null,
       prezzo_vendita: (fd.get("prezzo_vendita") as string) || null,
-      quantita_stimata: (fd.get("quantita_stimata") as string) || null,
+      quota_stimata: (fd.get("quota_stimata") as string) || null,
       selezionata: selezionata,
       note: (fd.get("note") as string) || null,
     };
@@ -224,14 +224,16 @@ export function FoodTruckModal({ eventoId, mode, onClose }: Props) {
                   className={INPUT_CLASS}
                 />
               </Field>
-              <Field label="Quantità">
+              <Field label="Quota %">
                 <input
                   type="number"
                   step="1"
                   min="0"
-                  name="quantita_stimata"
-                  defaultValue={f?.quantita_stimata ?? 0}
+                  max="100"
+                  name="quota_stimata"
+                  defaultValue={f?.quota_stimata ?? 0}
                   className={INPUT_CLASS}
+                  placeholder="Es. 50"
                 />
               </Field>
             </div>

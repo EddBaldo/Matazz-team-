@@ -26,11 +26,13 @@ type BudgetExtraRow = { id: string; voce: string; importo: number; tipo: string 
 type BarArticoloRow = {
   costo_unitario: number | null;
   prezzo_vendita: number | null;
-  quantita_stimata: number;
+  quota_stimata: number;
 };
 type CateringRow = {
+  modello: string;
   prezzo_per_persona: number;
   numero_persone: number;
+  prezzo_totale: number;
   selezionata: boolean;
 };
 type FoodTruckRow = {
@@ -39,8 +41,12 @@ type FoodTruckRow = {
   percentuale_matazz: number | null;
   costo_unitario: number | null;
   prezzo_vendita: number | null;
-  quantita_stimata: number | null;
+  quota_stimata: number;
   selezionata: boolean;
+};
+type EventoStimeRow = {
+  persone_stimati: number;
+  bevande_per_persona: number;
 };
 type EventoSponsorRow = { stato: string; importo: number };
 type StimaRow = { chiave: string; importo: number };
@@ -50,6 +56,7 @@ export default async function EventoBudgetPage({ params }: Props) {
   const sb = createServerClient();
 
   const [
+    eventoRes,
     artistiRes,
     personaleRes,
     materialiRes,
@@ -61,6 +68,11 @@ export default async function EventoBudgetPage({ params }: Props) {
     sponsorRes,
     stimeRes,
   ] = await Promise.all([
+    sb
+      .from("eventi")
+      .select("persone_stimati, bevande_per_persona")
+      .eq("id", id)
+      .maybeSingle(),
     sb
       .from("evento_artisti")
       .select("artist_fee, costi_produzione")
@@ -81,16 +93,18 @@ export default async function EventoBudgetPage({ params }: Props) {
       .order("voce"),
     sb
       .from("evento_bar_articoli")
-      .select("costo_unitario, prezzo_vendita, quantita_stimata")
+      .select("costo_unitario, prezzo_vendita, quota_stimata")
       .eq("evento_id", id),
     sb
       .from("evento_catering")
-      .select("prezzo_per_persona, numero_persone, selezionata")
+      .select(
+        "modello, prezzo_per_persona, numero_persone, prezzo_totale, selezionata",
+      )
       .eq("evento_id", id),
     sb
       .from("evento_food_truck")
       .select(
-        "modello, incasso_lordo_stimato, percentuale_matazz, costo_unitario, prezzo_vendita, quantita_stimata, selezionata",
+        "modello, incasso_lordo_stimato, percentuale_matazz, costo_unitario, prezzo_vendita, quota_stimata, selezionata",
       )
       .eq("evento_id", id),
     sb
@@ -102,6 +116,14 @@ export default async function EventoBudgetPage({ params }: Props) {
       .select("chiave, importo")
       .eq("evento_id", id),
   ]);
+
+  const evento = (eventoRes.data ?? {
+    persone_stimati: 0,
+    bevande_per_persona: 0,
+  }) as EventoStimeRow;
+  const personeStimati = Number(evento.persone_stimati ?? 0);
+  const bevandePerPersona = Number(evento.bevande_per_persona ?? 0);
+  const totaleBevande = personeStimati * bevandePerPersona;
 
   const artisti = (artistiRes.data ?? []) as EventoArtistaRow[];
   const personale = (personaleRes.data ?? []) as EventoPersonaleRow[];
@@ -143,26 +165,33 @@ export default async function EventoBudgetPage({ params }: Props) {
     0,
   );
   const barRicavo = bar.reduce(
-    (s, r) => s + Number(r.prezzo_vendita ?? 0) * Number(r.quantita_stimata),
+    (s, r) =>
+      s +
+      Number(r.prezzo_vendita ?? 0) *
+        ((totaleBevande * Number(r.quota_stimata ?? 0)) / 100),
     0,
   );
   const barCosto = bar.reduce(
-    (s, r) => s + Number(r.costo_unitario ?? 0) * Number(r.quantita_stimata),
+    (s, r) =>
+      s +
+      Number(r.costo_unitario ?? 0) *
+        ((totaleBevande * Number(r.quota_stimata ?? 0)) / 100),
     0,
   );
   const totaleCatering = catering
     .filter((r) => r.selezionata)
-    .reduce(
-      (s, r) => s + Number(r.prezzo_per_persona) * Number(r.numero_persone),
-      0,
-    );
+    .reduce((s, r) => {
+      if (r.modello === "Totale") return s + Number(r.prezzo_totale);
+      return s + Number(r.prezzo_per_persona) * Number(r.numero_persone);
+    }, 0);
   const totaleFoodTruck = foodTruck
     .filter((r) => r.selezionata)
     .reduce((s, r) => {
       if (r.modello === "Acquisto") {
+        const qty = (personeStimati * Number(r.quota_stimata ?? 0)) / 100;
         const margine =
           Number(r.prezzo_vendita ?? 0) - Number(r.costo_unitario ?? 0);
-        return s + margine * Number(r.quantita_stimata ?? 0);
+        return s + margine * qty;
       }
       return (
         s +

@@ -102,6 +102,8 @@ create table if not exists eventi (
     'In pianificazione', 'Concluso'
   )),
   descrizione text,
+  persone_stimati integer not null default 0,
+  bevande_per_persona numeric not null default 0,
   creato_da_id uuid references team_matazz(id) on delete set null,
   created_at timestamptz not null default now()
 );
@@ -226,6 +228,7 @@ create table if not exists evento_bar_articoli (
   costo_unitario numeric not null default 0,
   prezzo_vendita numeric not null default 0,
   quantita_stimata integer not null default 0,
+  quota_stimata numeric not null default 0,
   note text,
   creato_da_id uuid references team_matazz(id) on delete set null,
   created_at timestamptz not null default now()
@@ -255,6 +258,7 @@ create table if not exists evento_food_truck (
   percentuale_matazz numeric not null default 0,
   selezionata boolean not null default false,
   note text,
+  quota_stimata numeric not null default 0,
   creato_da_id uuid references team_matazz(id) on delete set null,
   created_at timestamptz not null default now()
 );

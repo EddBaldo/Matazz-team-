@@ -19,7 +19,7 @@ export type BarEdit = {
   fornitore: string | null;
   costo_unitario: number | null;
   prezzo_vendita: number | null;
-  quantita_stimata: number;
+  quota_stimata: number;
   note: string | null;
 };
 
@@ -71,7 +71,7 @@ export function BarModal({ eventoId, mode, onClose }: Props) {
       fornitore: fonte === "Fornitore" ? fornitore : null,
       costo_unitario: (fd.get("costo_unitario") as string) || null,
       prezzo_vendita: (fd.get("prezzo_vendita") as string) || null,
-      quantita_stimata: (fd.get("quantita_stimata") as string) || null,
+      quota_stimata: (fd.get("quota_stimata") as string) || null,
       note: (fd.get("note") as string) || null,
     };
     startTransition(async () => {
@@ -199,14 +199,16 @@ export function BarModal({ eventoId, mode, onClose }: Props) {
                 className={INPUT_CLASS}
               />
             </Field>
-            <Field label="Quantità">
+            <Field label="Quota %">
               <input
                 type="number"
                 step="1"
                 min="0"
-                name="quantita_stimata"
-                defaultValue={b?.quantita_stimata ?? 0}
+                max="100"
+                name="quota_stimata"
+                defaultValue={b?.quota_stimata ?? 0}
                 className={INPUT_CLASS}
+                placeholder="Es. 40"
               />
             </Field>
           </div>
