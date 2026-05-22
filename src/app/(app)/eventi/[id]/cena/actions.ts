@@ -29,7 +29,10 @@ function revalidateCena(eventoId: string) {
 export type CateringInput = {
   nome_fornitore: string;
   descrizione: string | null;
+  modello: "PerPersona" | "Totale";
   prezzo_per_persona: string | null;
+  numero_persone: string | null;
+  prezzo_totale: string | null;
   selezionata: boolean;
   note: string | null;
 };
@@ -37,7 +40,23 @@ export type CateringInput = {
 function validateCatering(input: CateringInput): string | null {
   if (input.nome_fornitore.trim().length === 0)
     return "Il nome dello chef è obbligatorio.";
+  if (input.modello !== "PerPersona" && input.modello !== "Totale")
+    return "Modello prezzo non valido.";
   return null;
+}
+
+function cateringPayload(input: CateringInput) {
+  const isTotale = input.modello === "Totale";
+  return {
+    nome_fornitore: input.nome_fornitore.trim(),
+    descrizione: trimOrNull(input.descrizione),
+    modello: input.modello,
+    prezzo_per_persona: isTotale ? 0 : toNumber(input.prezzo_per_persona, 0),
+    numero_persone: isTotale ? 0 : toNumber(input.numero_persone, 0),
+    prezzo_totale: isTotale ? toNumber(input.prezzo_totale, 0) : 0,
+    selezionata: input.selezionata,
+    note: trimOrNull(input.note),
+  };
 }
 
 export async function creaCateringR(
@@ -51,11 +70,7 @@ export async function creaCateringR(
   const sb = createServerClient();
   const { error } = await sb.from("evento_catering").insert({
     evento_id: eventoId,
-    nome_fornitore: input.nome_fornitore.trim(),
-    descrizione: trimOrNull(input.descrizione),
-    prezzo_per_persona: toNumber(input.prezzo_per_persona, 0),
-    selezionata: input.selezionata,
-    note: trimOrNull(input.note),
+    ...cateringPayload(input),
   });
 
   if (error) {
@@ -78,13 +93,7 @@ export async function aggiornaCateringR(
   const sb = createServerClient();
   const { error } = await sb
     .from("evento_catering")
-    .update({
-      nome_fornitore: input.nome_fornitore.trim(),
-      descrizione: trimOrNull(input.descrizione),
-      prezzo_per_persona: toNumber(input.prezzo_per_persona, 0),
-      selezionata: input.selezionata,
-      note: trimOrNull(input.note),
-    })
+    .update(cateringPayload(input))
     .eq("id", catId)
     .eq("evento_id", eventoId);
 
@@ -111,6 +120,48 @@ export async function eliminaCateringR(
   if (error) {
     console.error("Errore delete catering:", error);
     return { ok: false, error: "Errore nell'eliminazione. Riprova." };
+  }
+  revalidateCena(eventoId);
+  return { ok: true };
+}
+
+export async function allineaCateringPersoneR(
+  eventoId: string,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const sb = createServerClient();
+
+  const [artistiCount, personaleCount, ospitiCount] = await Promise.all([
+    sb
+      .from("evento_artisti")
+      .select("id", { count: "exact", head: true })
+      .eq("evento_id", eventoId)
+      .eq("presente_cena", true),
+    sb
+      .from("evento_personale")
+      .select("id", { count: "exact", head: true })
+      .eq("evento_id", eventoId)
+      .eq("presente_cena", true),
+    sb
+      .from("evento_cena_ospiti")
+      .select("id", { count: "exact", head: true })
+      .eq("evento_id", eventoId),
+  ]);
+
+  const totale =
+    (artistiCount.count ?? 0) +
+    (personaleCount.count ?? 0) +
+    (ospitiCount.count ?? 0);
+
+  const { error } = await sb
+    .from("evento_catering")
+    .update({ numero_persone: totale })
+    .eq("evento_id", eventoId)
+    .eq("modello", "PerPersona");
+
+  if (error) {
+    console.error("Errore allinea catering persone:", error);
+    return { ok: false, error: "Errore nell'aggiornamento. Riprova." };
   }
   revalidateCena(eventoId);
   return { ok: true };

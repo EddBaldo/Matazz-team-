@@ -228,8 +228,11 @@ create table if not exists evento_catering (
   evento_id uuid not null references eventi(id) on delete cascade,
   nome_fornitore text not null,
   descrizione text,
+  modello text not null default 'PerPersona'
+    check (modello in ('PerPersona', 'Totale')),
   prezzo_per_persona numeric not null default 0,
   numero_persone integer not null default 0,
+  prezzo_totale numeric not null default 0,
   selezionata boolean not null default false,
   note text,
   creato_da_id uuid references team_matazz(id) on delete set null,

@@ -16,7 +16,10 @@ export type CateringEdit = {
   id: string;
   nome_fornitore: string;
   descrizione: string | null;
+  modello: "PerPersona" | "Totale";
   prezzo_per_persona: number;
+  numero_persone: number;
+  prezzo_totale: number;
   selezionata: boolean;
   note: string | null;
 };
@@ -34,6 +37,9 @@ export function CateringModal({ eventoId, mode, onClose }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [selezionata, setSelezionata] = useState<boolean>(false);
+  const [modello, setModello] = useState<"PerPersona" | "Totale">(
+    "PerPersona",
+  );
 
   useEffect(() => {
     const dlg = dialogRef.current;
@@ -41,6 +47,9 @@ export function CateringModal({ eventoId, mode, onClose }: Props) {
     if (mode) {
       setError(null);
       setSelezionata(mode.kind === "edit" ? mode.catering.selezionata : false);
+      setModello(
+        mode.kind === "edit" ? mode.catering.modello : "PerPersona",
+      );
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
       dlg.close();
@@ -59,7 +68,10 @@ export function CateringModal({ eventoId, mode, onClose }: Props) {
     const input: CateringInput = {
       nome_fornitore: String(fd.get("nome_fornitore") ?? ""),
       descrizione: (fd.get("descrizione") as string) || null,
+      modello,
       prezzo_per_persona: (fd.get("prezzo_per_persona") as string) || null,
+      numero_persone: (fd.get("numero_persone") as string) || null,
+      prezzo_totale: (fd.get("prezzo_totale") as string) || null,
       selezionata: selezionata,
       note: (fd.get("note") as string) || null,
     };
@@ -135,16 +147,61 @@ export function CateringModal({ eventoId, mode, onClose }: Props) {
             />
           </Field>
 
-          <Field label="CHF/persona">
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              name="prezzo_per_persona"
-              defaultValue={c?.prezzo_per_persona ?? 0}
-              className={INPUT_CLASS}
-            />
-          </Field>
+          <div>
+            <span className="text-sm font-medium text-neutral-800">
+              Modello prezzo
+            </span>
+            <div className="mt-1 inline-flex rounded-full bg-neutral-100 p-1">
+              <ModelloButton
+                active={modello === "PerPersona"}
+                onClick={() => setModello("PerPersona")}
+              >
+                Per persona
+              </ModelloButton>
+              <ModelloButton
+                active={modello === "Totale"}
+                onClick={() => setModello("Totale")}
+              >
+                Totale
+              </ModelloButton>
+            </div>
+          </div>
+
+          {modello === "PerPersona" ? (
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="CHF/persona">
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  name="prezzo_per_persona"
+                  defaultValue={c?.prezzo_per_persona ?? 0}
+                  className={INPUT_CLASS}
+                />
+              </Field>
+              <Field label="Persone (stima)">
+                <input
+                  type="number"
+                  step="1"
+                  min="0"
+                  name="numero_persone"
+                  defaultValue={c?.numero_persone ?? 0}
+                  className={INPUT_CLASS}
+                />
+              </Field>
+            </div>
+          ) : (
+            <Field label="CHF totale">
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                name="prezzo_totale"
+                defaultValue={c?.prezzo_totale ?? 0}
+                className={INPUT_CLASS}
+              />
+            </Field>
+          )}
 
           <div className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-50 px-4 py-3">
             <div>
@@ -216,6 +273,30 @@ export function CateringModal({ eventoId, mode, onClose }: Props) {
         </form>
       </div>
     </dialog>
+  );
+}
+
+function ModelloButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+        active
+          ? "bg-white text-neutral-900 shadow-sm"
+          : "text-neutral-600 hover:text-neutral-900"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 

@@ -1,9 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Plus, Check, Circle, Pencil } from "lucide-react";
+import { Plus, Check, Circle, Pencil, RefreshCw } from "lucide-react";
 import { formatMoney } from "@/lib/format";
-import { toggleCateringSelezionata } from "../actions";
+import {
+  allineaCateringPersoneR,
+  toggleCateringSelezionata,
+} from "../actions";
 import { CateringModal, type CateringEdit } from "./CateringModal";
 import { OspitiModal, type OspiteCena } from "./OspitiModal";
 
@@ -26,6 +29,11 @@ type CatModalState =
   | { kind: "edit"; catering: CateringEdit }
   | null;
 
+function totaleOfferta(c: CateringEdit): number {
+  if (c.modello === "Totale") return Number(c.prezzo_totale);
+  return Number(c.prezzo_per_persona) * Number(c.numero_persone);
+}
+
 export function CenaClient({
   eventoId,
   catering,
@@ -35,6 +43,7 @@ export function CenaClient({
 }: Props) {
   const [catModal, setCatModal] = useState<CatModalState>(null);
   const [ospitiOpen, setOspitiOpen] = useState(false);
+  const [aligning, startAligning] = useTransition();
 
   const familyItems: OspitoCenaItem[] = ospiti.map((o) => ({
     id: o.id,
@@ -49,10 +58,26 @@ export function CenaClient({
 
   const catTotaleSel = catering
     .filter((r) => r.selezionata)
-    .reduce(
-      (s, r) => s + Number(r.prezzo_per_persona) * totaleOspiti,
-      0,
-    );
+    .reduce((s, r) => s + totaleOfferta(r), 0);
+
+  function handleAlignClick() {
+    const cateringPerPersona = catering.filter((c) => c.modello === "PerPersona");
+    if (cateringPerPersona.length === 0) {
+      alert("Nessuna offerta 'Per persona' da aggiornare.");
+      return;
+    }
+    if (
+      !confirm(
+        `Aggiornare il numero di persone di ${cateringPerPersona.length} ${
+          cateringPerPersona.length === 1 ? "offerta" : "offerte"
+        } a ${totaleOspiti}?`,
+      )
+    )
+      return;
+    startAligning(async () => {
+      await allineaCateringPersoneR(eventoId);
+    });
+  }
 
   return (
     <>
@@ -69,10 +94,6 @@ export function CenaClient({
             </h3>
             <p className="text-sm text-neutral-600 mt-0.5">
               Selezionato: <strong>{formatMoney(catTotaleSel)}</strong>
-              <span className="text-neutral-500">
-                {" "}
-                ({totaleOspiti} {totaleOspiti === 1 ? "ospite" : "ospiti"})
-              </span>
             </p>
           </div>
           <button
@@ -95,6 +116,7 @@ export function CenaClient({
                   <Th align="left">Chef</Th>
                   <Th align="left">Descrizione</Th>
                   <Th align="right">CHF/persona</Th>
+                  <Th align="right">Persone</Th>
                   <Th align="right">Totale</Th>
                   <Th align="center">
                     <span className="sr-only">Selezionata</span>
@@ -107,7 +129,6 @@ export function CenaClient({
                     key={r.id}
                     eventoId={eventoId}
                     row={r}
-                    persone={totaleOspiti}
                     onClick={() =>
                       setCatModal({ kind: "edit", catering: r })
                     }
@@ -121,19 +142,31 @@ export function CenaClient({
 
       {/* --- OSPITI CENA --- */}
       <section className="space-y-3">
-        <div>
-          <h3 className="text-base font-semibold text-neutral-900 flex items-baseline gap-2">
-            <span aria-hidden>👥</span>
-            <span>Ospiti cena</span>
-            <span className="text-sm text-neutral-500 font-normal">
-              ({totaleOspiti})
-            </span>
-          </h3>
-          <p className="text-sm text-neutral-600 mt-0.5">
-            Solo chi ha il toggle &ldquo;Cena&rdquo; attivo. Modifica artisti e
-            personale dalle rispettive pagine; Family &amp; Friends si aggiunge
-            qui sotto.
-          </p>
+        <div className="flex items-baseline justify-between gap-3 flex-wrap">
+          <div>
+            <h3 className="text-base font-semibold text-neutral-900 flex items-baseline gap-2">
+              <span aria-hidden>👥</span>
+              <span>Ospiti cena</span>
+            </h3>
+            <p className="text-sm text-neutral-600 mt-0.5">
+              Totale: <strong className="text-neutral-900">{totaleOspiti}</strong>
+              <span className="text-neutral-500">
+                {" "}
+                ({numeroArtisti} artisti · {numeroPersonale} personale ·{" "}
+                {numeroFamily} family)
+              </span>
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleAlignClick}
+            disabled={aligning || catering.length === 0}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-neutral-300 bg-white text-neutral-900 text-sm font-medium hover:bg-neutral-50 disabled:opacity-50"
+            title="Imposta il numero di persone di tutte le offerte 'Per persona' al totale ospiti"
+          >
+            <RefreshCw className={`w-4 h-4 ${aligning ? "animate-spin" : ""}`} />
+            Aggiorna offerte col totale
+          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -145,15 +178,6 @@ export function CenaClient({
             actionLabel="Modifica"
             onAction={() => setOspitiOpen(true)}
           />
-        </div>
-
-        <div className="bg-white rounded-3xl px-4 py-3 flex items-center justify-between">
-          <span className="text-sm font-semibold text-neutral-900">
-            Totale ospiti
-          </span>
-          <span className="text-sm font-semibold text-neutral-900 tabular-nums">
-            {totaleOspiti}
-          </span>
         </div>
       </section>
 
@@ -227,12 +251,10 @@ function OspitiColumn({
 function CateringRow({
   eventoId,
   row,
-  persone,
   onClick,
 }: {
   eventoId: string;
   row: CateringEdit;
-  persone: number;
   onClick: () => void;
 }) {
   const [pending, startTransition] = useTransition();
@@ -242,7 +264,8 @@ function CateringRow({
       await toggleCateringSelezionata(eventoId, row.id, !row.selezionata);
     });
   }
-  const totale = Number(row.prezzo_per_persona) * persone;
+  const isTotale = row.modello === "Totale";
+  const totale = totaleOfferta(row);
   return (
     <tr
       onClick={onClick}
@@ -257,10 +280,18 @@ function CateringRow({
         {row.descrizione ?? "—"}
       </td>
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
-        {formatMoney(Number(row.prezzo_per_persona))}
+        {isTotale ? "—" : formatMoney(Number(row.prezzo_per_persona))}
+      </td>
+      <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
+        {isTotale ? "—" : row.numero_persone}
       </td>
       <td className="px-4 py-3 text-neutral-900 text-right tabular-nums font-medium">
         {formatMoney(totale)}
+        {isTotale && (
+          <span className="block text-[10px] uppercase tracking-wide text-neutral-400 font-normal">
+            flat
+          </span>
+        )}
       </td>
       <td className="px-4 py-3 text-center">
         <button

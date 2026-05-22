@@ -7,7 +7,10 @@ type CateringRow = {
   id: string;
   nome_fornitore: string;
   descrizione: string | null;
+  modello: string;
   prezzo_per_persona: number;
+  numero_persone: number;
+  prezzo_totale: number;
   selezionata: boolean;
   note: string | null;
 };
@@ -36,7 +39,7 @@ export default async function CenaPage({ params }: Props) {
     sb
       .from("evento_catering")
       .select(
-        "id, nome_fornitore, descrizione, prezzo_per_persona, selezionata, note",
+        "id, nome_fornitore, descrizione, modello, prezzo_per_persona, numero_persone, prezzo_totale, selezionata, note",
       )
       .eq("evento_id", id)
       .order("nome_fornitore"),
@@ -59,7 +62,12 @@ export default async function CenaPage({ params }: Props) {
       .eq("presente_cena", true),
   ]);
 
-  const catering = ((catRes.data ?? []) as CateringRow[]) as CateringEdit[];
+  const catering: CateringEdit[] = ((catRes.data ?? []) as CateringRow[]).map(
+    (r) => ({
+      ...r,
+      modello: r.modello === "Totale" ? "Totale" : "PerPersona",
+    }),
+  );
   const ospiti = (ospitiRes.data ?? []) as OspiteCena[];
 
   const artistiCena: OspitoCenaItem[] = (

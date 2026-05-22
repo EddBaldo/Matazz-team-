@@ -21,9 +21,6 @@ export async function calcolaBudgetEvento(
     cateringRes,
     foodTruckRes,
     sponsorRes,
-    artistiCenaRes,
-    personaleCenaRes,
-    ospitiCenaRes,
   ] = await Promise.all([
     sb
       .from("evento_artisti")
@@ -44,7 +41,9 @@ export async function calcolaBudgetEvento(
       .eq("evento_id", eventoId),
     sb
       .from("evento_catering")
-      .select("prezzo_per_persona, selezionata")
+      .select(
+        "modello, prezzo_per_persona, numero_persone, prezzo_totale, selezionata",
+      )
       .eq("evento_id", eventoId),
     sb
       .from("evento_food_truck")
@@ -53,20 +52,6 @@ export async function calcolaBudgetEvento(
     sb
       .from("evento_sponsor")
       .select("stato, importo")
-      .eq("evento_id", eventoId),
-    sb
-      .from("evento_artisti")
-      .select("id", { count: "exact", head: true })
-      .eq("evento_id", eventoId)
-      .eq("presente_cena", true),
-    sb
-      .from("evento_personale")
-      .select("id", { count: "exact", head: true })
-      .eq("evento_id", eventoId)
-      .eq("presente_cena", true),
-    sb
-      .from("evento_cena_ospiti")
-      .select("id", { count: "exact", head: true })
       .eq("evento_id", eventoId),
   ]);
 
@@ -92,13 +77,12 @@ export async function calcolaBudgetEvento(
     quantita_stimata: number;
   }[];
   const catering = (cateringRes.data ?? []) as {
+    modello: string;
     prezzo_per_persona: number;
+    numero_persone: number;
+    prezzo_totale: number;
     selezionata: boolean;
   }[];
-  const ospitiCena =
-    (artistiCenaRes.count ?? 0) +
-    (personaleCenaRes.count ?? 0) +
-    (ospitiCenaRes.count ?? 0);
   const foodTruck = (foodTruckRes.data ?? []) as {
     incasso_lordo_stimato: number;
     percentuale_matazz: number;
@@ -133,7 +117,10 @@ export async function calcolaBudgetEvento(
   );
   const totaleCatering = catering
     .filter((r) => r.selezionata)
-    .reduce((s, r) => s + Number(r.prezzo_per_persona) * ospitiCena, 0);
+    .reduce((s, r) => {
+      if (r.modello === "Totale") return s + Number(r.prezzo_totale);
+      return s + Number(r.prezzo_per_persona) * Number(r.numero_persone);
+    }, 0);
   const totaleFoodTruck = foodTruck
     .filter((r) => r.selezionata)
     .reduce(
