@@ -22,6 +22,7 @@ function toNumberOrNull(v: string | null): number | null {
 function revalidatePers(eventoId: string) {
   revalidatePath(`/eventi/${eventoId}`);
   revalidatePath(`/eventi/${eventoId}/personale`);
+  revalidatePath(`/eventi/${eventoId}/cena`);
 }
 
 // ----- AGGIUNGI ----------------------------------------------------------
@@ -183,6 +184,27 @@ export async function toggleConfermaPersonaleR(
 
   if (error) {
     console.error("Errore toggle conferma personale:", error);
+    return { ok: false, error: "Errore. Riprova." };
+  }
+  revalidatePers(eventoId);
+  return { ok: true };
+}
+
+export async function togglePresenteCenaPersonaleR(
+  eventoId: string,
+  evPersId: string,
+  presente: boolean,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const sb = createServerClient();
+  const { error } = await sb
+    .from("evento_personale")
+    .update({ presente_cena: presente })
+    .eq("id", evPersId)
+    .eq("evento_id", eventoId);
+
+  if (error) {
+    console.error("Errore toggle presente_cena personale:", error);
     return { ok: false, error: "Errore. Riprova." };
   }
   revalidatePers(eventoId);

@@ -17,7 +17,6 @@ export type CateringEdit = {
   nome_fornitore: string;
   descrizione: string | null;
   prezzo_per_persona: number;
-  numero_persone: number;
   selezionata: boolean;
   note: string | null;
 };
@@ -61,7 +60,6 @@ export function CateringModal({ eventoId, mode, onClose }: Props) {
       nome_fornitore: String(fd.get("nome_fornitore") ?? ""),
       descrizione: (fd.get("descrizione") as string) || null,
       prezzo_per_persona: (fd.get("prezzo_per_persona") as string) || null,
-      numero_persone: (fd.get("numero_persone") as string) || null,
       selezionata: selezionata,
       note: (fd.get("note") as string) || null,
     };
@@ -137,28 +135,16 @@ export function CateringModal({ eventoId, mode, onClose }: Props) {
             />
           </Field>
 
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="CHF/persona">
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                name="prezzo_per_persona"
-                defaultValue={c?.prezzo_per_persona ?? 0}
-                className={INPUT_CLASS}
-              />
-            </Field>
-            <Field label="Persone">
-              <input
-                type="number"
-                step="1"
-                min="0"
-                name="numero_persone"
-                defaultValue={c?.numero_persone ?? 0}
-                className={INPUT_CLASS}
-              />
-            </Field>
-          </div>
+          <Field label="CHF/persona">
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              name="prezzo_per_persona"
+              defaultValue={c?.prezzo_per_persona ?? 0}
+              className={INPUT_CLASS}
+            />
+          </Field>
 
           <div className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-50 px-4 py-3">
             <div>

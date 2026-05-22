@@ -144,6 +144,7 @@ create table if not exists evento_artisti (
   intolleranze_cibo text,
   commenti text,
   confermato boolean not null default false,
+  presente_cena boolean not null default false,
   creato_da_id uuid references team_matazz(id) on delete set null
 );
 
@@ -154,7 +155,17 @@ create table if not exists evento_personale (
   ruolo_specifico text,
   compenso numeric not null default 0,
   note text,
+  presente_cena boolean not null default false,
   creato_da_id uuid references team_matazz(id) on delete set null
+);
+
+create table if not exists evento_cena_ospiti (
+  id uuid primary key default gen_random_uuid(),
+  evento_id uuid not null references eventi(id) on delete cascade,
+  nome text not null,
+  note text,
+  creato_da_id uuid references team_matazz(id) on delete set null,
+  created_at timestamptz not null default now()
 );
 
 create table if not exists compiti (
@@ -256,6 +267,7 @@ alter table compiti enable row level security;
 alter table evento_materiali enable row level security;
 alter table evento_budget_extra enable row level security;
 alter table evento_programma enable row level security;
+alter table evento_cena_ospiti enable row level security;
 
 -- =====================================================
 -- Pre-populate: 9 membri del team Matazz

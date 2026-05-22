@@ -3,26 +3,17 @@
 import { useState, useTransition } from "react";
 import { Plus, Check, Circle } from "lucide-react";
 import { formatMoney } from "@/lib/format";
-import {
-  toggleCateringSelezionata,
-  toggleFoodTruckSelezionata,
-} from "../actions";
+import { toggleFoodTruckSelezionata } from "../actions";
 import { BarModal, type BarEdit } from "./BarModal";
-import { CateringModal, type CateringEdit } from "./CateringModal";
 import { FoodTruckModal, type FoodTruckEdit } from "./FoodTruckModal";
 
 type Props = {
   eventoId: string;
   bar: BarEdit[];
-  catering: CateringEdit[];
   foodTruck: FoodTruckEdit[];
 };
 
 type BarModalState = { kind: "add" } | { kind: "edit"; bar: BarEdit } | null;
-type CatModalState =
-  | { kind: "add" }
-  | { kind: "edit"; catering: CateringEdit }
-  | null;
 type FtModalState =
   | { kind: "add" }
   | { kind: "edit"; ft: FoodTruckEdit }
@@ -43,11 +34,9 @@ function guadagnoFoodTruck(ft: FoodTruckEdit): number {
 export function FoodBeverageClient({
   eventoId,
   bar,
-  catering,
   foodTruck,
 }: Props) {
   const [barModal, setBarModal] = useState<BarModalState>(null);
-  const [catModal, setCatModal] = useState<CatModalState>(null);
   const [ftModal, setFtModal] = useState<FtModalState>(null);
 
   // BAR totals (separati per fonte)
@@ -72,13 +61,6 @@ export function FoodBeverageClient({
   const tForn = barTotals(barFornitore);
   const tBarTotale = barTotals(bar);
 
-  const catTotaleSel = catering
-    .filter((r) => r.selezionata)
-    .reduce(
-      (s, r) => s + Number(r.prezzo_per_persona) * Number(r.numero_persone),
-      0,
-    );
-
   const ftPercentuale = foodTruck.filter((f) => f.modello === "Percentuale");
   const ftAcquisto = foodTruck.filter((f) => f.modello === "Acquisto");
 
@@ -88,65 +70,6 @@ export function FoodBeverageClient({
 
   return (
     <>
-      {/* --- CENA & CATERING --- */}
-      <section className="space-y-3">
-        <div className="flex items-baseline justify-between gap-3 flex-wrap">
-          <div>
-            <h3 className="text-base font-semibold text-neutral-900 flex items-baseline gap-2">
-              <span aria-hidden>🍝</span>
-              <span>Cena & Catering</span>
-              <span className="text-sm text-neutral-500 font-normal">
-                ({catering.length})
-              </span>
-            </h3>
-            <p className="text-sm text-neutral-600 mt-0.5">
-              Selezionato: <strong>{formatMoney(catTotaleSel)}</strong>
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={() => setCatModal({ kind: "add" })}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-900 text-white text-sm font-medium hover:bg-neutral-800"
-          >
-            <Plus className="w-4 h-4" />
-            Aggiungi offerta
-          </button>
-        </div>
-
-        {catering.length === 0 ? (
-          <EmptyBox text="Nessuna offerta cena. Aggiungi la prima." />
-        ) : (
-          <div className="bg-white rounded-3xl overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="border-b border-neutral-200">
-                <tr>
-                  <Th align="left">Chef</Th>
-                  <Th align="left">Descrizione</Th>
-                  <Th align="right">CHF/persona</Th>
-                  <Th align="right">Persone</Th>
-                  <Th align="right">Totale</Th>
-                  <Th align="center">
-                    <span className="sr-only">Selezionata</span>
-                  </Th>
-                </tr>
-              </thead>
-              <tbody>
-                {catering.map((r) => (
-                  <CateringRow
-                    key={r.id}
-                    eventoId={eventoId}
-                    row={r}
-                    onClick={() =>
-                      setCatModal({ kind: "edit", catering: r })
-                    }
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
-
       {/* --- BAR --- */}
       <section className="space-y-3">
         <div className="flex items-baseline justify-between gap-3 flex-wrap">
@@ -251,11 +174,6 @@ export function FoodBeverageClient({
         eventoId={eventoId}
         mode={barModal}
         onClose={() => setBarModal(null)}
-      />
-      <CateringModal
-        eventoId={eventoId}
-        mode={catModal}
-        onClose={() => setCatModal(null)}
       />
       <FoodTruckModal
         eventoId={eventoId}
@@ -532,56 +450,6 @@ function FtRowAcquisto({
         }`}
       >
         {formatMoney(guadagno)}
-      </td>
-      <td className="px-4 py-3 text-center">
-        <SelToggle
-          pending={pending}
-          selected={row.selezionata}
-          onClick={toggle}
-        />
-      </td>
-    </tr>
-  );
-}
-
-function CateringRow({
-  eventoId,
-  row,
-  onClick,
-}: {
-  eventoId: string;
-  row: CateringEdit;
-  onClick: () => void;
-}) {
-  const [pending, startTransition] = useTransition();
-  function toggle(e: React.MouseEvent) {
-    e.stopPropagation();
-    startTransition(async () => {
-      await toggleCateringSelezionata(eventoId, row.id, !row.selezionata);
-    });
-  }
-  const totale = Number(row.prezzo_per_persona) * Number(row.numero_persone);
-  return (
-    <tr
-      onClick={onClick}
-      className={`border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50 cursor-pointer ${
-        row.selezionata ? "bg-amber-50/40" : ""
-      }`}
-    >
-      <td className="px-4 py-3 text-neutral-900 font-medium">
-        {row.nome_fornitore}
-      </td>
-      <td className="px-4 py-3 text-neutral-700">
-        {row.descrizione ?? "—"}
-      </td>
-      <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
-        {formatMoney(Number(row.prezzo_per_persona))}
-      </td>
-      <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
-        {row.numero_persone}
-      </td>
-      <td className="px-4 py-3 text-neutral-900 text-right tabular-nums font-medium">
-        {formatMoney(totale)}
       </td>
       <td className="px-4 py-3 text-center">
         <SelToggle

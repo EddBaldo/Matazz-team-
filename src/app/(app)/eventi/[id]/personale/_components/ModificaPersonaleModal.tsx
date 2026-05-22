@@ -19,6 +19,7 @@ export type EventoPersonaleEdit = {
   compenso: number | null;
   note: string | null;
   confermato: boolean;
+  presente_cena: boolean;
   personaLabel: string;
   ruoloRubrica: string;
   categoria: string | null;

@@ -180,7 +180,11 @@ export async function toggleConfermaR(
   return { ok: true };
 }
 
-type ToggleField = "doc_info_artisti" | "doc_proposal" | "necessita_alloggio";
+type ToggleField =
+  | "doc_info_artisti"
+  | "doc_proposal"
+  | "necessita_alloggio"
+  | "presente_cena";
 
 export async function toggleEventoArtistaBoolR(
   eventoId: string,
@@ -193,6 +197,7 @@ export async function toggleEventoArtistaBoolR(
     "doc_info_artisti",
     "doc_proposal",
     "necessita_alloggio",
+    "presente_cena",
   ];
   if (!allowed.includes(field))
     return { ok: false, error: "Campo non valido." };
@@ -209,6 +214,7 @@ export async function toggleEventoArtistaBoolR(
     return { ok: false, error: "Errore. Riprova." };
   }
   revalidatePath(`/eventi/${eventoId}/artisti`);
+  revalidatePath(`/eventi/${eventoId}/cena`);
   revalidatePath(`/eventi/${eventoId}`);
   return { ok: true };
 }

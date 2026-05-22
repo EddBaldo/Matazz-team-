@@ -1,7 +1,6 @@
 import { createServerClient } from "@/lib/supabase/server";
 import { FoodBeverageClient } from "./_components/FoodBeverageClient";
 import type { BarEdit } from "./_components/BarModal";
-import type { CateringEdit } from "./_components/CateringModal";
 import type { FoodTruckEdit } from "./_components/FoodTruckModal";
 
 type BarRow = {
@@ -23,7 +22,7 @@ export default async function FoodBeveragePage({ params }: Props) {
   const { id } = await params;
   const sb = createServerClient();
 
-  const [barRes, catRes, ftRes] = await Promise.all([
+  const [barRes, ftRes] = await Promise.all([
     sb
       .from("evento_bar_articoli")
       .select(
@@ -32,13 +31,6 @@ export default async function FoodBeveragePage({ params }: Props) {
       .eq("evento_id", id)
       .order("fonte", { ascending: true })
       .order("articolo", { ascending: true }),
-    sb
-      .from("evento_catering")
-      .select(
-        "id, nome_fornitore, descrizione, prezzo_per_persona, numero_persone, selezionata, note",
-      )
-      .eq("evento_id", id)
-      .order("nome_fornitore"),
     sb
       .from("evento_food_truck")
       .select(
@@ -59,7 +51,6 @@ export default async function FoodBeveragePage({ params }: Props) {
     quantita_stimata: r.quantita_stimata,
     note: r.note,
   }));
-  const catering = (catRes.data ?? []) as CateringEdit[];
   type FtRow = Omit<FoodTruckEdit, "modello"> & { modello: string };
   const foodTruck: FoodTruckEdit[] = ((ftRes.data ?? []) as FtRow[]).map(
     (r) => ({
@@ -68,7 +59,7 @@ export default async function FoodBeveragePage({ params }: Props) {
     }),
   );
 
-  const err = barRes.error ?? catRes.error ?? ftRes.error;
+  const err = barRes.error ?? ftRes.error;
 
   return (
     <div className="space-y-6">
@@ -77,11 +68,11 @@ export default async function FoodBeveragePage({ params }: Props) {
           Food &amp; Beverage
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Organizziamo qui il cibo e le bevande che offriremo e venderemo.
-          Inserite le varie offerte che riceviamo da catering e food truck:
-          cliccando sul pallino verde una proposta diventa &ldquo;selezionata&rdquo;
-          e viene considerata nel conteggio finale del budget. Il bar invece
-          fa sempre parte del budget.
+          Bar e food truck per l&apos;evento. Inserite le varie offerte di food
+          truck: cliccando sul pallino verde una proposta diventa
+          &ldquo;selezionata&rdquo; e viene considerata nel conteggio finale del
+          budget. Il bar invece fa sempre parte del budget. (Le offerte cena le
+          gestite nella pagina <strong>Cena</strong>.)
         </p>
       </div>
 
@@ -94,7 +85,6 @@ export default async function FoodBeveragePage({ params }: Props) {
       <FoodBeverageClient
         eventoId={id}
         bar={bar}
-        catering={catering}
         foodTruck={foodTruck}
       />
     </div>

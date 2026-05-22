@@ -22,6 +22,7 @@ export type EventoArtistaEdit = {
   doc_info_artisti: boolean;
   doc_proposal: boolean;
   necessita_alloggio: boolean;
+  presente_cena: boolean;
   info_alloggio: string | null;
   ingombro: string | null;
   costi_produzione: number | null;

@@ -8,7 +8,10 @@ import {
   CATEGORIA_PERSONALE_EMOJI,
   type CategoriaPersonale,
 } from "@/lib/personale";
-import { toggleConfermaPersonaleR } from "../actions";
+import {
+  toggleConfermaPersonaleR,
+  togglePresenteCenaPersonaleR,
+} from "../actions";
 import {
   AggiungiPersonaleModal,
   type PersonaRubrica,
@@ -153,6 +156,7 @@ function PersonaleTable({
             <Th align="left">Presenza</Th>
             <Th align="right">Compenso</Th>
             <Th align="left">Note</Th>
+            <Th align="center">Cena</Th>
             <Th align="center">
               <span className="sr-only">Conferma</span>
             </Th>
@@ -208,6 +212,13 @@ function PersonaleRowItem({
       </td>
       <td className="px-4 py-3 text-neutral-700">{row.note ?? "—"}</td>
       <td className="px-4 py-3 text-center">
+        <CenaBadge
+          eventoId={eventoId}
+          evPersId={row.id}
+          on={row.presente_cena}
+        />
+      </td>
+      <td className="px-4 py-3 text-center">
         <button
           type="button"
           onClick={handleToggle}
@@ -230,6 +241,37 @@ function PersonaleRowItem({
         </button>
       </td>
     </tr>
+  );
+}
+
+function CenaBadge({
+  eventoId,
+  evPersId,
+  on,
+}: {
+  eventoId: string;
+  evPersId: string;
+  on: boolean;
+}) {
+  const [pending, startTransition] = useTransition();
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        startTransition(async () => {
+          await togglePresenteCenaPersonaleR(eventoId, evPersId, !on);
+        });
+      }}
+      disabled={pending}
+      className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium transition-colors disabled:opacity-50 cursor-pointer ${
+        on
+          ? "bg-green-100 text-green-800 hover:bg-green-200"
+          : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+      }`}
+    >
+      {on ? "Sì" : "No"}
+    </button>
   );
 }
 

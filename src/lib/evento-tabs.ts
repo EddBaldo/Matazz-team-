@@ -5,6 +5,7 @@ export const EVENTO_TABS: readonly EventoTab[] = [
   { label: "Programma", segment: "/programma" },
   { label: "Artisti", segment: "/artisti" },
   { label: "Food & Beverage", segment: "/food-beverage" },
+  { label: "Cena", segment: "/cena" },
   { label: "Sponsor", segment: "/sponsor" },
   { label: "Personale", segment: "/personale" },
   { label: "Tabella di marcia", segment: "/compiti" },
