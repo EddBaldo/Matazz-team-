@@ -25,7 +25,7 @@ export async function calcolaBudgetEvento(
   ] = await Promise.all([
     sb
       .from("eventi")
-      .select("persone_stimati, bevande_per_persona")
+      .select("persone_stimati")
       .eq("id", eventoId)
       .maybeSingle(),
     sb
@@ -43,7 +43,9 @@ export async function calcolaBudgetEvento(
       .eq("evento_id", eventoId),
     sb
       .from("evento_bar_articoli")
-      .select("costo_unitario, prezzo_vendita, quota_stimata")
+      .select(
+        "costo_unitario, prezzo_vendita, quantita_acquistata, consumo_per_persona",
+      )
       .eq("evento_id", eventoId),
     sb
       .from("evento_catering")
@@ -54,7 +56,7 @@ export async function calcolaBudgetEvento(
     sb
       .from("evento_food_truck")
       .select(
-        "modello, incasso_lordo_stimato, percentuale_matazz, costo_unitario, prezzo_vendita, quota_stimata, selezionata",
+        "modello, incasso_lordo_stimato, percentuale_matazz, costo_unitario, prezzo_vendita, quantita_acquistata, consumo_per_persona, selezionata",
       )
       .eq("evento_id", eventoId),
     sb
@@ -81,16 +83,14 @@ export async function calcolaBudgetEvento(
   }[];
   const evento = (eventoRes.data ?? {
     persone_stimati: 0,
-    bevande_per_persona: 0,
-  }) as { persone_stimati: number; bevande_per_persona: number };
+  }) as { persone_stimati: number };
   const personeStimati = Number(evento.persone_stimati ?? 0);
-  const bevandePerPersona = Number(evento.bevande_per_persona ?? 0);
-  const totaleBevande = personeStimati * bevandePerPersona;
 
   const bar = (barRes.data ?? []) as {
     costo_unitario: number | null;
     prezzo_vendita: number | null;
-    quota_stimata: number;
+    quantita_acquistata: number;
+    consumo_per_persona: number;
   }[];
   const catering = (cateringRes.data ?? []) as {
     modello: string;
@@ -105,7 +105,8 @@ export async function calcolaBudgetEvento(
     percentuale_matazz: number;
     costo_unitario: number | null;
     prezzo_vendita: number | null;
-    quota_stimata: number;
+    quantita_acquistata: number;
+    consumo_per_persona: number;
     selezionata: boolean;
   }[];
   const sponsor = (sponsorRes.data ?? []) as {
@@ -131,14 +132,13 @@ export async function calcolaBudgetEvento(
     (s, r) =>
       s +
       Number(r.prezzo_vendita ?? 0) *
-        ((totaleBevande * Number(r.quota_stimata ?? 0)) / 100),
+        (personeStimati * Number(r.consumo_per_persona ?? 0)),
     0,
   );
   const barCosto = bar.reduce(
     (s, r) =>
       s +
-      Number(r.costo_unitario ?? 0) *
-        ((totaleBevande * Number(r.quota_stimata ?? 0)) / 100),
+      Number(r.costo_unitario ?? 0) * Number(r.quantita_acquistata ?? 0),
     0,
   );
   const totaleCatering = catering
@@ -151,11 +151,12 @@ export async function calcolaBudgetEvento(
     .filter((r) => r.selezionata)
     .reduce((s, r) => {
       if (r.modello === "Acquisto") {
-        const qty = (personeStimati * Number(r.quota_stimata ?? 0)) / 100;
-        return (
-          s +
-          (Number(r.prezzo_vendita ?? 0) - Number(r.costo_unitario ?? 0)) * qty
-        );
+        const qtyVend =
+          personeStimati * Number(r.consumo_per_persona ?? 0);
+        const ricavo = Number(r.prezzo_vendita ?? 0) * qtyVend;
+        const costo =
+          Number(r.costo_unitario ?? 0) * Number(r.quantita_acquistata ?? 0);
+        return s + (ricavo - costo);
       }
       return (
         s +

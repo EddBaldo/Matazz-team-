@@ -13,7 +13,6 @@ import { FoodTruckModal, type FoodTruckEdit } from "./FoodTruckModal";
 type Props = {
   eventoId: string;
   personeStimati: number;
-  bevandePerPersona: number;
   bar: BarEdit[];
   foodTruck: FoodTruckEdit[];
 };
@@ -24,20 +23,21 @@ type FtModalState =
   | { kind: "edit"; ft: FoodTruckEdit }
   | null;
 
-function qtyBar(b: BarEdit, totaleBevande: number): number {
-  return Math.round((totaleBevande * Number(b.quota_stimata ?? 0)) / 100);
+function qtyVendutaBar(b: BarEdit, persone: number): number {
+  return Math.round(persone * Number(b.consumo_per_persona ?? 0));
 }
 
-function qtyFoodAcquisto(f: FoodTruckEdit, persone: number): number {
-  return Math.round((persone * Number(f.quota_stimata ?? 0)) / 100);
+function qtyVendutaFood(f: FoodTruckEdit, persone: number): number {
+  return Math.round(persone * Number(f.consumo_per_persona ?? 0));
 }
 
 function guadagnoFoodTruck(ft: FoodTruckEdit, persone: number): number {
   if (ft.modello === "Acquisto") {
-    const qty = qtyFoodAcquisto(ft, persone);
-    return (
-      (Number(ft.prezzo_vendita ?? 0) - Number(ft.costo_unitario ?? 0)) * qty
-    );
+    const qtyVend = qtyVendutaFood(ft, persone);
+    const ricavo = Number(ft.prezzo_vendita ?? 0) * qtyVend;
+    const costo =
+      Number(ft.costo_unitario ?? 0) * Number(ft.quantita_acquistata ?? 0);
+    return ricavo - costo;
   }
   return (
     (Number(ft.incasso_lordo_stimato) * Number(ft.percentuale_matazz)) / 100
@@ -47,14 +47,11 @@ function guadagnoFoodTruck(ft: FoodTruckEdit, persone: number): number {
 export function FoodBeverageClient({
   eventoId,
   personeStimati,
-  bevandePerPersona,
   bar,
   foodTruck,
 }: Props) {
   const [barModal, setBarModal] = useState<BarModalState>(null);
   const [ftModal, setFtModal] = useState<FtModalState>(null);
-
-  const totaleBevande = Math.round(personeStimati * bevandePerPersona);
 
   const barNoi = bar.filter((b) => b.fonte === "Noi");
   const barFornitore = bar.filter((b) => b.fonte === "Fornitore");
@@ -62,12 +59,14 @@ export function FoodBeverageClient({
   function barTotals(items: BarEdit[]) {
     const ricavo = items.reduce(
       (s, r) =>
-        s + Number(r.prezzo_vendita ?? 0) * qtyBar(r, totaleBevande),
+        s +
+        Number(r.prezzo_vendita ?? 0) * qtyVendutaBar(r, personeStimati),
       0,
     );
     const costo = items.reduce(
       (s, r) =>
-        s + Number(r.costo_unitario ?? 0) * qtyBar(r, totaleBevande),
+        s +
+        Number(r.costo_unitario ?? 0) * Number(r.quantita_acquistata ?? 0),
       0,
     );
     return { ricavo, costo, margine: ricavo - costo };
@@ -77,18 +76,13 @@ export function FoodBeverageClient({
   const tForn = barTotals(barFornitore);
   const tBarTotale = barTotals(bar);
 
-  const sommaQuoteBar = bar.reduce(
-    (s, r) => s + Number(r.quota_stimata ?? 0),
+  const mediaConsumoBar = bar.reduce(
+    (s, r) => s + Number(r.consumo_per_persona ?? 0),
     0,
   );
 
   const ftPercentuale = foodTruck.filter((f) => f.modello === "Percentuale");
   const ftAcquisto = foodTruck.filter((f) => f.modello === "Acquisto");
-
-  const sommaQuoteAcquisto = ftAcquisto.reduce(
-    (s, r) => s + Number(r.quota_stimata ?? 0),
-    0,
-  );
 
   const ftTotaleSel = foodTruck
     .filter((r) => r.selezionata)
@@ -96,11 +90,9 @@ export function FoodBeverageClient({
 
   return (
     <>
-      <StimePersoneEditor
+      <PersoneAtteseEditor
         eventoId={eventoId}
         personeStimati={personeStimati}
-        bevandePerPersona={bevandePerPersona}
-        totaleBevande={totaleBevande}
       />
 
       {/* --- BAR --- */}
@@ -124,6 +116,16 @@ export function FoodBeverageClient({
               >
                 Margine {formatMoney(tBarTotale.margine)}
               </strong>
+              {bar.length > 0 && (
+                <span className="text-neutral-500">
+                  {" "}
+                  · Media consumo:{" "}
+                  <strong className="text-neutral-700">
+                    {mediaConsumoBar.toFixed(1)}
+                  </strong>{" "}
+                  bevande/persona
+                </span>
+              )}
             </p>
           </div>
           <button
@@ -143,19 +145,18 @@ export function FoodBeverageClient({
             <BarSubgroup
               label="Nostri"
               items={barNoi}
-              totaleBevande={totaleBevande}
+              persone={personeStimati}
               totals={tNoi}
               onRowClick={(b) => setBarModal({ kind: "edit", bar: b })}
             />
             <BarSubgroup
               label="Fornitori"
               items={barFornitore}
-              totaleBevande={totaleBevande}
+              persone={personeStimati}
               totals={tForn}
               showFornitore
               onRowClick={(b) => setBarModal({ kind: "edit", bar: b })}
             />
-            <QuoteIndicator label="bar" somma={sommaQuoteBar} />
           </>
         )}
       </section>
@@ -204,12 +205,6 @@ export function FoodBeverageClient({
               persone={personeStimati}
               onRowClick={(f) => setFtModal({ kind: "edit", ft: f })}
             />
-            {ftAcquisto.length > 0 && (
-              <QuoteIndicator
-                label="acquisto"
-                somma={sommaQuoteAcquisto}
-              />
-            )}
           </>
         )}
       </section>
@@ -228,25 +223,20 @@ export function FoodBeverageClient({
   );
 }
 
-function StimePersoneEditor({
+function PersoneAtteseEditor({
   eventoId,
   personeStimati,
-  bevandePerPersona,
-  totaleBevande,
 }: {
   eventoId: string;
   personeStimati: number;
-  bevandePerPersona: number;
-  totaleBevande: number;
 }) {
   const [persone, setPersone] = useState(String(personeStimati));
-  const [bev, setBev] = useState(String(bevandePerPersona));
   const [pending, startTransition] = useTransition();
   const [savedFlash, setSavedFlash] = useState(false);
 
   function save() {
     startTransition(async () => {
-      const res = await aggiornaStimePersoneR(eventoId, persone, bev);
+      const res = await aggiornaStimePersoneR(eventoId, persone);
       if (res.ok) {
         setSavedFlash(true);
         setTimeout(() => setSavedFlash(false), 1500);
@@ -255,9 +245,11 @@ function StimePersoneEditor({
   }
 
   return (
-    <section className="bg-white rounded-3xl p-4 flex items-center gap-4 flex-wrap">
+    <section className="bg-white rounded-3xl p-4 flex items-center gap-3 flex-wrap">
       <label className="flex items-center gap-2">
-        <span className="text-sm text-neutral-700">Persone attese</span>
+        <span className="text-sm font-medium text-neutral-800">
+          Persone attese
+        </span>
         <input
           type="number"
           min="0"
@@ -266,29 +258,11 @@ function StimePersoneEditor({
           onChange={(e) => setPersone(e.target.value)}
           onBlur={save}
           disabled={pending}
-          className="w-24 px-2 py-1 border border-neutral-300 rounded-lg text-neutral-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
+          className="w-28 px-2 py-1 border border-neutral-300 rounded-lg text-neutral-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
         />
       </label>
-      <span className="text-neutral-400">×</span>
-      <label className="flex items-center gap-2">
-        <span className="text-sm text-neutral-700">Bevande/persona</span>
-        <input
-          type="number"
-          min="0"
-          step="0.1"
-          value={bev}
-          onChange={(e) => setBev(e.target.value)}
-          onBlur={save}
-          disabled={pending}
-          className="w-20 px-2 py-1 border border-neutral-300 rounded-lg text-neutral-900 focus:outline-none focus:ring-2 focus:ring-amber-500"
-        />
-      </label>
-      <span className="text-neutral-400">=</span>
-      <span className="text-sm">
-        <strong className="text-neutral-900 tabular-nums">
-          {totaleBevande}
-        </strong>{" "}
-        <span className="text-neutral-600">bevande totali</span>
+      <span className="text-sm text-neutral-500">
+        È il numero usato per stimare le vendite (bar e food truck acquisto).
       </span>
       {savedFlash && (
         <span className="text-xs text-green-700">Salvato ✓</span>
@@ -297,40 +271,17 @@ function StimePersoneEditor({
   );
 }
 
-function QuoteIndicator({
-  label,
-  somma,
-}: {
-  label: string;
-  somma: number;
-}) {
-  const diff = somma - 100;
-  let color = "text-green-700";
-  let suffix: string | null = null;
-  if (Math.abs(diff) > 0.5) {
-    color = diff > 0 ? "text-orange-700" : "text-amber-700";
-    suffix = diff > 0 ? `(+${diff.toFixed(0)}%)` : `(${diff.toFixed(0)}%)`;
-  }
-  return (
-    <p className="text-xs text-neutral-500 px-1">
-      Somma quote {label}:{" "}
-      <strong className={`${color} tabular-nums`}>{somma.toFixed(0)}%</strong>
-      {suffix && <span className={`ml-1 ${color}`}>{suffix}</span>}
-    </p>
-  );
-}
-
 function BarSubgroup({
   label,
   items,
-  totaleBevande,
+  persone,
   totals: t,
   showFornitore,
   onRowClick,
 }: {
   label: string;
   items: BarEdit[];
-  totaleBevande: number;
+  persone: number;
   totals: { ricavo: number; costo: number; margine: number };
   showFornitore?: boolean;
   onRowClick: (b: BarEdit) => void;
@@ -358,17 +309,20 @@ function BarSubgroup({
               <Th align="left">Articolo</Th>
               {showFornitore && <Th align="left">Fornitore</Th>}
               <Th align="right">Costo unit.</Th>
+              <Th align="right">Qty acquistata</Th>
               <Th align="right">Vendita unit.</Th>
-              <Th align="right">Quota %</Th>
-              <Th align="right">Qty stim.</Th>
-              <Th align="right">Margine</Th>
+              <Th align="right">Consumo/p</Th>
+              <Th align="right">Stim. vendute</Th>
+              <Th align="right">Margine stim.</Th>
             </tr>
           </thead>
           <tbody>
             {items.map((r) => {
-              const qty = qtyBar(r, totaleBevande);
-              const ricavo = Number(r.prezzo_vendita ?? 0) * qty;
-              const costo = Number(r.costo_unitario ?? 0) * qty;
+              const qtyVend = qtyVendutaBar(r, persone);
+              const ricavo = Number(r.prezzo_vendita ?? 0) * qtyVend;
+              const costo =
+                Number(r.costo_unitario ?? 0) *
+                Number(r.quantita_acquistata ?? 0);
               const margine = ricavo - costo;
               return (
                 <tr
@@ -387,14 +341,17 @@ function BarSubgroup({
                   <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
                     {formatMoney(Number(r.costo_unitario ?? 0))}
                   </td>
+                  <td className="px-4 py-3 text-neutral-900 text-right tabular-nums">
+                    {Number(r.quantita_acquistata ?? 0)}
+                  </td>
                   <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
                     {formatMoney(Number(r.prezzo_vendita ?? 0))}
                   </td>
                   <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
-                    {Number(r.quota_stimata ?? 0)}%
+                    {Number(r.consumo_per_persona ?? 0)}
                   </td>
                   <td className="px-4 py-3 text-neutral-900 text-right tabular-nums">
-                    {qty}
+                    {qtyVend}
                   </td>
                   <td
                     className={`px-4 py-3 text-right tabular-nums font-medium ${
@@ -488,10 +445,11 @@ function FtSubgroupAcquisto({
             <tr>
               <Th align="left">Nome</Th>
               <Th align="right">Costo unit.</Th>
+              <Th align="right">Qty acquistata</Th>
               <Th align="right">Vendita unit.</Th>
-              <Th align="right">Quota %</Th>
-              <Th align="right">Qty stim.</Th>
-              <Th align="right">Margine</Th>
+              <Th align="right">Consumo/p</Th>
+              <Th align="right">Stim. vendute</Th>
+              <Th align="right">Guadagno stim.</Th>
               <Th align="center">
                 <span className="sr-only">Selezionata</span>
               </Th>
@@ -579,7 +537,7 @@ function FtRowAcquisto({
       await toggleFoodTruckSelezionata(eventoId, row.id, !row.selezionata);
     });
   }
-  const qty = qtyFoodAcquisto(row, persone);
+  const qtyVend = qtyVendutaFood(row, persone);
   const guadagno = guadagnoFoodTruck(row, persone);
   return (
     <tr
@@ -592,14 +550,17 @@ function FtRowAcquisto({
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
         {formatMoney(Number(row.costo_unitario ?? 0))}
       </td>
+      <td className="px-4 py-3 text-neutral-900 text-right tabular-nums">
+        {Number(row.quantita_acquistata ?? 0)}
+      </td>
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
         {formatMoney(Number(row.prezzo_vendita ?? 0))}
       </td>
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
-        {Number(row.quota_stimata ?? 0)}%
+        {Number(row.consumo_per_persona ?? 0)}
       </td>
       <td className="px-4 py-3 text-neutral-900 text-right tabular-nums">
-        {qty}
+        {qtyVend}
       </td>
       <td
         className={`px-4 py-3 text-right tabular-nums font-medium ${

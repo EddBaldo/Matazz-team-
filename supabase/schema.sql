@@ -229,6 +229,8 @@ create table if not exists evento_bar_articoli (
   prezzo_vendita numeric not null default 0,
   quantita_stimata integer not null default 0,
   quota_stimata numeric not null default 0,
+  quantita_acquistata integer not null default 0,
+  consumo_per_persona numeric not null default 0,
   note text,
   creato_da_id uuid references team_matazz(id) on delete set null,
   created_at timestamptz not null default now()
@@ -259,6 +261,8 @@ create table if not exists evento_food_truck (
   selezionata boolean not null default false,
   note text,
   quota_stimata numeric not null default 0,
+  quantita_acquistata integer not null default 0,
+  consumo_per_persona numeric not null default 0,
   creato_da_id uuid references team_matazz(id) on delete set null,
   created_at timestamptz not null default now()
 );

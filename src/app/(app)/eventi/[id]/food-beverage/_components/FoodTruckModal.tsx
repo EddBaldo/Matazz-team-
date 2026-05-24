@@ -20,7 +20,8 @@ export type FoodTruckEdit = {
   percentuale_matazz: number;
   costo_unitario: number | null;
   prezzo_vendita: number | null;
-  quota_stimata: number;
+  quantita_acquistata: number;
+  consumo_per_persona: number;
   selezionata: boolean;
   note: string | null;
 };
@@ -77,7 +78,10 @@ export function FoodTruckModal({ eventoId, mode, onClose }: Props) {
       percentuale_matazz: (fd.get("percentuale_matazz") as string) || null,
       costo_unitario: (fd.get("costo_unitario") as string) || null,
       prezzo_vendita: (fd.get("prezzo_vendita") as string) || null,
-      quota_stimata: (fd.get("quota_stimata") as string) || null,
+      quantita_acquistata:
+        (fd.get("quantita_acquistata") as string) || null,
+      consumo_per_persona:
+        (fd.get("consumo_per_persona") as string) || null,
       selezionata: selezionata,
       note: (fd.get("note") as string) || null,
     };
@@ -203,39 +207,53 @@ export function FoodTruckModal({ eventoId, mode, onClose }: Props) {
               </Field>
             </div>
           ) : (
-            <div className="grid grid-cols-3 gap-3">
-              <Field label="Costo unit.">
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  name="costo_unitario"
-                  defaultValue={f?.costo_unitario ?? 0}
-                  className={INPUT_CLASS}
-                />
-              </Field>
-              <Field label="Vendita unit.">
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  name="prezzo_vendita"
-                  defaultValue={f?.prezzo_vendita ?? 0}
-                  className={INPUT_CLASS}
-                />
-              </Field>
-              <Field label="Quota %">
-                <input
-                  type="number"
-                  step="1"
-                  min="0"
-                  max="100"
-                  name="quota_stimata"
-                  defaultValue={f?.quota_stimata ?? 0}
-                  className={INPUT_CLASS}
-                  placeholder="Es. 50"
-                />
-              </Field>
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Costo unit.">
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    name="costo_unitario"
+                    defaultValue={f?.costo_unitario ?? 0}
+                    className={INPUT_CLASS}
+                  />
+                </Field>
+                <Field label="Vendita unit.">
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    name="prezzo_vendita"
+                    defaultValue={f?.prezzo_vendita ?? 0}
+                    className={INPUT_CLASS}
+                  />
+                </Field>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Qty acquistata">
+                  <input
+                    type="number"
+                    step="1"
+                    min="0"
+                    name="quantita_acquistata"
+                    defaultValue={f?.quantita_acquistata ?? 0}
+                    className={INPUT_CLASS}
+                    placeholder="Es. 200"
+                  />
+                </Field>
+                <Field label="Consumo/persona">
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    name="consumo_per_persona"
+                    defaultValue={f?.consumo_per_persona ?? 0}
+                    className={INPUT_CLASS}
+                    placeholder="Es. 0.7"
+                  />
+                </Field>
+              </div>
             </div>
           )}
 
