@@ -43,9 +43,7 @@ export async function calcolaBudgetEvento(
       .eq("evento_id", eventoId),
     sb
       .from("evento_bar_articoli")
-      .select(
-        "costo_unitario, prezzo_vendita, quantita_acquistata, consumo_per_persona",
-      )
+      .select("costo_unitario, prezzo_vendita, consumo_per_persona")
       .eq("evento_id", eventoId),
     sb
       .from("evento_catering")
@@ -56,7 +54,7 @@ export async function calcolaBudgetEvento(
     sb
       .from("evento_food_truck")
       .select(
-        "modello, incasso_lordo_stimato, percentuale_matazz, costo_unitario, prezzo_vendita, quantita_acquistata, consumo_per_persona, selezionata",
+        "modello, incasso_lordo_stimato, percentuale_matazz, costo_unitario, prezzo_vendita, consumo_per_persona, selezionata",
       )
       .eq("evento_id", eventoId),
     sb
@@ -89,7 +87,6 @@ export async function calcolaBudgetEvento(
   const bar = (barRes.data ?? []) as {
     costo_unitario: number | null;
     prezzo_vendita: number | null;
-    quantita_acquistata: number;
     consumo_per_persona: number;
   }[];
   const catering = (cateringRes.data ?? []) as {
@@ -105,7 +102,6 @@ export async function calcolaBudgetEvento(
     percentuale_matazz: number;
     costo_unitario: number | null;
     prezzo_vendita: number | null;
-    quantita_acquistata: number;
     consumo_per_persona: number;
     selezionata: boolean;
   }[];
@@ -138,7 +134,8 @@ export async function calcolaBudgetEvento(
   const barCosto = bar.reduce(
     (s, r) =>
       s +
-      Number(r.costo_unitario ?? 0) * Number(r.quantita_acquistata ?? 0),
+      Number(r.costo_unitario ?? 0) *
+        (personeStimati * Number(r.consumo_per_persona ?? 0)),
     0,
   );
   const totaleCatering = catering
@@ -153,10 +150,9 @@ export async function calcolaBudgetEvento(
       if (r.modello === "Acquisto") {
         const qtyVend =
           personeStimati * Number(r.consumo_per_persona ?? 0);
-        const ricavo = Number(r.prezzo_vendita ?? 0) * qtyVend;
-        const costo =
-          Number(r.costo_unitario ?? 0) * Number(r.quantita_acquistata ?? 0);
-        return s + (ricavo - costo);
+        const margine =
+          Number(r.prezzo_vendita ?? 0) - Number(r.costo_unitario ?? 0);
+        return s + margine * qtyVend;
       }
       return (
         s +

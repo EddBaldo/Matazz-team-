@@ -34,10 +34,9 @@ function qtyVendutaFood(f: FoodTruckEdit, persone: number): number {
 function guadagnoFoodTruck(ft: FoodTruckEdit, persone: number): number {
   if (ft.modello === "Acquisto") {
     const qtyVend = qtyVendutaFood(ft, persone);
-    const ricavo = Number(ft.prezzo_vendita ?? 0) * qtyVend;
-    const costo =
-      Number(ft.costo_unitario ?? 0) * Number(ft.quantita_acquistata ?? 0);
-    return ricavo - costo;
+    const margine =
+      Number(ft.prezzo_vendita ?? 0) - Number(ft.costo_unitario ?? 0);
+    return margine * qtyVend;
   }
   return (
     (Number(ft.incasso_lordo_stimato) * Number(ft.percentuale_matazz)) / 100
@@ -66,7 +65,7 @@ export function FoodBeverageClient({
     const costo = items.reduce(
       (s, r) =>
         s +
-        Number(r.costo_unitario ?? 0) * Number(r.quantita_acquistata ?? 0),
+        Number(r.costo_unitario ?? 0) * qtyVendutaBar(r, personeStimati),
       0,
     );
     return { ricavo, costo, margine: ricavo - costo };
@@ -309,7 +308,6 @@ function BarSubgroup({
               <Th align="left">Articolo</Th>
               {showFornitore && <Th align="left">Fornitore</Th>}
               <Th align="right">Costo unit.</Th>
-              <Th align="right">Qty acquistata</Th>
               <Th align="right">Vendita unit.</Th>
               <Th align="right">Consumo/p</Th>
               <Th align="right">Stim. vendute</Th>
@@ -320,9 +318,7 @@ function BarSubgroup({
             {items.map((r) => {
               const qtyVend = qtyVendutaBar(r, persone);
               const ricavo = Number(r.prezzo_vendita ?? 0) * qtyVend;
-              const costo =
-                Number(r.costo_unitario ?? 0) *
-                Number(r.quantita_acquistata ?? 0);
+              const costo = Number(r.costo_unitario ?? 0) * qtyVend;
               const margine = ricavo - costo;
               return (
                 <tr
@@ -340,9 +336,6 @@ function BarSubgroup({
                   )}
                   <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
                     {formatMoney(Number(r.costo_unitario ?? 0))}
-                  </td>
-                  <td className="px-4 py-3 text-neutral-900 text-right tabular-nums">
-                    {Number(r.quantita_acquistata ?? 0)}
                   </td>
                   <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
                     {formatMoney(Number(r.prezzo_vendita ?? 0))}
@@ -445,7 +438,6 @@ function FtSubgroupAcquisto({
             <tr>
               <Th align="left">Nome</Th>
               <Th align="right">Costo unit.</Th>
-              <Th align="right">Qty acquistata</Th>
               <Th align="right">Vendita unit.</Th>
               <Th align="right">Consumo/p</Th>
               <Th align="right">Stim. vendute</Th>
@@ -549,9 +541,6 @@ function FtRowAcquisto({
       <td className="px-4 py-3 text-neutral-900 font-medium">{row.nome}</td>
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
         {formatMoney(Number(row.costo_unitario ?? 0))}
-      </td>
-      <td className="px-4 py-3 text-neutral-900 text-right tabular-nums">
-        {Number(row.quantita_acquistata ?? 0)}
       </td>
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
         {formatMoney(Number(row.prezzo_vendita ?? 0))}

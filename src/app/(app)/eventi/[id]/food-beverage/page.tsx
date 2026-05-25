@@ -11,7 +11,6 @@ type BarRow = {
   fornitore: string | null;
   costo_unitario: number | null;
   prezzo_vendita: number | null;
-  quantita_acquistata: number;
   consumo_per_persona: number;
   note: string | null;
 };
@@ -37,7 +36,7 @@ export default async function FoodBeveragePage({ params }: Props) {
     sb
       .from("evento_bar_articoli")
       .select(
-        "id, articolo, fonte, fornitore, costo_unitario, prezzo_vendita, quantita_acquistata, consumo_per_persona, note",
+        "id, articolo, fonte, fornitore, costo_unitario, prezzo_vendita, consumo_per_persona, note",
       )
       .eq("evento_id", id)
       .order("fonte", { ascending: true })
@@ -45,7 +44,7 @@ export default async function FoodBeveragePage({ params }: Props) {
     sb
       .from("evento_food_truck")
       .select(
-        "id, nome, modello, incasso_lordo_stimato, percentuale_matazz, costo_unitario, prezzo_vendita, quantita_acquistata, consumo_per_persona, selezionata, note",
+        "id, nome, modello, incasso_lordo_stimato, percentuale_matazz, costo_unitario, prezzo_vendita, consumo_per_persona, selezionata, note",
       )
       .eq("evento_id", id)
       .order("modello", { ascending: true })
@@ -62,7 +61,6 @@ export default async function FoodBeveragePage({ params }: Props) {
     fornitore: r.fornitore,
     costo_unitario: r.costo_unitario,
     prezzo_vendita: r.prezzo_vendita,
-    quantita_acquistata: r.quantita_acquistata,
     consumo_per_persona: r.consumo_per_persona,
     note: r.note,
   }));
@@ -84,9 +82,10 @@ export default async function FoodBeveragePage({ params }: Props) {
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
           Bar e food truck per l&apos;evento. Inserisci il numero di persone
-          attese; per ogni articolo scrivi quante ne compriamo (costo reale) e
-          quante ne consuma in media una persona (stima vendite). Le offerte
-          cena le gestite nella pagina <strong>Cena</strong>.
+          attese; per ogni articolo scrivi a quanto lo compriamo, a quanto lo
+          vendiamo e quante ne consuma in media una persona — il sito calcola
+          le stime di vendita e il guadagno. Le offerte cena le gestite nella
+          pagina <strong>Cena</strong>.
         </p>
       </div>
 

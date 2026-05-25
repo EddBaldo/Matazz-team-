@@ -54,7 +54,6 @@ export type BarInput = {
   fornitore: string | null;
   costo_unitario: string | null;
   prezzo_vendita: string | null;
-  quantita_acquistata: string | null;
   consumo_per_persona: string | null;
   note: string | null;
 };
@@ -85,10 +84,6 @@ export async function creaBarR(
     fornitore: input.fonte === "Fornitore" ? trimOrNull(input.fornitore) : null,
     costo_unitario: toNumber(input.costo_unitario, 0),
     prezzo_vendita: toNumber(input.prezzo_vendita, 0),
-    quantita_acquistata: Math.max(
-      0,
-      Math.floor(toNumber(input.quantita_acquistata, 0)),
-    ),
     consumo_per_persona: Math.max(0, toNumber(input.consumo_per_persona, 0)),
     note: trimOrNull(input.note),
   });
@@ -120,10 +115,6 @@ export async function aggiornaBarR(
         input.fonte === "Fornitore" ? trimOrNull(input.fornitore) : null,
       costo_unitario: toNumber(input.costo_unitario, 0),
       prezzo_vendita: toNumber(input.prezzo_vendita, 0),
-      quantita_acquistata: Math.max(
-        0,
-        Math.floor(toNumber(input.quantita_acquistata, 0)),
-      ),
       consumo_per_persona: Math.max(
         0,
         toNumber(input.consumo_per_persona, 0),
@@ -172,7 +163,6 @@ export type FoodTruckInput = {
   // modello Acquisto
   costo_unitario: string | null;
   prezzo_vendita: string | null;
-  quantita_acquistata: string | null;
   consumo_per_persona: string | null;
   // common
   selezionata: boolean;
@@ -199,9 +189,6 @@ function buildFoodTruckPayload(input: FoodTruckInput) {
       : toNumber(input.percentuale_matazz, 0),
     costo_unitario: isAcquisto ? toNumber(input.costo_unitario, 0) : null,
     prezzo_vendita: isAcquisto ? toNumber(input.prezzo_vendita, 0) : null,
-    quantita_acquistata: isAcquisto
-      ? Math.max(0, Math.floor(toNumber(input.quantita_acquistata, 0)))
-      : 0,
     consumo_per_persona: isAcquisto
       ? Math.max(0, toNumber(input.consumo_per_persona, 0))
       : 0,

@@ -20,7 +20,6 @@ export type FoodTruckEdit = {
   percentuale_matazz: number;
   costo_unitario: number | null;
   prezzo_vendita: number | null;
-  quantita_acquistata: number;
   consumo_per_persona: number;
   selezionata: boolean;
   note: string | null;
@@ -78,8 +77,6 @@ export function FoodTruckModal({ eventoId, mode, onClose }: Props) {
       percentuale_matazz: (fd.get("percentuale_matazz") as string) || null,
       costo_unitario: (fd.get("costo_unitario") as string) || null,
       prezzo_vendita: (fd.get("prezzo_vendita") as string) || null,
-      quantita_acquistata:
-        (fd.get("quantita_acquistata") as string) || null,
       consumo_per_persona:
         (fd.get("consumo_per_persona") as string) || null,
       selezionata: selezionata,
@@ -230,30 +227,17 @@ export function FoodTruckModal({ eventoId, mode, onClose }: Props) {
                   />
                 </Field>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Qty acquistata">
-                  <input
-                    type="number"
-                    step="1"
-                    min="0"
-                    name="quantita_acquistata"
-                    defaultValue={f?.quantita_acquistata ?? 0}
-                    className={INPUT_CLASS}
-                    placeholder="Es. 200"
-                  />
-                </Field>
-                <Field label="Consumo/persona">
-                  <input
-                    type="number"
-                    step="0.1"
-                    min="0"
-                    name="consumo_per_persona"
-                    defaultValue={f?.consumo_per_persona ?? 0}
-                    className={INPUT_CLASS}
-                    placeholder="Es. 0.7"
-                  />
-                </Field>
-              </div>
+              <Field label="Consumo/persona">
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  name="consumo_per_persona"
+                  defaultValue={f?.consumo_per_persona ?? 0}
+                  className={INPUT_CLASS}
+                  placeholder="Es. 0.7"
+                />
+              </Field>
             </div>
           )}
 
