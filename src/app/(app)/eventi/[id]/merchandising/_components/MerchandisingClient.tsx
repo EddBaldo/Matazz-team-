@@ -1,9 +1,12 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Check, Circle } from "lucide-react";
 import { formatMoney } from "@/lib/format";
-import { salvaStimaVenditeMerchR } from "../actions";
+import {
+  salvaStimaVenditeMerchR,
+  toggleMerchInclusoR,
+} from "../actions";
 import {
   MerchandisingModal,
   type MerchandisingEdit,
@@ -26,7 +29,14 @@ export function MerchandisingClient({
     { kind: "add" } | { kind: "edit"; merch: MerchandisingEdit } | null
   >(null);
 
-  const totaleSpesa = rows.reduce((s, r) => s + Number(r.costo_totale), 0);
+  const inclusi = rows.filter((r) => r.inclusa_nel_budget);
+  const totaleSpesa = inclusi.reduce(
+    (s, r) => s + Number(r.costo_totale),
+    0,
+  );
+  const totaleEscluso = rows
+    .filter((r) => !r.inclusa_nel_budget)
+    .reduce((s, r) => s + Number(r.costo_totale), 0);
   const margine = stimaVendite - totaleSpesa;
 
   return (
@@ -35,7 +45,13 @@ export function MerchandisingClient({
         <ResumeCard
           label="Quanto paghiamo"
           value={formatMoney(totaleSpesa)}
-          sub={`${rows.length} ${rows.length === 1 ? "articolo" : "articoli"}`}
+          sub={`${inclusi.length}/${rows.length} ${
+            rows.length === 1 ? "articolo" : "articoli"
+          } nel budget${
+            totaleEscluso > 0
+              ? ` · esclusi ${formatMoney(totaleEscluso)}`
+              : ""
+          }`}
         />
         <StimaCard
           eventoId={eventoId}
@@ -69,28 +85,17 @@ export function MerchandisingClient({
                 <Th align="right">Pezzi</Th>
                 <Th align="right">Costo totale</Th>
                 <Th align="left">Note</Th>
+                <Th align="center">Budget</Th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r) => (
-                <tr
+                <MerchRow
                   key={r.id}
+                  eventoId={eventoId}
+                  row={r}
                   onClick={() => setModal({ kind: "edit", merch: r })}
-                  className="border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50 cursor-pointer"
-                >
-                  <td className="px-4 py-3 text-neutral-900 font-medium">
-                    {r.articolo}
-                  </td>
-                  <td className="px-4 py-3 text-neutral-900 text-right tabular-nums">
-                    {r.quantita}
-                  </td>
-                  <td className="px-4 py-3 text-neutral-900 text-right tabular-nums font-medium">
-                    {formatMoney(Number(r.costo_totale))}
-                  </td>
-                  <td className="px-4 py-3 text-neutral-700 text-sm">
-                    {r.note ?? "—"}
-                  </td>
-                </tr>
+                />
               ))}
             </tbody>
             <tfoot className="border-t border-neutral-200 bg-neutral-50">
@@ -99,12 +104,12 @@ export function MerchandisingClient({
                   colSpan={2}
                   className="px-4 py-3 text-xs uppercase tracking-wide text-neutral-500 text-right font-medium"
                 >
-                  Totale spesa
+                  Totale spesa nel budget
                 </td>
                 <td className="px-4 py-3 text-sm text-neutral-900 text-right font-semibold tabular-nums">
                   {formatMoney(totaleSpesa)}
                 </td>
-                <td />
+                <td colSpan={2} />
               </tr>
             </tfoot>
           </table>
@@ -224,6 +229,73 @@ function StimaCard({
         vendite)&quot;.
       </p>
     </div>
+  );
+}
+
+function MerchRow({
+  eventoId,
+  row,
+  onClick,
+}: {
+  eventoId: string;
+  row: MerchandisingRow;
+  onClick: () => void;
+}) {
+  const [pending, startTransition] = useTransition();
+  function toggle(e: React.MouseEvent) {
+    e.stopPropagation();
+    startTransition(async () => {
+      await toggleMerchInclusoR(eventoId, row.id, !row.inclusa_nel_budget);
+    });
+  }
+  return (
+    <tr
+      onClick={onClick}
+      className={`border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50 cursor-pointer ${
+        row.inclusa_nel_budget ? "" : "opacity-60"
+      }`}
+    >
+      <td className="px-4 py-3 text-neutral-900 font-medium">
+        {row.articolo}
+      </td>
+      <td className="px-4 py-3 text-neutral-900 text-right tabular-nums">
+        {row.quantita}
+      </td>
+      <td className="px-4 py-3 text-neutral-900 text-right tabular-nums font-medium">
+        {formatMoney(Number(row.costo_totale))}
+      </td>
+      <td className="px-4 py-3 text-neutral-700 text-sm">
+        {row.note ?? "—"}
+      </td>
+      <td className="px-4 py-3 text-center">
+        <button
+          type="button"
+          onClick={toggle}
+          disabled={pending}
+          aria-label={
+            row.inclusa_nel_budget
+              ? "Escludi dal budget"
+              : "Includi nel budget"
+          }
+          title={
+            row.inclusa_nel_budget
+              ? "Incluso nel budget — clicca per escludere"
+              : "Escluso dal budget — clicca per includere"
+          }
+          className={`inline-flex items-center justify-center w-7 h-7 rounded-full transition-colors disabled:opacity-50 ${
+            row.inclusa_nel_budget
+              ? "bg-green-100 text-green-700 hover:bg-green-200"
+              : "bg-neutral-100 text-neutral-500 hover:bg-neutral-200"
+          }`}
+        >
+          {row.inclusa_nel_budget ? (
+            <Check className="w-4 h-4" />
+          ) : (
+            <Circle className="w-4 h-4" />
+          )}
+        </button>
+      </td>
+    </tr>
   );
 }
 

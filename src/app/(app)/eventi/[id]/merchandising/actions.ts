@@ -36,6 +36,7 @@ export type MerchandisingInput = {
   articolo: string;
   quantita: string | null;
   costo_totale: string | null;
+  inclusa_nel_budget: boolean;
   note: string | null;
 };
 
@@ -49,6 +50,7 @@ function normalize(input: MerchandisingInput) {
     articolo: input.articolo.trim(),
     quantita: toInt(input.quantita, 1),
     costo_totale: toNumber(input.costo_totale, 0),
+    inclusa_nel_budget: input.inclusa_nel_budget,
     note: trimOrNull(input.note),
   };
 }
@@ -115,6 +117,27 @@ export async function eliminaMerchandisingR(
   if (error) {
     console.error("Errore delete merch:", error);
     return { ok: false, error: "Errore nella rimozione. Riprova." };
+  }
+  revalidateMerch(eventoId);
+  return { ok: true };
+}
+
+export async function toggleMerchInclusoR(
+  eventoId: string,
+  rowId: string,
+  inclusa: boolean,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const sb = createServerClient();
+  const { error } = await sb
+    .from("evento_merchandising")
+    .update({ inclusa_nel_budget: inclusa })
+    .eq("id", rowId)
+    .eq("evento_id", eventoId);
+
+  if (error) {
+    console.error("Errore toggle merch incluso:", error);
+    return { ok: false, error: "Errore. Riprova." };
   }
   revalidateMerch(eventoId);
   return { ok: true };

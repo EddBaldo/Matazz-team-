@@ -21,6 +21,7 @@ type EventoMaterialeRow = {
 };
 type EventoMerchRow = {
   costo_totale: number;
+  inclusa_nel_budget: boolean;
 };
 type BudgetExtraRow = { id: string; voce: string; importo: number; tipo: string };
 type BarArticoloRow = {
@@ -83,7 +84,7 @@ export default async function EventoBudgetPage({ params }: Props) {
       .eq("evento_id", id),
     sb
       .from("evento_merchandising")
-      .select("costo_totale")
+      .select("costo_totale, inclusa_nel_budget")
       .eq("evento_id", id),
     sb
       .from("evento_budget_extra")
@@ -156,10 +157,9 @@ export default async function EventoBudgetPage({ params }: Props) {
       (s, r) => s + Number(r.quantita) * Number(r.prezzo_unitario ?? 0),
       0,
     );
-  const totaleMerchSpesa = merch.reduce(
-    (s, r) => s + Number(r.costo_totale),
-    0,
-  );
+  const totaleMerchSpesa = merch
+    .filter((r) => r.inclusa_nel_budget)
+    .reduce((s, r) => s + Number(r.costo_totale), 0);
   const barRicavo = bar.reduce(
     (s, r) =>
       s +

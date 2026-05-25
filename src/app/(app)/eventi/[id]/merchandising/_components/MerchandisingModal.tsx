@@ -17,6 +17,7 @@ export type MerchandisingEdit = {
   articolo: string;
   quantita: number;
   costo_totale: number;
+  inclusa_nel_budget: boolean;
   note: string | null;
 };
 
@@ -32,12 +33,14 @@ export function MerchandisingModal({ eventoId, mode, onClose }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [incluso, setIncluso] = useState<boolean>(true);
 
   useEffect(() => {
     const dlg = dialogRef.current;
     if (!dlg) return;
     if (mode) {
       setError(null);
+      setIncluso(mode.kind === "edit" ? mode.merch.inclusa_nel_budget : true);
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
       dlg.close();
@@ -57,6 +60,7 @@ export function MerchandisingModal({ eventoId, mode, onClose }: Props) {
       articolo: String(fd.get("articolo") ?? ""),
       quantita: (fd.get("quantita") as string) || null,
       costo_totale: (fd.get("costo_totale") as string) || null,
+      inclusa_nel_budget: incluso,
       note: (fd.get("note") as string) || null,
     };
     startTransition(async () => {
@@ -143,6 +147,32 @@ export function MerchandisingModal({ eventoId, mode, onClose }: Props) {
                 className={INPUT_CLASS}
               />
             </Field>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-50 px-4 py-3">
+            <div>
+              <p className="text-sm font-medium text-neutral-900">
+                Includi nel budget
+              </p>
+              <p className="text-xs text-neutral-500">
+                Disattiva per escludere il costo dal totale dell&apos;evento.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIncluso(!incluso)}
+              role="switch"
+              aria-checked={incluso}
+              className={`relative inline-flex h-6 w-11 shrink-0 rounded-full transition-colors ${
+                incluso ? "bg-green-600" : "bg-neutral-300"
+              }`}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform mt-0.5 ${
+                  incluso ? "translate-x-5" : "translate-x-0.5"
+                }`}
+              />
+            </button>
           </div>
 
           <Field label="Note">

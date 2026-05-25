@@ -16,7 +16,7 @@ export default async function EventoMerchandisingPage({ params }: Props) {
   const [merchRes, stimaRes] = await Promise.all([
     sb
       .from("evento_merchandising")
-      .select("id, articolo, quantita, costo_totale, note")
+      .select("id, articolo, quantita, costo_totale, inclusa_nel_budget, note")
       .eq("evento_id", id)
       .order("articolo"),
     sb
