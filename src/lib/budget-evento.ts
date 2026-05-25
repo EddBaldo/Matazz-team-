@@ -17,6 +17,7 @@ export async function calcolaBudgetEvento(
     artistiRes,
     personaleRes,
     materialiRes,
+    merchRes,
     budgetExtraRes,
     barRes,
     cateringRes,
@@ -36,6 +37,10 @@ export async function calcolaBudgetEvento(
     sb
       .from("evento_materiali")
       .select("quantita, prezzo_unitario, gia_disponibile")
+      .eq("evento_id", eventoId),
+    sb
+      .from("evento_merchandising")
+      .select("costo_totale")
       .eq("evento_id", eventoId),
     sb
       .from("evento_budget_extra")
@@ -75,6 +80,7 @@ export async function calcolaBudgetEvento(
     prezzo_unitario: number | null;
     gia_disponibile: boolean;
   }[];
+  const merch = (merchRes.data ?? []) as { costo_totale: number }[];
   const budgetExtra = (budgetExtraRes.data ?? []) as {
     importo: number;
     tipo: string;
@@ -124,6 +130,10 @@ export async function calcolaBudgetEvento(
       (s, r) => s + Number(r.quantita) * Number(r.prezzo_unitario ?? 0),
       0,
     );
+  const totaleMerch = merch.reduce(
+    (s, r) => s + Number(r.costo_totale ?? 0),
+    0,
+  );
   const barRicavo = bar.reduce(
     (s, r) =>
       s +
@@ -173,6 +183,7 @@ export async function calcolaBudgetEvento(
     totaleArtisti +
     totalePersonale +
     totaleMateriali +
+    totaleMerch +
     barCosto +
     totaleCatering +
     totaleUsciteExtra;
