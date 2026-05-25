@@ -178,8 +178,11 @@ export function MaterialeModal({ eventoId, mode, onClose }: Props) {
               name="dove_lo_prendiamo"
               defaultValue={m?.dove_lo_prendiamo ?? ""}
               className={INPUT_CLASS}
-              placeholder="Es. da inventario, Bauhaus, da casa di Pino…"
+              placeholder="Es. Bauhaus, casa Pino, oppure https://amazon.it/…"
             />
+            <p className="text-xs text-neutral-500 mt-1">
+              Se incolli un link http(s), in tabella diventa cliccabile.
+            </p>
           </Field>
 
           <div className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-50 px-4 py-3">

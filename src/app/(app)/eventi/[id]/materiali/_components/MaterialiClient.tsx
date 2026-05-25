@@ -168,7 +168,7 @@ function MaterialeRowItem({
         {row.a_cosa_serve ?? "—"}
       </td>
       <td className="px-4 py-3 text-neutral-700">
-        {row.dove_lo_prendiamo ?? "—"}
+        <DoveLoPrendiamoCell value={row.dove_lo_prendiamo} />
       </td>
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
         {row.prezzo_unitario != null
@@ -179,6 +179,31 @@ function MaterialeRowItem({
         {formatMoney(subtotale)}
       </td>
     </tr>
+  );
+}
+
+function DoveLoPrendiamoCell({ value }: { value: string | null }) {
+  if (!value) return <>—</>;
+  const trimmed = value.trim();
+  const isUrl = /^https?:\/\//i.test(trimmed);
+  if (!isUrl) return <>{value}</>;
+  let label: string;
+  try {
+    label = new URL(trimmed).hostname.replace(/^www\./, "");
+  } catch {
+    label = trimmed;
+  }
+  return (
+    <a
+      href={trimmed}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(e) => e.stopPropagation()}
+      className="text-amber-700 underline decoration-amber-300 hover:decoration-amber-700"
+      title={trimmed}
+    >
+      {label}
+    </a>
   );
 }
 
