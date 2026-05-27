@@ -15,6 +15,7 @@ export type OspitoCenaItem = {
   id: string;
   nome: string;
   intolleranze_cibo: string | null;
+  numero_persone: number;
 };
 
 export type TeamCenaItem = {
@@ -58,9 +59,13 @@ export function CenaClient({
     id: o.id,
     nome: o.nome,
     intolleranze_cibo: o.intolleranze_cibo,
+    numero_persone: 1,
   }));
 
-  const numeroArtisti = artistiCena.length;
+  const numeroArtisti = artistiCena.reduce(
+    (s, a) => s + (a.numero_persone ?? 1),
+    0,
+  );
   const numeroPersonale = personaleCena.length;
   const numeroTeam = teamCena.filter((t) => t.presente).length;
   const numeroSpeciali = specialiItems.length;
@@ -246,6 +251,11 @@ function OspitiColumn({
           {items.map((i) => (
             <li key={i.id} className="text-sm">
               <span className="text-neutral-900">{i.nome}</span>
+              {i.numero_persone > 1 && (
+                <span className="ml-1 inline-block px-1.5 py-0.5 rounded-full bg-neutral-100 text-neutral-700 text-[10px] font-medium tabular-nums">
+                  ×{i.numero_persone}
+                </span>
+              )}
               {i.intolleranze_cibo && (
                 <span className="text-neutral-500 italic">
                   {" — "}

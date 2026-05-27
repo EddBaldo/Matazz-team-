@@ -21,6 +21,13 @@ export async function aggiornaArtista(id: string, formData: FormData) {
   const residenza = formData.get("residenza");
   const link = formData.get("link");
   const linkOpera = formData.get("link_opera");
+  const membriExtra = formData.get("membri_extra");
+  const numeroPersoneRaw = formData.get("numero_persone");
+  let numeroPersone = 1;
+  if (typeof numeroPersoneRaw === "string" && numeroPersoneRaw.length > 0) {
+    const n = Number.parseInt(numeroPersoneRaw, 10);
+    if (Number.isFinite(n) && n >= 1) numeroPersone = n;
+  }
 
   if (
     typeof nome !== "string" ||
@@ -47,6 +54,8 @@ export async function aggiornaArtista(id: string, formData: FormData) {
       residenza: trimOrNull(residenza),
       link: trimOrNull(link),
       link_opera: trimOrNull(linkOpera),
+      membri_extra: trimOrNull(membriExtra),
+      numero_persone: numeroPersone,
     })
     .eq("id", id);
 

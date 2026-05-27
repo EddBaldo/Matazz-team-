@@ -60,6 +60,8 @@ export type NuovoArtistaInput = {
   residenza: string | null;
   link: string | null;
   link_opera: string | null;
+  membri_extra: string | null;
+  numero_persone: string | null;
 };
 
 export async function creaENuovoArtista(
@@ -74,6 +76,12 @@ export async function creaENuovoArtista(
 
   const sb = createServerClient();
 
+  const numPersone = (() => {
+    if (!input.numero_persone) return 1;
+    const n = Number.parseInt(input.numero_persone, 10);
+    return Number.isFinite(n) && n >= 1 ? n : 1;
+  })();
+
   const { data: artista, error: artErr } = await sb
     .from("artisti")
     .insert({
@@ -83,6 +91,8 @@ export async function creaENuovoArtista(
       residenza: trimOrNull(input.residenza),
       link: trimOrNull(input.link),
       link_opera: trimOrNull(input.link_opera),
+      membri_extra: trimOrNull(input.membri_extra),
+      numero_persone: numPersone,
       creato_da_id: me.id,
     })
     .select("id")

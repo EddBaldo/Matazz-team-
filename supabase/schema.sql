@@ -52,6 +52,8 @@ create table if not exists artisti (
   link text,
   link_opera text,
   residenza text,
+  membri_extra text,
+  numero_persone integer not null default 1 check (numero_persone >= 1),
   creato_da_id uuid references team_matazz(id) on delete set null,
   created_at timestamptz not null default now()
 );

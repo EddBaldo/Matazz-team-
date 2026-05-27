@@ -132,7 +132,7 @@ export async function allineaCateringPersoneR(
   const sb = createServerClient();
 
   const [
-    artistiCount,
+    artistiRes,
     personaleCount,
     ospitiCount,
     teamCount,
@@ -140,7 +140,7 @@ export async function allineaCateringPersoneR(
   ] = await Promise.all([
     sb
       .from("evento_artisti")
-      .select("id", { count: "exact", head: true })
+      .select("artista:artisti(numero_persone)")
       .eq("evento_id", eventoId)
       .eq("presente_cena", true),
     sb
@@ -159,8 +159,14 @@ export async function allineaCateringPersoneR(
       .eq("evento_id", eventoId),
   ]);
 
+  const totaleArtisti = (
+    (artistiRes.data ?? []) as unknown as {
+      artista: { numero_persone: number } | null;
+    }[]
+  ).reduce((s, r) => s + (r.artista?.numero_persone ?? 1), 0);
+
   const totale =
-    (artistiCount.count ?? 0) +
+    totaleArtisti +
     (personaleCount.count ?? 0) +
     (ospitiCount.count ?? 0) +
     Math.max(0, (teamCount.count ?? 0) - (teamEsclusiCount.count ?? 0));

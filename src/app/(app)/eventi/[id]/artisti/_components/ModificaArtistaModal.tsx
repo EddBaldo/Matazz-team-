@@ -35,6 +35,8 @@ export type EventoArtistaEdit = {
   artistaTipoArte: string;
   artistaNome: string;
   artistaCognome: string;
+  artistaMembriExtra: string | null;
+  artistaNumeroPersone: number;
 };
 
 export type TeamMember = { id: string; nome: string };
@@ -62,10 +64,14 @@ export function ModificaArtistaModal({
   const [editNome, setEditNome] = useState<string>("");
   const [editCognome, setEditCognome] = useState<string>("");
   const [editTipoArte, setEditTipoArte] = useState<string>("");
+  const [editMembriExtra, setEditMembriExtra] = useState<string>("");
+  const [editNumeroPersone, setEditNumeroPersone] = useState<string>("1");
   // Copia locale dell'anagrafica mostrata in header (si aggiorna dopo save)
   const [shownNome, setShownNome] = useState<string>("");
   const [shownCognome, setShownCognome] = useState<string>("");
   const [shownTipoArte, setShownTipoArte] = useState<string>("");
+  const [shownMembriExtra, setShownMembriExtra] = useState<string | null>(null);
+  const [shownNumeroPersone, setShownNumeroPersone] = useState<number>(1);
 
   useEffect(() => {
     const dlg = dialogRef.current;
@@ -78,9 +84,13 @@ export function ModificaArtistaModal({
       setEditNome(artista.artistaNome);
       setEditCognome(artista.artistaCognome);
       setEditTipoArte(artista.artistaTipoArte);
+      setEditMembriExtra(artista.artistaMembriExtra ?? "");
+      setEditNumeroPersone(String(artista.artistaNumeroPersone ?? 1));
       setShownNome(artista.artistaNome);
       setShownCognome(artista.artistaCognome);
       setShownTipoArte(artista.artistaTipoArte);
+      setShownMembriExtra(artista.artistaMembriExtra);
+      setShownNumeroPersone(artista.artistaNumeroPersone ?? 1);
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
       dlg.close();
@@ -130,11 +140,17 @@ export function ModificaArtistaModal({
         nome: editNome,
         cognome: editCognome,
         tipo_arte: editTipoArte,
+        membri_extra: editMembriExtra,
+        numero_persone: editNumeroPersone,
       });
       if (res.ok) {
         setShownNome(editNome.trim());
         setShownCognome(editCognome.trim());
         setShownTipoArte(editTipoArte);
+        const trimmed = editMembriExtra.trim();
+        setShownMembriExtra(trimmed.length > 0 ? trimmed : null);
+        const n = Number.parseInt(editNumeroPersone, 10);
+        setShownNumeroPersone(Number.isFinite(n) && n >= 1 ? n : 1);
         setEditAnagrafica(false);
         setError(null);
       } else {
@@ -200,6 +216,24 @@ export function ModificaArtistaModal({
                     ...TIPI_ARTE.map((t) => ({ value: t, label: t })),
                   ]}
                 />
+                <input
+                  type="text"
+                  value={editMembriExtra}
+                  onChange={(e) => setEditMembriExtra(e.target.value)}
+                  placeholder="Altri membri (es. Andrea Sassi)"
+                  className={INPUT_CLASS}
+                />
+                <label className="flex items-center gap-2 text-sm text-neutral-700">
+                  Numero persone
+                  <input
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={editNumeroPersone}
+                    onChange={(e) => setEditNumeroPersone(e.target.value)}
+                    className={`${INPUT_CLASS} w-20`}
+                  />
+                </label>
                 <div className="flex items-center gap-2 pt-1">
                   <button
                     type="button"
@@ -217,6 +251,8 @@ export function ModificaArtistaModal({
                       setEditNome(shownNome);
                       setEditCognome(shownCognome);
                       setEditTipoArte(shownTipoArte);
+                      setEditMembriExtra(shownMembriExtra ?? "");
+                      setEditNumeroPersone(String(shownNumeroPersone));
                     }}
                     disabled={savingAnagrafica}
                     className="px-3 py-1.5 rounded-full text-xs text-neutral-700 hover:bg-neutral-100"
@@ -231,8 +267,16 @@ export function ModificaArtistaModal({
                   <h2 className="text-2xl font-semibold text-neutral-900 leading-tight">
                     {shownNome} {shownCognome}
                   </h2>
+                  {shownMembriExtra && (
+                    <p className="text-sm text-neutral-700 mt-0.5">
+                      + {shownMembriExtra}
+                    </p>
+                  )}
                   <p className="text-sm text-neutral-500 mt-0.5">
                     {shownTipoArte}
+                    {shownNumeroPersone > 1 && (
+                      <span> · {shownNumeroPersone} persone</span>
+                    )}
                   </p>
                 </div>
                 <button

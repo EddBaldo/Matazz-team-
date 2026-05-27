@@ -12,6 +12,8 @@ type DbRow = {
   residenza: string | null;
   link: string | null;
   link_opera: string | null;
+  membri_extra: string | null;
+  numero_persone: number;
   creato_da: { nome: string } | null;
 };
 
@@ -21,6 +23,7 @@ export default async function ArtistiPage() {
     .from("artisti")
     .select(
       `id, nome, cognome, tipo_arte, residenza, link, link_opera,
+       membri_extra, numero_persone,
        creato_da:team_matazz(nome)`,
     )
     .order("cognome");
@@ -34,6 +37,8 @@ export default async function ArtistiPage() {
     residenza: r.residenza,
     link: r.link,
     link_opera: r.link_opera,
+    membri_extra: r.membri_extra,
+    numero_persone: r.numero_persone ?? 1,
     creatoDaNome: r.creato_da?.nome ?? null,
   }));
 

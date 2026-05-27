@@ -14,12 +14,21 @@ export type ArtistaInput = {
   residenza: string | null;
   link: string | null;
   link_opera: string | null;
+  membri_extra: string | null;
+  numero_persone: string | null;
 };
 
 function trimOrNull(v: string | null): string | null {
   if (!v) return null;
   const t = v.trim();
   return t.length > 0 ? t : null;
+}
+
+function toIntAtLeast(v: string | null, min: number): number {
+  if (v == null || v === "") return min;
+  const n = Number.parseInt(v, 10);
+  if (!Number.isFinite(n) || n < min) return min;
+  return n;
 }
 
 function validate(input: ArtistaInput): string | null {
@@ -43,6 +52,8 @@ export async function creaArtistaR(input: ArtistaInput): Promise<ActionResult> {
     residenza: trimOrNull(input.residenza),
     link: trimOrNull(input.link),
     link_opera: trimOrNull(input.link_opera),
+    membri_extra: trimOrNull(input.membri_extra),
+    numero_persone: toIntAtLeast(input.numero_persone, 1),
     creato_da_id: me.id,
   });
 
@@ -59,6 +70,8 @@ export type AnagraficaInput = {
   nome: string;
   cognome: string;
   tipo_arte: string;
+  membri_extra: string | null;
+  numero_persone: string | null;
 };
 
 export async function aggiornaArtistaAnagraficaR(
@@ -78,6 +91,8 @@ export async function aggiornaArtistaAnagraficaR(
       nome: input.nome.trim(),
       cognome: input.cognome.trim(),
       tipo_arte: input.tipo_arte,
+      membri_extra: trimOrNull(input.membri_extra),
+      numero_persone: toIntAtLeast(input.numero_persone, 1),
     })
     .eq("id", id);
 
@@ -110,6 +125,8 @@ export async function aggiornaArtistaR(
       residenza: trimOrNull(input.residenza),
       link: trimOrNull(input.link),
       link_opera: trimOrNull(input.link_opera),
+      membri_extra: trimOrNull(input.membri_extra),
+      numero_persone: toIntAtLeast(input.numero_persone, 1),
     })
     .eq("id", id);
 

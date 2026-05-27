@@ -22,7 +22,12 @@ type CateringRow = {
 type ArtistaCenaRow = {
   id: string;
   intolleranze_cibo: string | null;
-  artista: { nome: string; cognome: string } | null;
+  artista: {
+    nome: string;
+    cognome: string;
+    membri_extra: string | null;
+    numero_persone: number;
+  } | null;
 };
 
 type PersonaleCenaRow = {
@@ -61,7 +66,9 @@ export default async function CenaPage({ params }: Props) {
       .order("created_at"),
     sb
       .from("evento_artisti")
-      .select("id, intolleranze_cibo, artista:artisti(nome, cognome)")
+      .select(
+        "id, intolleranze_cibo, artista:artisti(nome, cognome, membri_extra, numero_persone)",
+      )
       .eq("evento_id", id)
       .eq("presente_cena", true),
     sb
@@ -90,11 +97,16 @@ export default async function CenaPage({ params }: Props) {
     (artistiRes.data ?? []) as unknown as ArtistaCenaRow[]
   )
     .filter((r) => r.artista !== null)
-    .map((r) => ({
-      id: r.id,
-      nome: `${r.artista!.nome} ${r.artista!.cognome}`,
-      intolleranze_cibo: r.intolleranze_cibo,
-    }))
+    .map((r) => {
+      const base = `${r.artista!.nome} ${r.artista!.cognome}`;
+      const extra = r.artista!.membri_extra?.trim();
+      return {
+        id: r.id,
+        nome: extra && extra.length > 0 ? `${base} + ${extra}` : base,
+        intolleranze_cibo: r.intolleranze_cibo,
+        numero_persone: r.artista!.numero_persone ?? 1,
+      };
+    })
     .sort((a, b) => a.nome.localeCompare(b.nome, "it"));
 
   const personaleCena: OspitoCenaItem[] = (
@@ -105,6 +117,7 @@ export default async function CenaPage({ params }: Props) {
       id: r.id,
       nome: `${r.persona!.nome} ${r.persona!.cognome}`,
       intolleranze_cibo: r.intolleranze_cibo,
+      numero_persone: 1,
     }))
     .sort((a, b) => a.nome.localeCompare(b.nome, "it"));
 

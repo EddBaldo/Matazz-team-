@@ -253,7 +253,14 @@ function ArtistaRowItem({
       className="border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50 cursor-pointer"
     >
       <td className="px-4 py-3 text-neutral-900 font-medium">
-        {row.artistaNome} {row.artistaCognome}
+        <div>
+          {row.artistaNome} {row.artistaCognome}
+        </div>
+        {row.artistaMembriExtra && (
+          <div className="text-xs text-neutral-600 font-normal">
+            + {row.artistaMembriExtra}
+          </div>
+        )}
       </td>
       <td className="px-4 py-3 text-neutral-700">{row.artistaTipoArte}</td>
       <td className="px-4 py-3 text-neutral-700">

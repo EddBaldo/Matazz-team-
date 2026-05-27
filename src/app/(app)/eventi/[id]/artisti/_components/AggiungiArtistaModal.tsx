@@ -77,6 +77,8 @@ export function AggiungiArtistaModal({
       residenza: (fd.get("residenza") as string) || null,
       link: (fd.get("link") as string) || null,
       link_opera: (fd.get("link_opera") as string) || null,
+      membri_extra: (fd.get("membri_extra") as string) || null,
+      numero_persone: (fd.get("numero_persone") as string) || null,
     };
     startTransition(async () => {
       const res = await creaENuovoArtista(eventoId, input);
@@ -221,6 +223,26 @@ export function AggiungiArtistaModal({
                 placeholder="https://… (video, articolo, pdf)"
               />
             </Field>
+            <div className="grid grid-cols-[1fr_auto] gap-3">
+              <Field label="Altri membri (per duo / collettivi)">
+                <input
+                  type="text"
+                  name="membri_extra"
+                  className={INPUT_CLASS}
+                  placeholder="Es. Andrea Sassi"
+                />
+              </Field>
+              <Field label="N. persone">
+                <input
+                  type="number"
+                  name="numero_persone"
+                  min="1"
+                  step="1"
+                  defaultValue="1"
+                  className={`${INPUT_CLASS} w-20`}
+                />
+              </Field>
+            </div>
             <Buttons
               pending={pending}
               onClose={onClose}

@@ -27,6 +27,8 @@ type Artista = {
   residenza: string | null;
   link: string | null;
   link_opera: string | null;
+  membri_extra: string | null;
+  numero_persone: number;
   creato_da: { nome: string } | null;
 };
 
@@ -47,6 +49,7 @@ export default async function ArtistaDetailPage({
     .from("artisti")
     .select(
       `id, nome, cognome, tipo_arte, residenza, link, link_opera,
+       membri_extra, numero_persone,
        creato_da:team_matazz(nome)`,
     )
     .eq("id", id)
@@ -162,6 +165,28 @@ export default async function ArtistaDetailPage({
             placeholder="https://… (video, articolo, pdf)"
           />
         </Field>
+
+        <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-4">
+          <Field label="Altri membri (per duo / collettivi)">
+            <input
+              type="text"
+              name="membri_extra"
+              defaultValue={a.membri_extra ?? ""}
+              className={INPUT_CLASS}
+              placeholder="Es. Andrea Sassi"
+            />
+          </Field>
+          <Field label="N. persone">
+            <input
+              type="number"
+              name="numero_persone"
+              min="1"
+              step="1"
+              defaultValue={a.numero_persone ?? 1}
+              className={`${INPUT_CLASS} w-24`}
+            />
+          </Field>
+        </div>
 
         <div className="flex items-center gap-3 pt-2">
           <button
