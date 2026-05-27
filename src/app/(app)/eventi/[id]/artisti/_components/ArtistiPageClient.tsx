@@ -257,9 +257,7 @@ function ArtistaRowItem({
           {row.artistaNome} {row.artistaCognome}
         </div>
         {row.artistaMembriExtra && (
-          <div className="text-xs text-neutral-600 font-normal">
-            + {row.artistaMembriExtra}
-          </div>
+          <div>+ {row.artistaMembriExtra}</div>
         )}
       </td>
       <td className="px-4 py-3 text-neutral-700">{row.artistaTipoArte}</td>
