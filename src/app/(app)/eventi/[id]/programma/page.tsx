@@ -18,8 +18,7 @@ import type {
 } from "./_components/VoceProgrammaModal";
 
 const MACRO_PERFORMER: readonly MacroTipoArte[] = [
-  "Performance artistiche",
-  "Performance musicali",
+  "Performance",
   "Musica sera",
 ];
 

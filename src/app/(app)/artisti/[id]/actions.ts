@@ -29,14 +29,10 @@ export async function aggiornaArtista(id: string, formData: FormData) {
     if (Number.isFinite(n) && n >= 1) numeroPersone = n;
   }
 
-  if (
-    typeof nome !== "string" ||
-    nome.trim().length === 0 ||
-    typeof cognome !== "string" ||
-    cognome.trim().length === 0
-  ) {
+  if (typeof nome !== "string" || nome.trim().length === 0) {
     redirect(`/artisti/${id}?error=nome`);
   }
+  const cognomeStr = typeof cognome === "string" ? cognome : "";
   if (
     typeof tipoArte !== "string" ||
     !(TIPI_ARTE as readonly string[]).includes(tipoArte)
@@ -49,7 +45,7 @@ export async function aggiornaArtista(id: string, formData: FormData) {
     .from("artisti")
     .update({
       nome: nome.trim(),
-      cognome: cognome.trim(),
+      cognome: cognomeStr.trim(),
       tipo_arte: tipoArte,
       residenza: trimOrNull(residenza),
       link: trimOrNull(link),

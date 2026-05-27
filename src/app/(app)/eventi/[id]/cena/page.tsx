@@ -98,7 +98,9 @@ export default async function CenaPage({ params }: Props) {
   )
     .filter((r) => r.artista !== null)
     .map((r) => {
-      const base = `${r.artista!.nome} ${r.artista!.cognome}`;
+      const base = [r.artista!.nome, r.artista!.cognome]
+        .filter((s) => s && s.trim())
+        .join(" ");
       const extra = r.artista!.membri_extra?.trim();
       return {
         id: r.id,

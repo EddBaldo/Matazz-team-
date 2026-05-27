@@ -32,8 +32,8 @@ function toIntAtLeast(v: string | null, min: number): number {
 }
 
 function validate(input: ArtistaInput): string | null {
-  if (input.nome.trim().length === 0 || input.cognome.trim().length === 0)
-    return "Nome e cognome sono obbligatori.";
+  if (input.nome.trim().length === 0)
+    return "Il nome è obbligatorio.";
   if (!(TIPI_ARTE as readonly string[]).includes(input.tipo_arte))
     return "Tipo arte obbligatorio.";
   return null;
@@ -79,8 +79,8 @@ export async function aggiornaArtistaAnagraficaR(
   input: AnagraficaInput,
 ): Promise<ActionResult> {
   await requireCurrentIdentity();
-  if (input.nome.trim().length === 0 || input.cognome.trim().length === 0)
-    return { ok: false, error: "Nome e cognome sono obbligatori." };
+  if (input.nome.trim().length === 0)
+    return { ok: false, error: "Il nome è obbligatorio." };
   if (!(TIPI_ARTE as readonly string[]).includes(input.tipo_arte))
     return { ok: false, error: "Tipo arte obbligatorio." };
 

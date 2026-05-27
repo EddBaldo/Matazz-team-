@@ -7,7 +7,7 @@ import { DeleteArtistaButton } from "./_components/DeleteArtistaButton";
 import { InteresseEventiSection } from "./_components/InteresseEventiSection";
 
 const ERROR_MESSAGES: Record<string, string> = {
-  nome: "Nome e cognome sono obbligatori.",
+  nome: "Il nome è obbligatorio.",
   tipo: "Tipo arte obbligatorio.",
   generic: "Errore nel salvataggio. Riprova.",
   delete: "Errore nell'eliminazione. Riprova.",
@@ -73,7 +73,7 @@ export default async function ArtistaDetailPage({
       <div className="flex items-start justify-between mt-2 gap-3 flex-wrap mb-6">
         <div>
           <h1 className="text-2xl font-medium text-neutral-900">
-            {a.nome} {a.cognome}
+            {[a.nome, a.cognome].filter((x) => x && x.trim()).join(" ")}
           </h1>
           <p className="text-sm text-neutral-700 mt-1">
             Proposto da {a.creato_da?.nome ?? "—"}
@@ -107,13 +107,13 @@ export default async function ArtistaDetailPage({
               className={INPUT_CLASS}
             />
           </Field>
-          <Field label="Cognome" required>
+          <Field label="Cognome (vuoto per collettivi)">
             <input
               type="text"
               name="cognome"
-              required
               defaultValue={a.cognome}
               className={INPUT_CLASS}
+              placeholder="Lascia vuoto se è un collettivo"
             />
           </Field>
         </div>

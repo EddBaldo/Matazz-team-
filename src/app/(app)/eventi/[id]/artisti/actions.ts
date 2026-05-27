@@ -69,8 +69,8 @@ export async function creaENuovoArtista(
   input: NuovoArtistaInput,
 ): Promise<ActionResult> {
   const me = await requireCurrentIdentity();
-  if (input.nome.trim().length === 0 || input.cognome.trim().length === 0)
-    return { ok: false, error: "Nome e cognome sono obbligatori." };
+  if (input.nome.trim().length === 0)
+    return { ok: false, error: "Il nome è obbligatorio." };
   if (!(TIPI_ARTE as readonly string[]).includes(input.tipo_arte))
     return { ok: false, error: "Tipo arte obbligatorio." };
 

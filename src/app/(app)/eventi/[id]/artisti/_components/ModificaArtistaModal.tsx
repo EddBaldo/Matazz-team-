@@ -66,6 +66,9 @@ export function ModificaArtistaModal({
   const [editTipoArte, setEditTipoArte] = useState<string>("");
   const [editMembriExtra, setEditMembriExtra] = useState<string>("");
   const [editNumeroPersone, setEditNumeroPersone] = useState<string>("1");
+  const [editModo, setEditModo] = useState<"persona" | "collettivo">(
+    "persona",
+  );
   // Copia locale dell'anagrafica mostrata in header (si aggiorna dopo save)
   const [shownNome, setShownNome] = useState<string>("");
   const [shownCognome, setShownCognome] = useState<string>("");
@@ -86,6 +89,11 @@ export function ModificaArtistaModal({
       setEditTipoArte(artista.artistaTipoArte);
       setEditMembriExtra(artista.artistaMembriExtra ?? "");
       setEditNumeroPersone(String(artista.artistaNumeroPersone ?? 1));
+      setEditModo(
+        !artista.artistaCognome || artista.artistaCognome.trim() === ""
+          ? "collettivo"
+          : "persona",
+      );
       setShownNome(artista.artistaNome);
       setShownCognome(artista.artistaCognome);
       setShownTipoArte(artista.artistaTipoArte);
@@ -136,16 +144,17 @@ export function ModificaArtistaModal({
     if (!artista) return;
     const artistaId = artista.artistaId;
     startSaveAnagrafica(async () => {
+      const finalCognome = editModo === "collettivo" ? "" : editCognome;
       const res = await aggiornaArtistaAnagraficaR(artistaId, {
         nome: editNome,
-        cognome: editCognome,
+        cognome: finalCognome,
         tipo_arte: editTipoArte,
         membri_extra: editMembriExtra,
         numero_persone: editNumeroPersone,
       });
       if (res.ok) {
         setShownNome(editNome.trim());
-        setShownCognome(editCognome.trim());
+        setShownCognome(finalCognome.trim());
         setShownTipoArte(editTipoArte);
         const trimmed = editMembriExtra.trim();
         setShownMembriExtra(trimmed.length > 0 ? trimmed : null);
@@ -184,22 +193,78 @@ export function ModificaArtistaModal({
           <div className="min-w-0 flex-1">
             {editAnagrafica ? (
               <div className="space-y-2">
-                <div className="grid grid-cols-2 gap-2">
+                <div className="inline-flex rounded-full bg-neutral-100 p-1">
+                  <button
+                    type="button"
+                    onClick={() => setEditModo("persona")}
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                      editModo === "persona"
+                        ? "bg-white text-neutral-900 shadow-sm"
+                        : "text-neutral-600 hover:text-neutral-900"
+                    }`}
+                  >
+                    Persona
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditModo("collettivo")}
+                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                      editModo === "collettivo"
+                        ? "bg-white text-neutral-900 shadow-sm"
+                        : "text-neutral-600 hover:text-neutral-900"
+                    }`}
+                  >
+                    Collettivo
+                  </button>
+                </div>
+                {editModo === "persona" ? (
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      value={editNome}
+                      onChange={(e) => setEditNome(e.target.value)}
+                      placeholder="Nome"
+                      className={INPUT_CLASS}
+                    />
+                    <input
+                      type="text"
+                      value={editCognome}
+                      onChange={(e) => setEditCognome(e.target.value)}
+                      placeholder="Cognome"
+                      className={INPUT_CLASS}
+                    />
+                  </div>
+                ) : (
                   <input
                     type="text"
                     value={editNome}
                     onChange={(e) => setEditNome(e.target.value)}
-                    placeholder="Nome"
+                    placeholder="Nome del collettivo"
                     className={INPUT_CLASS}
                   />
+                )}
+                <input
+                  type="text"
+                  value={editMembriExtra}
+                  onChange={(e) => setEditMembriExtra(e.target.value)}
+                  placeholder={
+                    editModo === "collettivo"
+                      ? "Membri (es. Anna, Marco, Luca)"
+                      : "Altri membri (es. Andrea Sassi)"
+                  }
+                  className={INPUT_CLASS}
+                />
+                <label className="flex items-center gap-2 text-sm text-neutral-700">
+                  Numero persone
                   <input
-                    type="text"
-                    value={editCognome}
-                    onChange={(e) => setEditCognome(e.target.value)}
-                    placeholder="Cognome"
-                    className={INPUT_CLASS}
+                    type="number"
+                    min="1"
+                    step="1"
+                    value={editNumeroPersone}
+                    onChange={(e) => setEditNumeroPersone(e.target.value)}
+                    className={`${INPUT_CLASS} w-20`}
                   />
-                </div>
+                </label>
                 <Select
                   value={editTipoArte}
                   onChange={setEditTipoArte}
@@ -216,24 +281,6 @@ export function ModificaArtistaModal({
                     ...TIPI_ARTE.map((t) => ({ value: t, label: t })),
                   ]}
                 />
-                <input
-                  type="text"
-                  value={editMembriExtra}
-                  onChange={(e) => setEditMembriExtra(e.target.value)}
-                  placeholder="Altri membri (es. Andrea Sassi)"
-                  className={INPUT_CLASS}
-                />
-                <label className="flex items-center gap-2 text-sm text-neutral-700">
-                  Numero persone
-                  <input
-                    type="number"
-                    min="1"
-                    step="1"
-                    value={editNumeroPersone}
-                    onChange={(e) => setEditNumeroPersone(e.target.value)}
-                    className={`${INPUT_CLASS} w-20`}
-                  />
-                </label>
                 <div className="flex items-center gap-2 pt-1">
                   <button
                     type="button"
@@ -265,7 +312,7 @@ export function ModificaArtistaModal({
               <div className="flex items-start gap-2">
                 <div className="min-w-0">
                   <h2 className="text-2xl font-semibold text-neutral-900 leading-tight">
-                    {shownNome} {shownCognome}
+                    {[shownNome, shownCognome].filter(Boolean).join(" ")}
                   </h2>
                   {shownMembriExtra && (
                     <p className="text-sm text-neutral-700 mt-0.5">

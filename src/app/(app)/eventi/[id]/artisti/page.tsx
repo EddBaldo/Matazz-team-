@@ -80,7 +80,9 @@ export default async function EventoArtistiPage({ params }: Props) {
       confermato: r.confermato,
       presente_cena: r.presente_cena,
       artistaId: r.artista!.id,
-      artistaLabel: `${r.artista!.nome} ${r.artista!.cognome}`,
+      artistaLabel: [r.artista!.nome, r.artista!.cognome]
+        .filter((s) => s && s.trim())
+        .join(" "),
       artistaTipoArte: r.artista!.tipo_arte,
       artistaNome: r.artista!.nome,
       artistaCognome: r.artista!.cognome,

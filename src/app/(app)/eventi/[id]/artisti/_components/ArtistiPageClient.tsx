@@ -254,7 +254,9 @@ function ArtistaRowItem({
     >
       <td className="px-4 py-3 text-neutral-900 font-medium">
         <div>
-          {row.artistaNome} {row.artistaCognome}
+          {[row.artistaNome, row.artistaCognome]
+            .filter((s) => s && s.trim())
+            .join(" ")}
         </div>
         {row.artistaMembriExtra && (
           <div>+ {row.artistaMembriExtra}</div>

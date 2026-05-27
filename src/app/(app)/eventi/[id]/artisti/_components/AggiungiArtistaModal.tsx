@@ -41,6 +41,7 @@ export function AggiungiArtistaModal({
   const [pending, startTransition] = useTransition();
   const [artistaId, setArtistaId] = useState<string>("");
   const [tipoArte, setTipoArte] = useState<string>("");
+  const [modo, setModo] = useState<"persona" | "collettivo">("persona");
 
   useEffect(() => {
     const dlg = dialogRef.current;
@@ -49,6 +50,7 @@ export function AggiungiArtistaModal({
       setError(null);
       setArtistaId("");
       setTipoArte("");
+      setModo("persona");
       setTab(rubrica.length > 0 ? "rubrica" : "nuovo");
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
@@ -70,9 +72,15 @@ export function AggiungiArtistaModal({
   function handleCreaNuovo(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    const nome =
+      modo === "collettivo"
+        ? String(fd.get("nome_collettivo") ?? "")
+        : String(fd.get("nome") ?? "");
+    const cognome =
+      modo === "collettivo" ? "" : String(fd.get("cognome") ?? "");
     const input: NuovoArtistaInput = {
-      nome: String(fd.get("nome") ?? ""),
-      cognome: String(fd.get("cognome") ?? ""),
+      nome,
+      cognome,
       tipo_arte: tipoArte,
       residenza: (fd.get("residenza") as string) || null,
       link: (fd.get("link") as string) || null,
@@ -172,24 +180,69 @@ export function AggiungiArtistaModal({
           </form>
         ) : (
           <form onSubmit={handleCreaNuovo} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Nome" required>
+            <ModoToggle modo={modo} setModo={setModo} />
+
+            {modo === "persona" ? (
+              <div className="grid grid-cols-2 gap-3">
+                <Field label="Nome" required>
+                  <input
+                    type="text"
+                    name="nome"
+                    required
+                    className={INPUT_CLASS}
+                  />
+                </Field>
+                <Field label="Cognome">
+                  <input
+                    type="text"
+                    name="cognome"
+                    className={INPUT_CLASS}
+                  />
+                </Field>
+              </div>
+            ) : (
+              <Field label="Nome del collettivo" required>
                 <input
                   type="text"
-                  name="nome"
+                  name="nome_collettivo"
                   required
                   className={INPUT_CLASS}
+                  placeholder="Es. Slime Mold, Collettivo Aria…"
                 />
               </Field>
-              <Field label="Cognome" required>
+            )}
+
+            <div className="grid grid-cols-[1fr_auto] gap-3">
+              <Field
+                label={
+                  modo === "collettivo"
+                    ? "Membri del collettivo"
+                    : "Altri membri (per duo)"
+                }
+              >
                 <input
                   type="text"
-                  name="cognome"
-                  required
+                  name="membri_extra"
                   className={INPUT_CLASS}
+                  placeholder={
+                    modo === "collettivo"
+                      ? "Es. Anna, Marco, Luca"
+                      : "Es. Andrea Sassi"
+                  }
+                />
+              </Field>
+              <Field label="N. persone">
+                <input
+                  type="number"
+                  name="numero_persone"
+                  min="1"
+                  step="1"
+                  defaultValue="1"
+                  className={`${INPUT_CLASS} w-20`}
                 />
               </Field>
             </div>
+
             <Field label="Tipo arte" required>
               <Select
                 value={tipoArte}
@@ -223,26 +276,6 @@ export function AggiungiArtistaModal({
                 placeholder="https://… (video, articolo, pdf)"
               />
             </Field>
-            <div className="grid grid-cols-[1fr_auto] gap-3">
-              <Field label="Altri membri (per duo / collettivi)">
-                <input
-                  type="text"
-                  name="membri_extra"
-                  className={INPUT_CLASS}
-                  placeholder="Es. Andrea Sassi"
-                />
-              </Field>
-              <Field label="N. persone">
-                <input
-                  type="number"
-                  name="numero_persone"
-                  min="1"
-                  step="1"
-                  defaultValue="1"
-                  className={`${INPUT_CLASS} w-20`}
-                />
-              </Field>
-            </div>
             <Buttons
               pending={pending}
               onClose={onClose}
@@ -252,6 +285,41 @@ export function AggiungiArtistaModal({
         )}
       </div>
     </dialog>
+  );
+}
+
+function ModoToggle({
+  modo,
+  setModo,
+}: {
+  modo: "persona" | "collettivo";
+  setModo: (m: "persona" | "collettivo") => void;
+}) {
+  return (
+    <div className="inline-flex rounded-full bg-neutral-100 p-1">
+      <button
+        type="button"
+        onClick={() => setModo("persona")}
+        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+          modo === "persona"
+            ? "bg-white text-neutral-900 shadow-sm"
+            : "text-neutral-600 hover:text-neutral-900"
+        }`}
+      >
+        Persona
+      </button>
+      <button
+        type="button"
+        onClick={() => setModo("collettivo")}
+        className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+          modo === "collettivo"
+            ? "bg-white text-neutral-900 shadow-sm"
+            : "text-neutral-600 hover:text-neutral-900"
+        }`}
+      >
+        Collettivo
+      </button>
+    </div>
   );
 }
 
