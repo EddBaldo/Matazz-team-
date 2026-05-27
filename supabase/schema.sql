@@ -47,7 +47,8 @@ create table if not exists artisti (
     'Musica Sera',
     'Quadri',
     'DJ',
-    'Live Music'
+    'Live Music',
+    'Collaborazione'
   )),
   link text,
   link_opera text,

@@ -9,6 +9,7 @@ export const TIPI_ARTE = [
   "Quadri",
   "DJ",
   "Live Music",
+  "Collaborazione",
 ] as const;
 
 export type TipoArte = (typeof TIPI_ARTE)[number];
@@ -19,6 +20,7 @@ export const MACRO_TIPI_ARTE = [
   "Performance artistiche",
   "Performance musicali",
   "Musica sera",
+  "Collaborazioni",
 ] as const;
 
 export type MacroTipoArte = (typeof MACRO_TIPI_ARTE)[number];
@@ -29,6 +31,7 @@ export const MACRO_EMOJI: Record<MacroTipoArte, string> = {
   "Performance artistiche": "💃",
   "Performance musicali": "🎤",
   "Musica sera": "🎵",
+  Collaborazioni: "🤝",
 };
 
 export function macroFromTipoArte(tipo: string): MacroTipoArte {
@@ -42,5 +45,6 @@ export function macroFromTipoArte(tipo: string): MacroTipoArte {
   if (tipo === "Musica Sera") return "Musica sera";
   if (tipo === "DJ") return "Musica sera";
   if (tipo === "Live Music") return "Musica sera";
+  if (tipo === "Collaborazione") return "Collaborazioni";
   return "Arti visive";
 }
