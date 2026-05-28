@@ -316,7 +316,8 @@ export function ModificaArtistaModal({
                   </h2>
                   {shownMembriExtra && (
                     <p className="text-sm text-neutral-700 mt-0.5">
-                      + {shownMembriExtra}
+                      {shownCognome && shownCognome.trim() ? "+ " : ": "}
+                      {shownMembriExtra}
                     </p>
                   )}
                   <p className="text-sm text-neutral-500 mt-0.5">

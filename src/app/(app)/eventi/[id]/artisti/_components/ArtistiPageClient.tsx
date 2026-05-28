@@ -259,7 +259,10 @@ function ArtistaRowItem({
             .join(" ")}
         </div>
         {row.artistaMembriExtra && (
-          <div>+ {row.artistaMembriExtra}</div>
+          <div>
+            {row.artistaCognome && row.artistaCognome.trim() ? "+ " : ": "}
+            {row.artistaMembriExtra}
+          </div>
         )}
       </td>
       <td className="px-4 py-3 text-neutral-700">{row.artistaTipoArte}</td>

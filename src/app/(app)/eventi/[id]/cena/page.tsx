@@ -98,13 +98,15 @@ export default async function CenaPage({ params }: Props) {
   )
     .filter((r) => r.artista !== null)
     .map((r) => {
-      const base = [r.artista!.nome, r.artista!.cognome]
+      const cognome = r.artista!.cognome?.trim();
+      const base = [r.artista!.nome, cognome]
         .filter((s) => s && s.trim())
         .join(" ");
       const extra = r.artista!.membri_extra?.trim();
+      const sep = cognome ? "+" : ":";
       return {
         id: r.id,
-        nome: extra && extra.length > 0 ? `${base} + ${extra}` : base,
+        nome: extra && extra.length > 0 ? `${base} ${sep} ${extra}` : base,
         intolleranze_cibo: r.intolleranze_cibo,
         numero_persone: r.artista!.numero_persone ?? 1,
       };
