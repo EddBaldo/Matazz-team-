@@ -148,13 +148,7 @@ function MaterialeRowItem({
         </button>
       </td>
       <td className="px-4 py-3">
-        <span
-          className={`text-neutral-900 font-medium ${
-            row.preso ? "line-through" : ""
-          }`}
-        >
-          {row.articolo}
-        </span>
+        <span className="text-neutral-900 font-medium">{row.articolo}</span>
         {row.gia_disponibile && (
           <span className="ml-2 inline-block px-2 py-0.5 rounded-full text-[10px] font-medium bg-neutral-100 text-neutral-700">
             già disponibile
