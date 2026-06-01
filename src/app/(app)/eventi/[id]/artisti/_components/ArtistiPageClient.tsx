@@ -81,7 +81,7 @@ export function ArtistiPageClient({ eventoId, rows, rubrica, team }: Props) {
           Documenti su Drive
         </a>
         <a
-          href="https://miro.com/welcomeonboard/S3RYa0FReDdsZXhvOUliMVVpMGZPU2RwTkd1UzNPZzY5QVc0MVlJekpYd2tyb0hMN25Rb2RBcXozdDF2VXIvZ1k4WnNTbXRRMG1JQTJnVjhPQVEyTXZjY1V3N29Xb1dwYzJCRENtV1lPSzRKMUNsUkdWbno0SWVFNEYrS2NKTUJQdGo1ZEV3bUdPQWRZUHQzSGl6V2NBPT0hdjE=?share_link_id=609189967512"
+          href="https://miro.com/welcomeonboard/S3RYa0FReDdsZXhvOUliMVVpMGZPU2RwTkd1UzNPZzY5QVc0MVlJekpYd2tyb0hMN25Rb2RBcXozdDF2VXIvZ1k4WnNTbXRRMG1JQTJnVjhPQVEyTXZjY1V3N29Xb1dwYzJCRENtV1lPSzU5Ymx3OXVhWk9hRlZkcVZsb1RRd0N0R2lncW1vRmFBVnlLcVJzTmdFdlNRPT0hdjE=?share_link_id=702202589784"
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-amber-300 bg-amber-50 text-amber-800 text-sm font-medium hover:bg-amber-100"
