@@ -255,7 +255,7 @@ export default async function EventoBudgetPage({ params }: Props) {
     },
     {
       chiave: "catering",
-      label: "Catering (selezionati)",
+      label: "Cena (offerte selezionate)",
       effettivo: totaleCatering,
       stima: stimaOf("catering"),
     },
