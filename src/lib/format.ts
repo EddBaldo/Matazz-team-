@@ -21,10 +21,11 @@ function formatDateFromYMD(y: number, m: number, d: number): string {
 
 export function formatMoney(n: number | null | undefined): string {
   if (n == null) return "";
-  return new Intl.NumberFormat("it-CH", {
-    style: "currency",
-    currency: "CHF",
-  }).format(n);
+  const fixed = Math.abs(n).toFixed(2);
+  const [intPart, decPart] = fixed.split(".");
+  const withSep = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, "'");
+  const sign = n < 0 ? "-" : "";
+  return `CHF ${sign}${withSep}.${decPart}`;
 }
 
 export function formatTime(t: string | null | undefined): string {
