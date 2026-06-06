@@ -13,7 +13,7 @@ type EventoArtistaRow = {
   artist_fee: number | null;
   costi_produzione: number | null;
 };
-type EventoPersonaleRow = { compenso: number | null };
+type EventoPersonaleRow = { compenso: number | null; confermato: boolean };
 type EventoMaterialeRow = {
   quantita: number;
   prezzo_unitario: number | null;
@@ -79,7 +79,10 @@ export default async function EventoBudgetPage({ params }: Props) {
       .from("evento_artisti")
       .select("artist_fee, costi_produzione")
       .eq("evento_id", id),
-    sb.from("evento_personale").select("compenso").eq("evento_id", id),
+    sb
+      .from("evento_personale")
+      .select("compenso, confermato")
+      .eq("evento_id", id),
     sb
       .from("evento_materiali")
       .select("quantita, prezzo_unitario, gia_disponibile")
@@ -153,10 +156,9 @@ export default async function EventoBudgetPage({ params }: Props) {
     (s, r) => s + Number(r.costi_produzione ?? 0),
     0,
   );
-  const totalePersonale = personale.reduce(
-    (s, r) => s + Number(r.compenso ?? 0),
-    0,
-  );
+  const totalePersonale = personale
+    .filter((r) => r.confermato)
+    .reduce((s, r) => s + Number(r.compenso ?? 0), 0);
   const totaleMateriali = materiali
     .filter((r) => !r.gia_disponibile)
     .reduce(
@@ -231,7 +233,7 @@ export default async function EventoBudgetPage({ params }: Props) {
     },
     {
       chiave: "personale",
-      label: "Personale (compensi)",
+      label: "Personale (compensi confermati)",
       effettivo: totalePersonale,
       stima: stimaOf("personale"),
     },

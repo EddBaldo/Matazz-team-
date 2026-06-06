@@ -33,7 +33,10 @@ export async function calcolaBudgetEvento(
       .from("evento_artisti")
       .select("artist_fee, costi_produzione")
       .eq("evento_id", eventoId),
-    sb.from("evento_personale").select("compenso").eq("evento_id", eventoId),
+    sb
+      .from("evento_personale")
+      .select("compenso, confermato")
+      .eq("evento_id", eventoId),
     sb
       .from("evento_materiali")
       .select("quantita, prezzo_unitario, gia_disponibile")
@@ -74,6 +77,7 @@ export async function calcolaBudgetEvento(
   }[];
   const personale = (personaleRes.data ?? []) as {
     compenso: number | null;
+    confermato: boolean;
   }[];
   const materiali = (materialiRes.data ?? []) as {
     quantita: number;
@@ -131,10 +135,9 @@ export async function calcolaBudgetEvento(
     (s, r) => s + Number(r.artist_fee ?? 0) + Number(r.costi_produzione ?? 0),
     0,
   );
-  const totalePersonale = personale.reduce(
-    (s, r) => s + Number(r.compenso ?? 0),
-    0,
-  );
+  const totalePersonale = personale
+    .filter((r) => r.confermato)
+    .reduce((s, r) => s + Number(r.compenso ?? 0), 0);
   const totaleMateriali = materiali
     .filter((r) => !r.gia_disponibile)
     .reduce(
