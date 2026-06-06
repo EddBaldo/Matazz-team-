@@ -17,6 +17,8 @@ type BarRow = {
 
 type EventoRow = {
   persone_stimati: number;
+  bar_attivo: boolean;
+  food_truck_attivo: boolean;
 };
 
 type Props = {
@@ -30,7 +32,7 @@ export default async function FoodBeveragePage({ params }: Props) {
   const [evRes, barRes, ftRes] = await Promise.all([
     sb
       .from("eventi")
-      .select("persone_stimati")
+      .select("persone_stimati, bar_attivo, food_truck_attivo")
       .eq("id", id)
       .maybeSingle(),
     sb
@@ -98,6 +100,8 @@ export default async function FoodBeveragePage({ params }: Props) {
       <FoodBeverageClient
         eventoId={id}
         personeStimati={evento.persone_stimati ?? 0}
+        barAttivo={evento.bar_attivo ?? true}
+        foodTruckAttivo={evento.food_truck_attivo ?? true}
         bar={bar}
         foodTruck={foodTruck}
       />

@@ -47,6 +47,8 @@ type FoodTruckRow = {
 };
 type EventoStimeRow = {
   persone_stimati: number;
+  bar_attivo: boolean;
+  food_truck_attivo: boolean;
 };
 type EventoSponsorRow = { stato: string; importo: number };
 type StimaRow = { chiave: string; importo: number };
@@ -70,7 +72,7 @@ export default async function EventoBudgetPage({ params }: Props) {
   ] = await Promise.all([
     sb
       .from("eventi")
-      .select("persone_stimati")
+      .select("persone_stimati, bar_attivo, food_truck_attivo")
       .eq("id", id)
       .maybeSingle(),
     sb
@@ -119,8 +121,12 @@ export default async function EventoBudgetPage({ params }: Props) {
 
   const evento = (eventoRes.data ?? {
     persone_stimati: 0,
+    bar_attivo: true,
+    food_truck_attivo: true,
   }) as EventoStimeRow;
   const personeStimati = Number(evento.persone_stimati ?? 0);
+  const barAttivo = evento.bar_attivo ?? true;
+  const foodTruckAttivo = evento.food_truck_attivo ?? true;
 
   const artisti = (artistiRes.data ?? []) as EventoArtistaRow[];
   const personale = (personaleRes.data ?? []) as EventoPersonaleRow[];
@@ -243,8 +249,8 @@ export default async function EventoBudgetPage({ params }: Props) {
     },
     {
       chiave: "bar_costo",
-      label: "Bar — costo merci",
-      effettivo: barCosto,
+      label: barAttivo ? "Bar — costo merci" : "Bar — costo merci (escluso)",
+      effettivo: barAttivo ? barCosto : 0,
       stima: stimaOf("bar_costo"),
     },
     {
@@ -259,14 +265,18 @@ export default async function EventoBudgetPage({ params }: Props) {
   const entrate: BudgetLine[] = [
     {
       chiave: "bar_ricavo",
-      label: "Bar — ricavo vendite",
-      effettivo: barRicavo,
+      label: barAttivo
+        ? "Bar — ricavo vendite"
+        : "Bar — ricavo vendite (escluso)",
+      effettivo: barAttivo ? barRicavo : 0,
       stima: stimaOf("bar_ricavo"),
     },
     {
       chiave: "food_truck",
-      label: "Food truck (selezionati)",
-      effettivo: totaleFoodTruck,
+      label: foodTruckAttivo
+        ? "Food truck (selezionati)"
+        : "Food truck (escluso)",
+      effettivo: foodTruckAttivo ? totaleFoodTruck : 0,
       stima: stimaOf("food_truck"),
     },
     {

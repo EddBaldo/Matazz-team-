@@ -26,7 +26,7 @@ export async function calcolaBudgetEvento(
   ] = await Promise.all([
     sb
       .from("eventi")
-      .select("persone_stimati")
+      .select("persone_stimati, bar_attivo, food_truck_attivo")
       .eq("id", eventoId)
       .maybeSingle(),
     sb
@@ -90,8 +90,16 @@ export async function calcolaBudgetEvento(
   }[];
   const evento = (eventoRes.data ?? {
     persone_stimati: 0,
-  }) as { persone_stimati: number };
+    bar_attivo: true,
+    food_truck_attivo: true,
+  }) as {
+    persone_stimati: number;
+    bar_attivo: boolean;
+    food_truck_attivo: boolean;
+  };
   const personeStimati = Number(evento.persone_stimati ?? 0);
+  const barAttivo = evento.bar_attivo ?? true;
+  const foodTruckAttivo = evento.food_truck_attivo ?? true;
 
   const bar = (barRes.data ?? []) as {
     costo_unitario: number | null;
@@ -181,16 +189,23 @@ export async function calcolaBudgetEvento(
     .filter((r) => r.tipo === "Entrata")
     .reduce((s, r) => s + Number(r.importo), 0);
 
+  const barCostoBudget = barAttivo ? barCosto : 0;
+  const barRicavoBudget = barAttivo ? barRicavo : 0;
+  const foodTruckBudget = foodTruckAttivo ? totaleFoodTruck : 0;
+
   const uscite =
     totaleArtisti +
     totalePersonale +
     totaleMateriali +
     totaleMerch +
-    barCosto +
+    barCostoBudget +
     totaleCatering +
     totaleUsciteExtra;
   const entrate =
-    barRicavo + totaleFoodTruck + totaleSponsor + totaleEntrateExtra;
+    barRicavoBudget +
+    foodTruckBudget +
+    totaleSponsor +
+    totaleEntrateExtra;
 
   return { entrate, uscite, saldo: entrate - uscite };
 }

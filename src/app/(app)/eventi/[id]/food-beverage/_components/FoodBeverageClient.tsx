@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Plus, Check, Circle } from "lucide-react";
+import { Plus, Check, Circle, Power } from "lucide-react";
 import { formatMoney } from "@/lib/format";
 import {
   aggiornaStimePersoneR,
+  toggleBarAttivoR,
+  toggleFoodTruckAttivoR,
   toggleFoodTruckSelezionata,
 } from "../actions";
 import { BarModal, type BarEdit } from "./BarModal";
@@ -13,6 +15,8 @@ import { FoodTruckModal, type FoodTruckEdit } from "./FoodTruckModal";
 type Props = {
   eventoId: string;
   personeStimati: number;
+  barAttivo: boolean;
+  foodTruckAttivo: boolean;
   bar: BarEdit[];
   foodTruck: FoodTruckEdit[];
 };
@@ -46,6 +50,8 @@ function guadagnoFoodTruck(ft: FoodTruckEdit, persone: number): number {
 export function FoodBeverageClient({
   eventoId,
   personeStimati,
+  barAttivo,
+  foodTruckAttivo,
   bar,
   foodTruck,
 }: Props) {
@@ -95,7 +101,7 @@ export function FoodBeverageClient({
       />
 
       {/* --- BAR --- */}
-      <section className="space-y-3">
+      <section className={`space-y-3 ${barAttivo ? "" : "opacity-60"}`}>
         <div className="flex items-baseline justify-between gap-3 flex-wrap">
           <div>
             <h3 className="text-base font-semibold text-neutral-900 flex items-baseline gap-2">
@@ -104,6 +110,11 @@ export function FoodBeverageClient({
               <span className="text-sm text-neutral-500 font-normal">
                 ({bar.length})
               </span>
+              <SezioneToggle
+                eventoId={eventoId}
+                attivo={barAttivo}
+                kind="bar"
+              />
             </h3>
             <p className="text-sm text-neutral-600 mt-0.5">
               Ricavo {formatMoney(tBarTotale.ricavo)} · Costo{" "}
@@ -123,6 +134,11 @@ export function FoodBeverageClient({
                     {mediaConsumoBar.toFixed(1)}
                   </strong>{" "}
                   bevande/persona
+                </span>
+              )}
+              {!barAttivo && (
+                <span className="ml-1 text-amber-700 font-medium">
+                  · escluso dal budget
                 </span>
               )}
             </p>
@@ -161,7 +177,7 @@ export function FoodBeverageClient({
       </section>
 
       {/* --- FOOD TRUCK --- */}
-      <section className="space-y-3">
+      <section className={`space-y-3 ${foodTruckAttivo ? "" : "opacity-60"}`}>
         <div className="flex items-baseline justify-between gap-3 flex-wrap">
           <div>
             <h3 className="text-base font-semibold text-neutral-900 flex items-baseline gap-2">
@@ -170,12 +186,22 @@ export function FoodBeverageClient({
               <span className="text-sm text-neutral-500 font-normal">
                 ({foodTruck.length})
               </span>
+              <SezioneToggle
+                eventoId={eventoId}
+                attivo={foodTruckAttivo}
+                kind="food_truck"
+              />
             </h3>
             <p className="text-sm text-neutral-600 mt-0.5">
               Guadagno nostro selezionato:{" "}
               <strong className="text-green-700">
                 {formatMoney(ftTotaleSel)}
               </strong>
+              {!foodTruckAttivo && (
+                <span className="ml-1 text-amber-700 font-medium">
+                  · escluso dal budget
+                </span>
+              )}
             </p>
           </div>
           <button
@@ -596,6 +622,48 @@ function SelToggle({
       ) : (
         <Circle className="w-4 h-4" />
       )}
+    </button>
+  );
+}
+
+function SezioneToggle({
+  eventoId,
+  attivo,
+  kind,
+}: {
+  eventoId: string;
+  attivo: boolean;
+  kind: "bar" | "food_truck";
+}) {
+  const [pending, startTransition] = useTransition();
+  function onClick(e: React.MouseEvent) {
+    e.stopPropagation();
+    startTransition(async () => {
+      if (kind === "bar") {
+        await toggleBarAttivoR(eventoId, !attivo);
+      } else {
+        await toggleFoodTruckAttivoR(eventoId, !attivo);
+      }
+    });
+  }
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={pending}
+      title={
+        attivo
+          ? "Sezione attiva — clicca per escluderla dal budget"
+          : "Sezione disattivata — clicca per riattivarla"
+      }
+      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition-colors disabled:opacity-50 ${
+        attivo
+          ? "bg-green-100 text-green-800 hover:bg-green-200"
+          : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+      }`}
+    >
+      <Power className="w-3 h-3" />
+      {attivo ? "attivo" : "spento"}
     </button>
   );
 }

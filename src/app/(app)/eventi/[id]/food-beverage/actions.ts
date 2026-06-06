@@ -46,6 +46,46 @@ export async function aggiornaStimePersoneR(
   return { ok: true };
 }
 
+// ----- TOGGLE SEZIONI BAR / FOOD TRUCK ----------------------------------
+
+export async function toggleBarAttivoR(
+  eventoId: string,
+  attivo: boolean,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const sb = createServerClient();
+  const { error } = await sb
+    .from("eventi")
+    .update({ bar_attivo: attivo })
+    .eq("id", eventoId);
+
+  if (error) {
+    console.error("Errore toggle bar attivo:", error);
+    return { ok: false, error: "Errore. Riprova." };
+  }
+  revalidateFB(eventoId);
+  return { ok: true };
+}
+
+export async function toggleFoodTruckAttivoR(
+  eventoId: string,
+  attivo: boolean,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const sb = createServerClient();
+  const { error } = await sb
+    .from("eventi")
+    .update({ food_truck_attivo: attivo })
+    .eq("id", eventoId);
+
+  if (error) {
+    console.error("Errore toggle food truck attivo:", error);
+    return { ok: false, error: "Errore. Riprova." };
+  }
+  revalidateFB(eventoId);
+  return { ok: true };
+}
+
 // ----- BAR ---------------------------------------------------------------
 
 export type BarInput = {
