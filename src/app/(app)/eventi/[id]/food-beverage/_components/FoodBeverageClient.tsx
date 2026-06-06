@@ -103,8 +103,8 @@ export function FoodBeverageClient({
       {/* --- BAR --- */}
       <section className={`space-y-3 ${barAttivo ? "" : "opacity-60"}`}>
         <div className="flex items-baseline justify-between gap-3 flex-wrap">
-          <div>
-            <h3 className="text-base font-semibold text-neutral-900 flex items-baseline gap-2">
+          <div className="space-y-2">
+            <h3 className="text-base font-semibold text-neutral-900 flex items-center gap-2 flex-wrap">
               <span aria-hidden>🍻</span>
               <span>Bar</span>
               <span className="text-sm text-neutral-500 font-normal">
@@ -115,33 +115,47 @@ export function FoodBeverageClient({
                 attivo={barAttivo}
                 kind="bar"
               />
+              {!barAttivo && (
+                <span className="text-sm text-amber-700 font-medium">
+                  escluso dal budget
+                </span>
+              )}
             </h3>
-            <p className="text-sm text-neutral-600 mt-0.5">
-              Ricavo {formatMoney(tBarTotale.ricavo)} · Costo{" "}
-              {formatMoney(tBarTotale.costo)} ·{" "}
-              <strong
+            <div className="inline-flex items-center gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-2 text-sm">
+              <span className="text-neutral-700">
+                Costo{" "}
+                <strong className="text-neutral-900">
+                  {formatMoney(tBarTotale.costo)}
+                </strong>
+              </span>
+              <span className="text-neutral-300">·</span>
+              <span className="text-neutral-700">
+                Ricavo{" "}
+                <strong className="text-neutral-900">
+                  {formatMoney(tBarTotale.ricavo)}
+                </strong>
+              </span>
+              <span className="text-neutral-300">·</span>
+              <span
                 className={
-                  tBarTotale.margine >= 0 ? "text-green-700" : "text-red-700"
+                  tBarTotale.margine >= 0
+                    ? "text-green-700"
+                    : "text-red-700"
                 }
               >
-                Margine {formatMoney(tBarTotale.margine)}
-              </strong>
-              {bar.length > 0 && (
-                <span className="text-neutral-500">
-                  {" "}
-                  · Media consumo:{" "}
-                  <strong className="text-neutral-700">
-                    {mediaConsumoBar.toFixed(1)}
-                  </strong>{" "}
-                  bevande/persona
-                </span>
-              )}
-              {!barAttivo && (
-                <span className="ml-1 text-amber-700 font-medium">
-                  · escluso dal budget
-                </span>
-              )}
-            </p>
+                Margine{" "}
+                <strong>{formatMoney(tBarTotale.margine)}</strong>
+              </span>
+            </div>
+            {bar.length > 0 && (
+              <p className="text-xs text-neutral-500">
+                Media consumo:{" "}
+                <strong className="text-neutral-700">
+                  {mediaConsumoBar.toFixed(1)}
+                </strong>{" "}
+                bevande/persona
+              </p>
+            )}
           </div>
           <button
             type="button"
@@ -179,8 +193,8 @@ export function FoodBeverageClient({
       {/* --- FOOD TRUCK --- */}
       <section className={`space-y-3 ${foodTruckAttivo ? "" : "opacity-60"}`}>
         <div className="flex items-baseline justify-between gap-3 flex-wrap">
-          <div>
-            <h3 className="text-base font-semibold text-neutral-900 flex items-baseline gap-2">
+          <div className="space-y-2">
+            <h3 className="text-base font-semibold text-neutral-900 flex items-center gap-2 flex-wrap">
               <span aria-hidden>🚚</span>
               <span>Food truck</span>
               <span className="text-sm text-neutral-500 font-normal">
@@ -191,18 +205,20 @@ export function FoodBeverageClient({
                 attivo={foodTruckAttivo}
                 kind="food_truck"
               />
+              {!foodTruckAttivo && (
+                <span className="text-sm text-amber-700 font-medium">
+                  escluso dal budget
+                </span>
+              )}
             </h3>
-            <p className="text-sm text-neutral-600 mt-0.5">
-              Guadagno nostro selezionato:{" "}
+            <div className="inline-flex items-center gap-2 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-2 text-sm">
+              <span className="text-neutral-700">
+                Guadagno nostro selezionato:
+              </span>
               <strong className="text-green-700">
                 {formatMoney(ftTotaleSel)}
               </strong>
-              {!foodTruckAttivo && (
-                <span className="ml-1 text-amber-700 font-medium">
-                  · escluso dal budget
-                </span>
-              )}
-            </p>
+            </div>
           </div>
           <button
             type="button"
@@ -656,13 +672,13 @@ function SezioneToggle({
           ? "Sezione attiva — clicca per escluderla dal budget"
           : "Sezione disattivata — clicca per riattivarla"
       }
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition-colors disabled:opacity-50 ${
+      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors disabled:opacity-50 ${
         attivo
           ? "bg-green-100 text-green-800 hover:bg-green-200"
-          : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"
+          : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"
       }`}
     >
-      <Power className="w-3 h-3" />
+      <Power className="w-4 h-4" />
       {attivo ? "attivo" : "spento"}
     </button>
   );
