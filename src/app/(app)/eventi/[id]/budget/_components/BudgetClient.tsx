@@ -61,6 +61,7 @@ export function BudgetClient({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <SummaryColumn
           label="Budget"
+          description="La nostra previsione editabile a mano: quanto pensiamo di spendere e incassare per ogni voce."
           entrate={totaleStimEntrate}
           uscite={totaleStimUscite}
           saldo={saldoStimato}
@@ -69,6 +70,7 @@ export function BudgetClient({
         />
         <SummaryColumn
           label="Costi effettivi"
+          description="Calcolati in automatico dalle tabelle dell'evento: artisti, sponsor, F&B, materiali, ecc."
           entrate={totaleEffEntrate}
           uscite={totaleEffUscite}
           saldo={saldoEffettivo}
@@ -113,6 +115,7 @@ export function BudgetClient({
 
 function SummaryColumn({
   label,
+  description,
   entrate,
   uscite,
   saldo,
@@ -120,6 +123,7 @@ function SummaryColumn({
   subtle,
 }: {
   label: string;
+  description?: string;
   entrate: number;
   uscite: number;
   saldo: number;
@@ -131,6 +135,11 @@ function SummaryColumn({
       <p className="text-xs uppercase tracking-wide text-neutral-500 font-medium">
         {label}
       </p>
+      {description && (
+        <p className="text-xs text-neutral-500 mt-1 leading-snug">
+          {description}
+        </p>
+      )}
       <div className="grid grid-cols-2 gap-4 mt-4">
         <div>
           <p className="text-[10px] uppercase tracking-wide text-neutral-400 font-medium">
