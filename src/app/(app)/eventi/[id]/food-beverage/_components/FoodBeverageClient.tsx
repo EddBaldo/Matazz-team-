@@ -672,13 +672,13 @@ function SezioneToggle({
           ? "Sezione attiva — clicca per escluderla dal budget"
           : "Sezione disattivata — clicca per riattivarla"
       }
-      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-colors disabled:opacity-50 ${
+      className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors disabled:opacity-50 ${
         attivo
           ? "bg-green-100 text-green-800 hover:bg-green-200"
           : "bg-neutral-200 text-neutral-700 hover:bg-neutral-300"
       }`}
     >
-      <Power className="w-4 h-4" />
+      <Power className="w-3.5 h-3.5" />
       {attivo ? "attivo" : "spento"}
     </button>
   );
