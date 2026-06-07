@@ -23,12 +23,17 @@ function revalidateMat(eventoId: string) {
   revalidatePath(`/eventi/${eventoId}/materiali`);
 }
 
+export type FonteInput = {
+  label: string | null;
+  url: string | null;
+};
+
 export type MaterialeInput = {
   articolo: string;
   quantita: string | null;
   prezzo_unitario: string | null;
   a_cosa_serve: string | null;
-  dove_lo_prendiamo: string | null;
+  fonti: FonteInput[];
   preso: boolean;
   gia_disponibile: boolean;
   note: string | null;
@@ -41,12 +46,18 @@ function validate(input: MaterialeInput): string | null {
 }
 
 function normalize(input: MaterialeInput) {
+  const fonti = (input.fonti ?? [])
+    .map((f) => ({
+      label: trimOrNull(f.label),
+      url: trimOrNull(f.url),
+    }))
+    .filter((f) => f.label !== null || f.url !== null);
   return {
     articolo: input.articolo.trim(),
     quantita: toNumber(input.quantita, 1),
     prezzo_unitario: toNumber(input.prezzo_unitario, 0),
     a_cosa_serve: trimOrNull(input.a_cosa_serve),
-    dove_lo_prendiamo: trimOrNull(input.dove_lo_prendiamo),
+    fonti,
     preso: input.preso,
     gia_disponibile: input.gia_disponibile,
     note: trimOrNull(input.note),

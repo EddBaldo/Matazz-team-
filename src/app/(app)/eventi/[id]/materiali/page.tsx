@@ -15,12 +15,24 @@ export default async function EventoMaterialiPage({ params }: Props) {
   const { data, error } = await sb
     .from("evento_materiali")
     .select(
-      "id, articolo, quantita, prezzo_unitario, a_cosa_serve, dove_lo_prendiamo, preso, gia_disponibile, note",
+      "id, articolo, quantita, prezzo_unitario, a_cosa_serve, fonti, preso, gia_disponibile, note",
     )
     .eq("evento_id", id)
     .order("articolo");
 
-  const rows = (data ?? []) as MaterialeRow[];
+  type DbRow = Omit<MaterialeRow, "fonti"> & { fonti: unknown };
+  const rows: MaterialeRow[] = (data ?? []).map((r) => {
+    const row = r as DbRow;
+    const fonti = Array.isArray(row.fonti)
+      ? (row.fonti as { label?: string | null; url?: string | null }[]).map(
+          (f) => ({
+            label: f?.label ?? null,
+            url: f?.url ?? null,
+          }),
+        )
+      : [];
+    return { ...row, fonti };
+  });
 
   return (
     <div className="space-y-6">

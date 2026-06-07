@@ -1,16 +1,22 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { X, Trash2 } from "lucide-react";
+import { X, Trash2, Plus } from "lucide-react";
 import {
   aggiornaMaterialeR,
   creaMaterialeR,
   eliminaMaterialeR,
   type MaterialeInput,
+  type FonteInput,
 } from "../actions";
 
 const INPUT_CLASS =
   "w-full px-3 py-2 border border-neutral-300 rounded-lg text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-amber-500";
+
+export type Fonte = {
+  label: string | null;
+  url: string | null;
+};
 
 export type MaterialeEdit = {
   id: string;
@@ -18,7 +24,7 @@ export type MaterialeEdit = {
   quantita: number;
   prezzo_unitario: number | null;
   a_cosa_serve: string | null;
-  dove_lo_prendiamo: string | null;
+  fonti: Fonte[];
   preso: boolean;
   gia_disponibile: boolean;
   note: string | null;
@@ -38,6 +44,7 @@ export function MaterialeModal({ eventoId, mode, onClose }: Props) {
   const [pending, startTransition] = useTransition();
   const [preso, setPreso] = useState<boolean>(false);
   const [giaDisp, setGiaDisp] = useState<boolean>(false);
+  const [fonti, setFonti] = useState<Fonte[]>([]);
 
   useEffect(() => {
     const dlg = dialogRef.current;
@@ -47,9 +54,15 @@ export function MaterialeModal({ eventoId, mode, onClose }: Props) {
       if (mode.kind === "edit") {
         setPreso(mode.materiale.preso);
         setGiaDisp(mode.materiale.gia_disponibile);
+        setFonti(
+          mode.materiale.fonti.length > 0
+            ? mode.materiale.fonti
+            : [{ label: null, url: null }],
+        );
       } else {
         setPreso(false);
         setGiaDisp(false);
+        setFonti([{ label: null, url: null }]);
       }
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
@@ -66,12 +79,18 @@ export function MaterialeModal({ eventoId, mode, onClose }: Props) {
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    const fontiInput: FonteInput[] = fonti
+      .map((f) => ({
+        label: f.label?.trim() ? f.label.trim() : null,
+        url: f.url?.trim() ? f.url.trim() : null,
+      }))
+      .filter((f) => f.label || f.url);
     const input: MaterialeInput = {
       articolo: String(fd.get("articolo") ?? ""),
       quantita: (fd.get("quantita") as string) || null,
       prezzo_unitario: (fd.get("prezzo_unitario") as string) || null,
       a_cosa_serve: (fd.get("a_cosa_serve") as string) || null,
-      dove_lo_prendiamo: (fd.get("dove_lo_prendiamo") as string) || null,
+      fonti: fontiInput,
       preso,
       gia_disponibile: giaDisp,
       note: (fd.get("note") as string) || null,
@@ -172,18 +191,71 @@ export function MaterialeModal({ eventoId, mode, onClose }: Props) {
             />
           </Field>
 
-          <Field label="Dove lo prendiamo">
-            <input
-              type="text"
-              name="dove_lo_prendiamo"
-              defaultValue={m?.dove_lo_prendiamo ?? ""}
-              className={INPUT_CLASS}
-              placeholder="Es. Bauhaus, casa Pino, oppure https://amazon.it/…"
-            />
-            <p className="text-xs text-neutral-500 mt-1">
-              Se incolli un link http(s), in tabella diventa cliccabile.
+          <div>
+            <span className="text-sm font-medium text-neutral-800">
+              Dove lo prendiamo
+            </span>
+            <p className="text-xs text-neutral-500 mt-0.5 mb-2">
+              Puoi mettere piu&apos; fonti (es. Bauhaus + un link Amazon).
+              Lascia vuota l&apos;etichetta se ti basta solo il link.
             </p>
-          </Field>
+            <div className="space-y-2">
+              {fonti.map((f, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <div className="flex-1 space-y-1.5">
+                    <input
+                      type="text"
+                      value={f.label ?? ""}
+                      onChange={(e) =>
+                        setFonti((prev) =>
+                          prev.map((p, idx) =>
+                            idx === i ? { ...p, label: e.target.value } : p,
+                          ),
+                        )
+                      }
+                      className={INPUT_CLASS}
+                      placeholder="Etichetta (es. Bauhaus, casa Pino)"
+                    />
+                    <input
+                      type="text"
+                      value={f.url ?? ""}
+                      onChange={(e) =>
+                        setFonti((prev) =>
+                          prev.map((p, idx) =>
+                            idx === i ? { ...p, url: e.target.value } : p,
+                          ),
+                        )
+                      }
+                      className={INPUT_CLASS}
+                      placeholder="https://… (opzionale)"
+                    />
+                  </div>
+                  {fonti.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFonti((prev) => prev.filter((_, idx) => idx !== i))
+                      }
+                      aria-label="Rimuovi fonte"
+                      className="mt-1 inline-flex items-center justify-center w-8 h-8 rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-red-700"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setFonti((prev) => [...prev, { label: null, url: null }])
+              }
+              className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm text-neutral-700 bg-neutral-100 hover:bg-neutral-200"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Aggiungi fonte
+            </button>
+          </div>
 
           <div className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-50 px-4 py-3">
             <div>

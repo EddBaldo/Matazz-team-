@@ -4,7 +4,11 @@ import { useState, useTransition } from "react";
 import { Plus, Check, Circle } from "lucide-react";
 import { formatMoney } from "@/lib/format";
 import { togglePresoR } from "../actions";
-import { MaterialeModal, type MaterialeEdit } from "./MaterialeModal";
+import {
+  MaterialeModal,
+  type MaterialeEdit,
+  type Fonte,
+} from "./MaterialeModal";
 
 export type MaterialeRow = MaterialeEdit;
 
@@ -162,7 +166,7 @@ function MaterialeRowItem({
         {row.a_cosa_serve ?? "—"}
       </td>
       <td className="px-4 py-3 text-neutral-700">
-        <DoveLoPrendiamoCell value={row.dove_lo_prendiamo} />
+        <FontiCell fonti={row.fonti} />
       </td>
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
         {row.prezzo_unitario != null
@@ -176,29 +180,47 @@ function MaterialeRowItem({
   );
 }
 
-function DoveLoPrendiamoCell({ value }: { value: string | null }) {
-  if (!value) return <>—</>;
-  const trimmed = value.trim();
-  const isUrl = /^https?:\/\//i.test(trimmed);
-  if (!isUrl) return <>{value}</>;
-  let label: string;
-  try {
-    label = new URL(trimmed).hostname.replace(/^www\./, "");
-  } catch {
-    label = trimmed;
-  }
+function FontiCell({ fonti }: { fonti: Fonte[] }) {
+  if (!fonti || fonti.length === 0) return <>—</>;
   return (
-    <a
-      href={trimmed}
-      target="_blank"
-      rel="noopener noreferrer"
-      onClick={(e) => e.stopPropagation()}
-      className="text-amber-700 underline decoration-amber-300 hover:decoration-amber-700"
-      title={trimmed}
-    >
-      {label}
-    </a>
+    <ul className="space-y-1">
+      {fonti.map((f, i) => (
+        <li key={i}>
+          <FonteItem fonte={f} />
+        </li>
+      ))}
+    </ul>
   );
+}
+
+function FonteItem({ fonte }: { fonte: Fonte }) {
+  const url = fonte.url?.trim() ?? "";
+  const label = fonte.label?.trim() ?? "";
+  const isUrl = /^https?:\/\//i.test(url);
+
+  if (isUrl) {
+    let host: string;
+    try {
+      host = new URL(url).hostname.replace(/^www\./, "");
+    } catch {
+      host = url;
+    }
+    const display = label || host;
+    return (
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={(e) => e.stopPropagation()}
+        className="text-amber-700 underline decoration-amber-300 hover:decoration-amber-700"
+        title={url}
+      >
+        {display}
+      </a>
+    );
+  }
+  // Nessun URL valido: mostra label, oppure il testo grezzo dell'url come fallback.
+  return <>{label || url || "—"}</>;
 }
 
 function Th({
