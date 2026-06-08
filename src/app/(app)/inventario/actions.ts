@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireCurrentIdentity } from "@/lib/auth/identity";
 import { createServerClient } from "@/lib/supabase/server";
-import { CONDIZIONI } from "@/lib/inventario";
+import { CATEGORIE_INVENTARIO, CONDIZIONI } from "@/lib/inventario";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -12,6 +12,7 @@ export type InventarioInput = {
   quantita: number;
   dove_si_trova: string | null;
   condizione: string;
+  categoria: string;
   note: string | null;
 };
 
@@ -26,6 +27,8 @@ function validate(input: InventarioInput): string | null {
     return "Il nome dell'articolo è obbligatorio.";
   if (!(CONDIZIONI as readonly string[]).includes(input.condizione))
     return "Condizione non valida.";
+  if (!(CATEGORIE_INVENTARIO as readonly string[]).includes(input.categoria))
+    return "Categoria non valida.";
   return null;
 }
 
@@ -42,6 +45,7 @@ export async function creaInventarioR(
     quantita: Number.isFinite(input.quantita) ? input.quantita : 1,
     dove_si_trova: trimOrNull(input.dove_si_trova),
     condizione: input.condizione,
+    categoria: input.categoria,
     note: trimOrNull(input.note),
     creato_da_id: me.id,
   });
@@ -71,6 +75,7 @@ export async function aggiornaInventarioR(
       quantita: Number.isFinite(input.quantita) ? input.quantita : 1,
       dove_si_trova: trimOrNull(input.dove_si_trova),
       condizione: input.condizione,
+      categoria: input.categoria,
       note: trimOrNull(input.note),
     })
     .eq("id", id);

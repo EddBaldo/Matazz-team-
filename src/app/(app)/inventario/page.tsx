@@ -10,6 +10,7 @@ type DbRow = {
   quantita: number;
   dove_si_trova: string | null;
   condizione: string;
+  categoria: string;
   note: string | null;
   creato_da: { nome: string } | null;
 };
@@ -19,7 +20,7 @@ export default async function InventarioPage() {
   const { data, error } = await sb
     .from("inventario")
     .select(
-      `id, articolo, quantita, dove_si_trova, condizione, note,
+      `id, articolo, quantita, dove_si_trova, condizione, categoria, note,
        creato_da:team_matazz(nome)`,
     )
     .order("articolo");
@@ -31,6 +32,7 @@ export default async function InventarioPage() {
     quantita: r.quantita,
     dove_si_trova: r.dove_si_trova,
     condizione: r.condizione,
+    categoria: r.categoria ?? "Altro",
     note: r.note,
     creatoDaNome: r.creato_da?.nome ?? null,
   }));

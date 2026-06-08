@@ -20,3 +20,32 @@ export const CONDIZIONE_EMOJI: Record<string, string> = {
   "Da riparare": "🟠",
   "Da buttare": "🔴",
 };
+
+export const CATEGORIE_INVENTARIO = [
+  "Merch",
+  "Attrezzatura",
+  "Scenografia",
+  "Archivio",
+  "Altro",
+] as const;
+
+export type CategoriaInventario = (typeof CATEGORIE_INVENTARIO)[number];
+
+export const CATEGORIA_INVENTARIO_EMOJI: Record<CategoriaInventario, string> = {
+  Merch: "👕",
+  Attrezzatura: "🔧",
+  Scenografia: "🎭",
+  Archivio: "📦",
+  Altro: "📌",
+};
+
+export const CATEGORIA_INVENTARIO_DESCRIZIONE: Record<
+  CategoriaInventario,
+  string
+> = {
+  Merch: "Capi, gadget, stampe avanzati dai vecchi eventi.",
+  Attrezzatura: "Cavi, scotch, viti, prolunghe, attrezzi per allestire.",
+  Scenografia: "Luci, teli, pannelli, oggetti decorativi riutilizzabili.",
+  Archivio: "Flyer, manifesti, memorabilia dei vecchi eventi.",
+  Altro: "Tutto quello che non rientra nelle altre categorie.",
+};

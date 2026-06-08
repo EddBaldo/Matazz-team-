@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { CONDIZIONE_BADGE } from "@/lib/inventario";
+import {
+  CATEGORIA_INVENTARIO_EMOJI,
+  CATEGORIE_INVENTARIO,
+  CONDIZIONE_BADGE,
+  type CategoriaInventario,
+} from "@/lib/inventario";
 import { InventarioModal, type InventarioEdit } from "./InventarioModal";
 
 export type InventarioRow = InventarioEdit & {
@@ -13,18 +18,68 @@ type Props = {
   rows: InventarioRow[];
 };
 
+type FiltroCategoria = "tutte" | CategoriaInventario;
+
 export function InventarioClient({ rows }: Props) {
   const [modal, setModal] = useState<
     { kind: "add" } | { kind: "edit"; articolo: InventarioEdit } | null
   >(null);
+  const [filtro, setFiltro] = useState<FiltroCategoria>("tutte");
 
-  const sorted = [...rows].sort((a, b) =>
+  const filtered =
+    filtro === "tutte" ? rows : rows.filter((r) => r.categoria === filtro);
+
+  const sorted = [...filtered].sort((a, b) =>
     a.articolo.localeCompare(b.articolo, "it"),
   );
 
+  // Raggruppamento per categoria (rispetta l'ordine definito in CATEGORIE_INVENTARIO)
+  const grouped = new Map<CategoriaInventario, InventarioRow[]>();
+  for (const r of sorted) {
+    const cat = (CATEGORIE_INVENTARIO as readonly string[]).includes(
+      r.categoria,
+    )
+      ? (r.categoria as CategoriaInventario)
+      : ("Altro" as CategoriaInventario);
+    const bucket = grouped.get(cat) ?? [];
+    bucket.push(r);
+    grouped.set(cat, bucket);
+  }
+
+  // Contatori per i chip del filtro (calcolati su rows non filtrate)
+  const conteggi = new Map<CategoriaInventario, number>();
+  for (const r of rows) {
+    const cat = (CATEGORIE_INVENTARIO as readonly string[]).includes(
+      r.categoria,
+    )
+      ? (r.categoria as CategoriaInventario)
+      : ("Altro" as CategoriaInventario);
+    conteggi.set(cat, (conteggi.get(cat) ?? 0) + 1);
+  }
+
   return (
     <>
-      <div className="flex items-center justify-end gap-3 flex-wrap">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
+          <FiltroChip
+            active={filtro === "tutte"}
+            onClick={() => setFiltro("tutte")}
+          >
+            Tutte ({rows.length})
+          </FiltroChip>
+          {CATEGORIE_INVENTARIO.map((c) => {
+            const n = conteggi.get(c) ?? 0;
+            return (
+              <FiltroChip
+                key={c}
+                active={filtro === c}
+                onClick={() => setFiltro(c)}
+              >
+                {CATEGORIA_INVENTARIO_EMOJI[c]} {c} ({n})
+              </FiltroChip>
+            );
+          })}
+        </div>
         <button
           type="button"
           onClick={() => setModal({ kind: "add" })}
@@ -37,17 +92,64 @@ export function InventarioClient({ rows }: Props) {
 
       {sorted.length === 0 ? (
         <div className="rounded-3xl bg-white p-8 text-center">
-          <p className="text-neutral-600">Nessun articolo in inventario.</p>
+          <p className="text-neutral-600">
+            {filtro === "tutte"
+              ? "Nessun articolo in inventario."
+              : "Nessun articolo in questa categoria."}
+          </p>
         </div>
       ) : (
-        <InventarioTable
-          rows={sorted}
-          onRowClick={(r) => setModal({ kind: "edit", articolo: r })}
-        />
+        <div className="space-y-5">
+          {CATEGORIE_INVENTARIO.map((cat) => {
+            const bucket = grouped.get(cat);
+            if (!bucket || bucket.length === 0) return null;
+            return (
+              <section key={cat}>
+                <h3 className="text-base font-semibold text-neutral-900 mb-2 flex items-baseline gap-2">
+                  <span aria-hidden>{CATEGORIA_INVENTARIO_EMOJI[cat]}</span>
+                  <span>{cat}</span>
+                  <span className="text-sm text-neutral-500 font-normal">
+                    ({bucket.length})
+                  </span>
+                </h3>
+                <InventarioTable
+                  rows={bucket}
+                  onRowClick={(r) =>
+                    setModal({ kind: "edit", articolo: r })
+                  }
+                />
+              </section>
+            );
+          })}
+        </div>
       )}
 
       <InventarioModal mode={modal} onClose={() => setModal(null)} />
     </>
+  );
+}
+
+function FiltroChip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+        active
+          ? "bg-neutral-900 text-white"
+          : "bg-neutral-100 text-neutral-700 hover:bg-neutral-200"
+      }`}
+    >
+      {children}
+    </button>
   );
 }
 

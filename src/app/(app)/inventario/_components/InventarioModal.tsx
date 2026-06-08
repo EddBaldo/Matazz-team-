@@ -2,7 +2,13 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { X, Trash2 } from "lucide-react";
-import { CONDIZIONI } from "@/lib/inventario";
+import {
+  CATEGORIA_INVENTARIO_DESCRIZIONE,
+  CATEGORIA_INVENTARIO_EMOJI,
+  CATEGORIE_INVENTARIO,
+  CONDIZIONI,
+  type CategoriaInventario,
+} from "@/lib/inventario";
 import { Select } from "@/components/ui/Select";
 import {
   aggiornaInventarioR,
@@ -20,6 +26,7 @@ export type InventarioEdit = {
   quantita: number;
   dove_si_trova: string | null;
   condizione: string;
+  categoria: string;
   note: string | null;
 };
 
@@ -41,6 +48,7 @@ export function InventarioModal({ mode, onClose }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [condizione, setCondizione] = useState<string>("Buono");
+  const [categoria, setCategoria] = useState<string>("Altro");
 
   useEffect(() => {
     const dlg = dialogRef.current;
@@ -48,6 +56,7 @@ export function InventarioModal({ mode, onClose }: Props) {
     if (mode) {
       setError(null);
       setCondizione(mode.kind === "edit" ? mode.articolo.condizione : "Buono");
+      setCategoria(mode.kind === "edit" ? mode.articolo.categoria : "Altro");
       if (!dlg.open) dlg.showModal();
     } else if (dlg.open) {
       dlg.close();
@@ -69,6 +78,7 @@ export function InventarioModal({ mode, onClose }: Props) {
       quantita: parseIntOrDefault(fd.get("quantita"), 1),
       dove_si_trova: (fd.get("dove_si_trova") as string) || null,
       condizione: condizione || "Buono",
+      categoria: categoria || "Altro",
       note: (fd.get("note") as string) || null,
     };
     startTransition(async () => {
@@ -123,6 +133,23 @@ export function InventarioModal({ mode, onClose }: Props) {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <Field label="Categoria" required>
+            <Select
+              value={categoria}
+              onChange={setCategoria}
+              required
+              options={CATEGORIE_INVENTARIO.map((c) => ({
+                value: c,
+                label: `${CATEGORIA_INVENTARIO_EMOJI[c]} ${c}`,
+              }))}
+            />
+            <p className="text-xs text-neutral-500 mt-1">
+              {CATEGORIA_INVENTARIO_DESCRIZIONE[
+                categoria as CategoriaInventario
+              ] ?? ""}
+            </p>
+          </Field>
+
           <Field label="Articolo" required>
             <input
               type="text"
