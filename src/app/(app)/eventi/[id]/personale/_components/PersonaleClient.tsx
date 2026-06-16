@@ -155,6 +155,7 @@ function PersonaleTable({
             <Th align="left">Ruolo</Th>
             <Th align="left">Presenza</Th>
             <Th align="right">Compenso</Th>
+            <Th align="right">Trasporto</Th>
             <Th align="left">Note</Th>
             <Th align="center">Cena</Th>
             <Th align="center">
@@ -209,6 +210,11 @@ function PersonaleRowItem({
       <td className="px-4 py-3 text-neutral-700">{row.presenza ?? "—"}</td>
       <td className="px-4 py-3 text-neutral-900 text-right tabular-nums font-medium">
         {row.compenso != null ? formatMoney(Number(row.compenso)) : "—"}
+      </td>
+      <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
+        {row.costi_trasporto != null && Number(row.costi_trasporto) > 0
+          ? formatMoney(Number(row.costi_trasporto))
+          : "—"}
       </td>
       <td className="px-4 py-3 text-neutral-700">{row.note ?? "—"}</td>
       <td className="px-4 py-3 text-center">
