@@ -147,7 +147,7 @@ export async function aggiornaEventoArtistaR(
     .update({
       chi_contatto_id: input.chi_contatto_id || null,
       info_alloggio: trimOrNull(input.info_alloggio),
-      costi_trasporto: trimOrNull(input.costi_trasporto),
+      costi_trasporto: toNumberOrDefault(input.costi_trasporto, 0),
       costi_produzione: toNumberOrDefault(input.costi_produzione, 0),
       artist_fee: toNumberOrDefault(input.artist_fee, 0),
       intolleranze_cibo: trimOrNull(input.intolleranze_cibo),

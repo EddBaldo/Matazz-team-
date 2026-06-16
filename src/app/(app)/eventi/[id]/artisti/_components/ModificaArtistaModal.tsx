@@ -24,7 +24,7 @@ export type EventoArtistaEdit = {
   necessita_alloggio: boolean;
   presente_cena: boolean;
   info_alloggio: string | null;
-  costi_trasporto: string | null;
+  costi_trasporto: number | null;
   costi_produzione: number | null;
   artist_fee: number | null;
   intolleranze_cibo: string | null;
@@ -404,12 +404,13 @@ export function ModificaArtistaModal({
             />
           </Field>
 
-          <Field label="Costi trasporto">
+          <Field label="Costi trasporto (CHF)">
             <input
-              type="text"
+              type="number"
+              step="0.01"
+              min="0"
               name="costi_trasporto"
-              defaultValue={artista.costi_trasporto ?? ""}
-              placeholder="es. CHF 200 furgone + treno"
+              defaultValue={artista.costi_trasporto ?? 0}
               className={INPUT_CLASS}
             />
           </Field>

@@ -11,6 +11,7 @@ type DbRow = {
   ruolo_specifico: string | null;
   presenza: string | null;
   compenso: number | null;
+  costi_trasporto: number | null;
   note: string | null;
   confermato: boolean;
   presente_cena: boolean;
@@ -35,7 +36,7 @@ export default async function EventoPersonalePage({ params }: Props) {
     sb
       .from("evento_personale")
       .select(
-        `id, personale_id, ruolo_specifico, presenza, compenso, note, confermato, presente_cena, intolleranze_cibo,
+        `id, personale_id, ruolo_specifico, presenza, compenso, costi_trasporto, note, confermato, presente_cena, intolleranze_cibo,
          persona:personale_esterno(nome, cognome, ruolo_principale, categoria)`,
       )
       .eq("evento_id", id),
@@ -56,6 +57,7 @@ export default async function EventoPersonalePage({ params }: Props) {
       ruolo_specifico: r.ruolo_specifico,
       presenza: r.presenza,
       compenso: r.compenso,
+      costi_trasporto: r.costi_trasporto,
       note: r.note,
       confermato: r.confermato,
       presente_cena: r.presente_cena,

@@ -14,7 +14,7 @@ type DbRow = {
   doc_proposal: boolean;
   artist_fee: number | null;
   costi_produzione: number | null;
-  costi_trasporto: string | null;
+  costi_trasporto: number | null;
   necessita_alloggio: boolean;
   info_alloggio: string | null;
   intolleranze_cibo: string | null;

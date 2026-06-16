@@ -17,6 +17,7 @@ export type EventoPersonaleEdit = {
   ruolo_specifico: string | null;
   presenza: string | null;
   compenso: number | null;
+  costi_trasporto: number | null;
   note: string | null;
   confermato: boolean;
   presente_cena: boolean;
@@ -64,6 +65,7 @@ export function ModificaPersonaleModal({
       ruolo_specifico: (fd.get("ruolo_specifico") as string) || null,
       presenza: (fd.get("presenza") as string) || null,
       compenso: (fd.get("compenso") as string) || null,
+      costi_trasporto: (fd.get("costi_trasporto") as string) || null,
       note: (fd.get("note") as string) || null,
       intolleranze_cibo: (fd.get("intolleranze_cibo") as string) || null,
     };
@@ -186,16 +188,28 @@ export function ModificaPersonaleModal({
             />
           </Field>
 
-          <Field label="Compenso per l'evento (CHF)">
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              name="compenso"
-              defaultValue={persona.compenso ?? 0}
-              className={INPUT_CLASS}
-            />
-          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Compenso (CHF)">
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                name="compenso"
+                defaultValue={persona.compenso ?? 0}
+                className={INPUT_CLASS}
+              />
+            </Field>
+            <Field label="Costi trasporto (CHF)">
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                name="costi_trasporto"
+                defaultValue={persona.costi_trasporto ?? 0}
+                className={INPUT_CLASS}
+              />
+            </Field>
+          </div>
 
           <Field label="Intolleranze cibo">
             <input

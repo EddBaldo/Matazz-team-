@@ -119,6 +119,7 @@ export type EventoPersonaleInput = {
   ruolo_specifico: string | null;
   presenza: string | null;
   compenso: string | null;
+  costi_trasporto: string | null;
   note: string | null;
   intolleranze_cibo: string | null;
 };
@@ -137,6 +138,7 @@ export async function aggiornaEventoPersonaleR(
       ruolo_specifico: trimOrNull(input.ruolo_specifico),
       presenza: trimOrNull(input.presenza),
       compenso: toNumberOrNull(input.compenso),
+      costi_trasporto: toNumberOrNull(input.costi_trasporto),
       note: trimOrNull(input.note),
       intolleranze_cibo: trimOrNull(input.intolleranze_cibo),
     })

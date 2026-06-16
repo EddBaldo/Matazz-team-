@@ -31,11 +31,11 @@ export async function calcolaBudgetEvento(
       .maybeSingle(),
     sb
       .from("evento_artisti")
-      .select("artist_fee, costi_produzione")
+      .select("artist_fee, costi_produzione, costi_trasporto")
       .eq("evento_id", eventoId),
     sb
       .from("evento_personale")
-      .select("compenso, confermato")
+      .select("compenso, costi_trasporto, confermato")
       .eq("evento_id", eventoId),
     sb
       .from("evento_materiali")
@@ -74,9 +74,11 @@ export async function calcolaBudgetEvento(
   const artisti = (artistiRes.data ?? []) as {
     artist_fee: number | null;
     costi_produzione: number | null;
+    costi_trasporto: number | null;
   }[];
   const personale = (personaleRes.data ?? []) as {
     compenso: number | null;
+    costi_trasporto: number | null;
     confermato: boolean;
   }[];
   const materiali = (materialiRes.data ?? []) as {
@@ -138,6 +140,11 @@ export async function calcolaBudgetEvento(
   const totalePersonale = personale
     .filter((r) => r.confermato)
     .reduce((s, r) => s + Number(r.compenso ?? 0), 0);
+  const totaleTrasporti =
+    artisti.reduce((s, r) => s + Number(r.costi_trasporto ?? 0), 0) +
+    personale
+      .filter((r) => r.confermato)
+      .reduce((s, r) => s + Number(r.costi_trasporto ?? 0), 0);
   const totaleMateriali = materiali
     .filter((r) => !r.gia_disponibile)
     .reduce(
@@ -199,6 +206,7 @@ export async function calcolaBudgetEvento(
   const uscite =
     totaleArtisti +
     totalePersonale +
+    totaleTrasporti +
     totaleMateriali +
     totaleMerch +
     barCostoBudget +

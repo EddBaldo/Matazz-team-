@@ -12,8 +12,13 @@ type Props = {
 type EventoArtistaRow = {
   artist_fee: number | null;
   costi_produzione: number | null;
+  costi_trasporto: number | null;
 };
-type EventoPersonaleRow = { compenso: number | null; confermato: boolean };
+type EventoPersonaleRow = {
+  compenso: number | null;
+  costi_trasporto: number | null;
+  confermato: boolean;
+};
 type EventoMaterialeRow = {
   quantita: number;
   prezzo_unitario: number | null;
@@ -77,11 +82,11 @@ export default async function EventoBudgetPage({ params }: Props) {
       .maybeSingle(),
     sb
       .from("evento_artisti")
-      .select("artist_fee, costi_produzione")
+      .select("artist_fee, costi_produzione, costi_trasporto")
       .eq("evento_id", id),
     sb
       .from("evento_personale")
-      .select("compenso, confermato")
+      .select("compenso, costi_trasporto, confermato")
       .eq("evento_id", id),
     sb
       .from("evento_materiali")
@@ -156,9 +161,18 @@ export default async function EventoBudgetPage({ params }: Props) {
     (s, r) => s + Number(r.costi_produzione ?? 0),
     0,
   );
+  const totaleTrasportiArtisti = artisti.reduce(
+    (s, r) => s + Number(r.costi_trasporto ?? 0),
+    0,
+  );
   const totalePersonale = personale
     .filter((r) => r.confermato)
     .reduce((s, r) => s + Number(r.compenso ?? 0), 0);
+  const totaleTrasportiPersonale = personale
+    .filter((r) => r.confermato)
+    .reduce((s, r) => s + Number(r.costi_trasporto ?? 0), 0);
+  const totaleTrasporti =
+    totaleTrasportiArtisti + totaleTrasportiPersonale;
   const totaleMateriali = materiali
     .filter((r) => !r.gia_disponibile)
     .reduce(
@@ -236,6 +250,12 @@ export default async function EventoBudgetPage({ params }: Props) {
       label: "Personale (compensi confermati)",
       effettivo: totalePersonale,
       stima: stimaOf("personale"),
+    },
+    {
+      chiave: "trasporti",
+      label: "Trasporti (artisti + personale)",
+      effettivo: totaleTrasporti,
+      stima: stimaOf("trasporti"),
     },
     {
       chiave: "materiali",
