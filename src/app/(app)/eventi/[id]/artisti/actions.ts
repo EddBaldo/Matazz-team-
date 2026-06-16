@@ -127,7 +127,7 @@ export async function creaENuovoArtista(
 export type EventoArtistaInput = {
   chi_contatto_id: string | null;
   info_alloggio: string | null;
-  ingombro: string | null;
+  costi_trasporto: string | null;
   costi_produzione: string | null;
   artist_fee: string | null;
   intolleranze_cibo: string | null;
@@ -147,7 +147,7 @@ export async function aggiornaEventoArtistaR(
     .update({
       chi_contatto_id: input.chi_contatto_id || null,
       info_alloggio: trimOrNull(input.info_alloggio),
-      ingombro: trimOrNull(input.ingombro),
+      costi_trasporto: trimOrNull(input.costi_trasporto),
       costi_produzione: toNumberOrDefault(input.costi_produzione, 0),
       artist_fee: toNumberOrDefault(input.artist_fee, 0),
       intolleranze_cibo: trimOrNull(input.intolleranze_cibo),

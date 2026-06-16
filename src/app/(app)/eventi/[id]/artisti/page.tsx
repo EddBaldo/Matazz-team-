@@ -14,7 +14,7 @@ type DbRow = {
   doc_proposal: boolean;
   artist_fee: number | null;
   costi_produzione: number | null;
-  ingombro: string | null;
+  costi_trasporto: string | null;
   necessita_alloggio: boolean;
   info_alloggio: string | null;
   intolleranze_cibo: string | null;
@@ -45,7 +45,7 @@ export default async function EventoArtistiPage({ params }: Props) {
       .from("evento_artisti")
       .select(
         `id, chi_contatto_id, doc_mandati, doc_info_artisti, doc_proposal,
-         artist_fee, costi_produzione, ingombro, necessita_alloggio,
+         artist_fee, costi_produzione, costi_trasporto, necessita_alloggio,
          info_alloggio, intolleranze_cibo, commenti, confermato, presente_cena,
          artista:artisti(id, nome, cognome, tipo_arte, membri_extra, numero_persone),
          chi_contatto:team_matazz!chi_contatto_id(nome)`,
@@ -72,7 +72,7 @@ export default async function EventoArtistiPage({ params }: Props) {
       doc_proposal: r.doc_proposal,
       necessita_alloggio: r.necessita_alloggio,
       info_alloggio: r.info_alloggio,
-      ingombro: r.ingombro,
+      costi_trasporto: r.costi_trasporto,
       costi_produzione: r.costi_produzione,
       artist_fee: r.artist_fee,
       intolleranze_cibo: r.intolleranze_cibo,

@@ -184,7 +184,7 @@ function ArtistiTable({
             <Th align="left">Doc proposal</Th>
             <Th align="right">Fee</Th>
             <Th align="right">Costi prod.</Th>
-            <Th align="left">Ingombro</Th>
+            <Th align="left">Costi trasporto</Th>
             <Th align="center">Alloggio</Th>
             <Th align="center">Cena</Th>
             <Th align="center">
@@ -317,7 +317,7 @@ function ArtistaRowItem({
           ? formatMoney(Number(row.costi_produzione))
           : "—"}
       </td>
-      <td className="px-4 py-3 text-neutral-700">{row.ingombro ?? "—"}</td>
+      <td className="px-4 py-3 text-neutral-700">{row.costi_trasporto ?? "—"}</td>
       <td className="px-4 py-3 text-center">
         <ToggleBadge
           on={row.necessita_alloggio}

@@ -24,7 +24,7 @@ export type EventoArtistaEdit = {
   necessita_alloggio: boolean;
   presente_cena: boolean;
   info_alloggio: string | null;
-  ingombro: string | null;
+  costi_trasporto: string | null;
   costi_produzione: number | null;
   artist_fee: number | null;
   intolleranze_cibo: string | null;
@@ -114,7 +114,7 @@ export function ModificaArtistaModal({
     const input: EventoArtistaInput = {
       chi_contatto_id: chiContattoId || null,
       info_alloggio: (fd.get("info_alloggio") as string) || null,
-      ingombro: (fd.get("ingombro") as string) || null,
+      costi_trasporto: (fd.get("costi_trasporto") as string) || null,
       costi_produzione: (fd.get("costi_produzione") as string) || null,
       artist_fee: (fd.get("artist_fee") as string) || null,
       intolleranze_cibo: (fd.get("intolleranze_cibo") as string) || null,
@@ -404,12 +404,12 @@ export function ModificaArtistaModal({
             />
           </Field>
 
-          <Field label="Ingombro opera">
+          <Field label="Costi trasporto">
             <input
               type="text"
-              name="ingombro"
-              defaultValue={artista.ingombro ?? ""}
-              placeholder="es. un arco, 3 m², 10×5 m…"
+              name="costi_trasporto"
+              defaultValue={artista.costi_trasporto ?? ""}
+              placeholder="es. CHF 200 furgone + treno"
               className={INPUT_CLASS}
             />
           </Field>
