@@ -84,6 +84,7 @@ export function MerchandisingClient({
                 <Th align="left">Articolo</Th>
                 <Th align="right">Pezzi</Th>
                 <Th align="right">Costo totale</Th>
+                <Th align="left">Pagato da</Th>
                 <Th align="left">Note</Th>
                 <Th align="center">Budget</Th>
               </tr>
@@ -109,7 +110,7 @@ export function MerchandisingClient({
                 <td className="px-4 py-3 text-sm text-neutral-900 text-right font-semibold tabular-nums">
                   {formatMoney(totaleSpesa)}
                 </td>
-                <td colSpan={2} />
+                <td colSpan={3} />
               </tr>
             </tfoot>
           </table>
@@ -263,6 +264,15 @@ function MerchRow({
       </td>
       <td className="px-4 py-3 text-neutral-900 text-right tabular-nums font-medium">
         {formatMoney(Number(row.costo_totale))}
+      </td>
+      <td className="px-4 py-3">
+        {row.pagato_da ? (
+          <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+            {row.pagato_da}
+          </span>
+        ) : (
+          <span className="text-neutral-400">—</span>
+        )}
       </td>
       <td className="px-4 py-3 text-neutral-700 text-sm">
         {row.note ?? "—"}

@@ -54,6 +54,7 @@ type EventoStimeRow = {
   persone_stimati: number;
   bar_attivo: boolean;
   food_truck_attivo: boolean;
+  incasso_reale_vendite: number | null;
 };
 type EventoSponsorRow = { stato: string; importo: number };
 type StimaRow = { chiave: string; importo: number };
@@ -77,7 +78,7 @@ export default async function EventoBudgetPage({ params }: Props) {
   ] = await Promise.all([
     sb
       .from("eventi")
-      .select("persone_stimati, bar_attivo, food_truck_attivo")
+      .select("persone_stimati, bar_attivo, food_truck_attivo, incasso_reale_vendite")
       .eq("id", id)
       .maybeSingle(),
     sb
@@ -131,10 +132,15 @@ export default async function EventoBudgetPage({ params }: Props) {
     persone_stimati: 0,
     bar_attivo: true,
     food_truck_attivo: true,
+    incasso_reale_vendite: null,
   }) as EventoStimeRow;
   const personeStimati = Number(evento.persone_stimati ?? 0);
   const barAttivo = evento.bar_attivo ?? true;
   const foodTruckAttivo = evento.food_truck_attivo ?? true;
+  const incassoRealeVendite =
+    evento.incasso_reale_vendite != null
+      ? Number(evento.incasso_reale_vendite)
+      : null;
 
   const artisti = (artistiRes.data ?? []) as EventoArtistaRow[];
   const personale = (personaleRes.data ?? []) as EventoPersonaleRow[];
@@ -202,22 +208,23 @@ export default async function EventoBudgetPage({ params }: Props) {
       if (r.modello === "Totale") return s + Number(r.prezzo_totale);
       return s + Number(r.prezzo_per_persona) * Number(r.numero_persone);
     }, 0);
-  const totaleFoodTruck = foodTruck
-    .filter((r) => r.selezionata)
-    .reduce((s, r) => {
-      if (r.modello === "Acquisto") {
-        const qtyVend =
-          personeStimati * Number(r.consumo_per_persona ?? 0);
-        const margine =
-          Number(r.prezzo_vendita ?? 0) - Number(r.costo_unitario ?? 0);
-        return s + margine * qtyVend;
-      }
-      return (
+  const totaleFoodTruckPerc = foodTruck
+    .filter((r) => r.selezionata && r.modello === "Percentuale")
+    .reduce(
+      (s, r) =>
         s +
         (Number(r.incasso_lordo_stimato ?? 0) *
           Number(r.percentuale_matazz ?? 0)) /
-          100
-      );
+          100,
+      0,
+    );
+  const totaleFoodTruckAcq = foodTruck
+    .filter((r) => r.selezionata && r.modello === "Acquisto")
+    .reduce((s, r) => {
+      const qtyVend = personeStimati * Number(r.consumo_per_persona ?? 0);
+      const margine =
+        Number(r.prezzo_vendita ?? 0) - Number(r.costo_unitario ?? 0);
+      return s + margine * qtyVend;
     }, 0);
   const totaleSponsor = sponsor
     .filter((r) => r.stato === "Confermato")
@@ -284,22 +291,32 @@ export default async function EventoBudgetPage({ params }: Props) {
     ...usciteExtra.map(voceExtraLines),
   ];
 
+  const realeAttivo = incassoRealeVendite != null;
+
   const entrate: BudgetLine[] = [
     {
       chiave: "bar_ricavo",
-      label: barAttivo
-        ? "Bar — ricavo vendite"
-        : "Bar — ricavo vendite (escluso)",
-      effettivo: barAttivo ? barRicavo : 0,
+      label: barAttivo ? "Bar — ricavo vendite (stimato)" : "Bar — ricavo vendite (escluso)",
+      effettivo: barAttivo && !realeAttivo ? barRicavo : 0,
       stima: stimaOf("bar_ricavo"),
+      effettivoIsOverridden: barAttivo,
     },
     {
       chiave: "food_truck",
       label: foodTruckAttivo
-        ? "Food truck (selezionati)"
-        : "Food truck (escluso)",
-      effettivo: foodTruckAttivo ? totaleFoodTruck : 0,
+        ? "Food truck — percentuale (selezionati)"
+        : "Food truck — percentuale (escluso)",
+      effettivo: foodTruckAttivo ? totaleFoodTruckPerc : 0,
       stima: stimaOf("food_truck"),
+    },
+    {
+      chiave: "food_truck_acquisto",
+      label: foodTruckAttivo
+        ? "Food truck — acquisto e rivendita (stimato)"
+        : "Food truck — acquisto e rivendita (escluso)",
+      effettivo: foodTruckAttivo && !realeAttivo ? totaleFoodTruckAcq : 0,
+      stima: stimaOf("food_truck_acquisto"),
+      effettivoIsOverridden: foodTruckAttivo,
     },
     {
       chiave: "sponsor",
@@ -312,6 +329,14 @@ export default async function EventoBudgetPage({ params }: Props) {
       label: "Merchandising (stima vendite)",
       effettivo: 0,
       stima: stimaOf("merchandising_stima"),
+      effettivoIsOverridden: true,
+    },
+    {
+      chiave: "incasso_reale_vendite",
+      label: "Incasso reale vendite (bar + cibo + merch)",
+      effettivo: incassoRealeVendite ?? 0,
+      stima: 0,
+      isIncassoReale: true,
     },
     ...entrateExtra.map(voceExtraLines),
   ];
@@ -339,6 +364,7 @@ export default async function EventoBudgetPage({ params }: Props) {
         uscite={uscite}
         entrate={entrate}
         saldoConto={saldoConto}
+        incassoRealeVendite={incassoRealeVendite}
       />
     </div>
   );

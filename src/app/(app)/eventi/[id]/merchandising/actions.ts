@@ -38,6 +38,7 @@ export type MerchandisingInput = {
   costo_totale: string | null;
   inclusa_nel_budget: boolean;
   note: string | null;
+  pagato_da: string | null;
 };
 
 function validate(input: MerchandisingInput): string | null {
@@ -52,6 +53,7 @@ function normalize(input: MerchandisingInput) {
     costo_totale: toNumber(input.costo_totale, 0),
     inclusa_nel_budget: input.inclusa_nel_budget,
     note: trimOrNull(input.note),
+    pagato_da: trimOrNull(input.pagato_da),
   };
 }
 

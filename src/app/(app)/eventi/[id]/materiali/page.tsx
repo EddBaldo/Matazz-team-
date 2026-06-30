@@ -15,7 +15,7 @@ export default async function EventoMaterialiPage({ params }: Props) {
   const { data, error } = await sb
     .from("evento_materiali")
     .select(
-      "id, articolo, quantita, prezzo_unitario, a_cosa_serve, fonti, preso, gia_disponibile, note",
+      "id, articolo, quantita, prezzo_unitario, a_cosa_serve, fonti, preso, gia_disponibile, note, pagato_da",
     )
     .eq("evento_id", id)
     .order("articolo");

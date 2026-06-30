@@ -26,7 +26,7 @@ export async function calcolaBudgetEvento(
   ] = await Promise.all([
     sb
       .from("eventi")
-      .select("persone_stimati, bar_attivo, food_truck_attivo")
+      .select("persone_stimati, bar_attivo, food_truck_attivo, incasso_reale_vendite")
       .eq("id", eventoId)
       .maybeSingle(),
     sb
@@ -98,14 +98,20 @@ export async function calcolaBudgetEvento(
     persone_stimati: 0,
     bar_attivo: true,
     food_truck_attivo: true,
+    incasso_reale_vendite: null,
   }) as {
     persone_stimati: number;
     bar_attivo: boolean;
     food_truck_attivo: boolean;
+    incasso_reale_vendite: number | null;
   };
   const personeStimati = Number(evento.persone_stimati ?? 0);
   const barAttivo = evento.bar_attivo ?? true;
   const foodTruckAttivo = evento.food_truck_attivo ?? true;
+  const incassoRealeVendite =
+    evento.incasso_reale_vendite != null
+      ? Number(evento.incasso_reale_vendite)
+      : null;
 
   const bar = (barRes.data ?? []) as {
     costo_unitario: number | null;
@@ -174,20 +180,21 @@ export async function calcolaBudgetEvento(
       if (r.modello === "Totale") return s + Number(r.prezzo_totale);
       return s + Number(r.prezzo_per_persona) * Number(r.numero_persone);
     }, 0);
-  const totaleFoodTruck = foodTruck
-    .filter((r) => r.selezionata)
-    .reduce((s, r) => {
-      if (r.modello === "Acquisto") {
-        const qtyVend =
-          personeStimati * Number(r.consumo_per_persona ?? 0);
-        const margine =
-          Number(r.prezzo_vendita ?? 0) - Number(r.costo_unitario ?? 0);
-        return s + margine * qtyVend;
-      }
-      return (
+  const totaleFoodTruckPerc = foodTruck
+    .filter((r) => r.selezionata && r.modello === "Percentuale")
+    .reduce(
+      (s, r) =>
         s +
-        (Number(r.incasso_lordo_stimato) * Number(r.percentuale_matazz)) / 100
-      );
+        (Number(r.incasso_lordo_stimato) * Number(r.percentuale_matazz)) / 100,
+      0,
+    );
+  const totaleFoodTruckAcq = foodTruck
+    .filter((r) => r.selezionata && r.modello === "Acquisto")
+    .reduce((s, r) => {
+      const qtyVend = personeStimati * Number(r.consumo_per_persona ?? 0);
+      const margine =
+        Number(r.prezzo_vendita ?? 0) - Number(r.costo_unitario ?? 0);
+      return s + margine * qtyVend;
     }, 0);
   const totaleSponsor = sponsor
     .filter((r) => r.stato === "Confermato")
@@ -200,8 +207,10 @@ export async function calcolaBudgetEvento(
     .reduce((s, r) => s + Number(r.importo), 0);
 
   const barCostoBudget = barAttivo ? barCosto : 0;
-  const barRicavoBudget = barAttivo ? barRicavo : 0;
-  const foodTruckBudget = foodTruckAttivo ? totaleFoodTruck : 0;
+  const realeAttivo = incassoRealeVendite != null;
+  const barRicavoBudget = barAttivo && !realeAttivo ? barRicavo : 0;
+  const foodTruckAcqBudget = foodTruckAttivo && !realeAttivo ? totaleFoodTruckAcq : 0;
+  const foodTruckPercBudget = foodTruckAttivo ? totaleFoodTruckPerc : 0;
 
   const uscite =
     totaleArtisti +
@@ -214,7 +223,9 @@ export async function calcolaBudgetEvento(
     totaleUsciteExtra;
   const entrate =
     barRicavoBudget +
-    foodTruckBudget +
+    foodTruckPercBudget +
+    foodTruckAcqBudget +
+    (incassoRealeVendite ?? 0) +
     totaleSponsor +
     totaleEntrateExtra;
 

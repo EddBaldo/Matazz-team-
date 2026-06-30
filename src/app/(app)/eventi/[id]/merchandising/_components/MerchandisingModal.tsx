@@ -19,6 +19,7 @@ export type MerchandisingEdit = {
   costo_totale: number;
   inclusa_nel_budget: boolean;
   note: string | null;
+  pagato_da: string | null;
 };
 
 type Mode = { kind: "add" } | { kind: "edit"; merch: MerchandisingEdit };
@@ -62,6 +63,7 @@ export function MerchandisingModal({ eventoId, mode, onClose }: Props) {
       costo_totale: (fd.get("costo_totale") as string) || null,
       inclusa_nel_budget: incluso,
       note: (fd.get("note") as string) || null,
+      pagato_da: (fd.get("pagato_da") as string) || null,
     };
     startTransition(async () => {
       const res =
@@ -174,6 +176,16 @@ export function MerchandisingModal({ eventoId, mode, onClose }: Props) {
               />
             </button>
           </div>
+
+          <Field label="Pagato da">
+            <input
+              type="text"
+              name="pagato_da"
+              defaultValue={m?.pagato_da ?? ""}
+              className={INPUT_CLASS}
+              placeholder="Es. Luca, Eduardo… (lascia vuoto se Matazz)"
+            />
+          </Field>
 
           <Field label="Note">
             <textarea

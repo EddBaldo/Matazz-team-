@@ -20,6 +20,7 @@ export type VoceExtraEdit = {
   importo: number;
   categoria: string | null;
   note: string | null;
+  pagato_da: string | null;
 };
 
 type Mode = { kind: "add" } | { kind: "edit"; voce: VoceExtraEdit };
@@ -63,6 +64,7 @@ export function VoceExtraModal({ eventoId, mode, onClose }: Props) {
       importo: (fd.get("importo") as string) || null,
       categoria: (fd.get("categoria") as string) || null,
       note: (fd.get("note") as string) || null,
+      pagato_da: (fd.get("pagato_da") as string) || null,
     };
     startTransition(async () => {
       const res =
@@ -175,6 +177,16 @@ export function VoceExtraModal({ eventoId, mode, onClose }: Props) {
                 <option key={c} value={c} />
               ))}
             </datalist>
+          </Field>
+
+          <Field label="Pagato da">
+            <input
+              type="text"
+              name="pagato_da"
+              defaultValue={v?.pagato_da ?? ""}
+              className={INPUT_CLASS}
+              placeholder="Es. Luca, Eduardo… (lascia vuoto se Matazz)"
+            />
           </Field>
 
           <Field label="Note">

@@ -37,6 +37,7 @@ export type MaterialeInput = {
   preso: boolean;
   gia_disponibile: boolean;
   note: string | null;
+  pagato_da: string | null;
 };
 
 function validate(input: MaterialeInput): string | null {
@@ -61,6 +62,7 @@ function normalize(input: MaterialeInput) {
     preso: input.preso,
     gia_disponibile: input.gia_disponibile,
     note: trimOrNull(input.note),
+    pagato_da: trimOrNull(input.pagato_da),
   };
 }
 

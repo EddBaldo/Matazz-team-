@@ -6,6 +6,27 @@ import { createServerClient } from "@/lib/supabase/server";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
+export async function salvaIncassoRealeR(
+  eventoId: string,
+  valore: number | null,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const sb = createServerClient();
+  const val =
+    valore == null || !Number.isFinite(valore) ? null : Math.max(0, valore);
+  const { error } = await sb
+    .from("eventi")
+    .update({ incasso_reale_vendite: val })
+    .eq("id", eventoId);
+  if (error) {
+    console.error("Errore salva incasso reale:", error);
+    return { ok: false, error: "Errore nel salvataggio." };
+  }
+  revalidatePath(`/eventi/${eventoId}`);
+  revalidatePath(`/eventi/${eventoId}/budget`);
+  return { ok: true };
+}
+
 export async function salvaStima(
   eventoId: string,
   chiave: string,

@@ -64,6 +64,7 @@ export function MaterialiClient({ eventoId, rows }: Props) {
                 <Th align="right">Qt.</Th>
                 <Th align="left">A cosa serve</Th>
                 <Th align="left">Dove lo prendiamo</Th>
+                <Th align="left">Pagato da</Th>
                 <Th align="right">Prezzo unit.</Th>
                 <Th align="right">Subtotale</Th>
               </tr>
@@ -81,7 +82,7 @@ export function MaterialiClient({ eventoId, rows }: Props) {
             <tfoot className="border-t border-neutral-200 bg-neutral-50">
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={7}
                   className="px-4 py-3 text-xs uppercase tracking-wide text-neutral-500 text-right font-medium"
                 >
                   Totale da comprare
@@ -167,6 +168,15 @@ function MaterialeRowItem({
       </td>
       <td className="px-4 py-3 text-neutral-700">
         <FontiCell fonti={row.fonti} />
+      </td>
+      <td className="px-4 py-3">
+        {row.pagato_da ? (
+          <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+            {row.pagato_da}
+          </span>
+        ) : (
+          <span className="text-neutral-400">—</span>
+        )}
       </td>
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
         {row.prezzo_unitario != null

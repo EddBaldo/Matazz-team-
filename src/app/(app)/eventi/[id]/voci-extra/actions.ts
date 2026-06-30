@@ -31,6 +31,7 @@ export type VoceExtraInput = {
   importo: string | null;
   categoria: string | null;
   note: string | null;
+  pagato_da: string | null;
 };
 
 function validate(input: VoceExtraInput): string | null {
@@ -47,6 +48,7 @@ function normalize(input: VoceExtraInput) {
     importo: toNumber(input.importo, 0),
     categoria: trimOrNull(input.categoria),
     note: trimOrNull(input.note),
+    pagato_da: trimOrNull(input.pagato_da),
   };
 }
 

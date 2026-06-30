@@ -28,6 +28,7 @@ export type MaterialeEdit = {
   preso: boolean;
   gia_disponibile: boolean;
   note: string | null;
+  pagato_da: string | null;
 };
 
 type Mode = { kind: "add" } | { kind: "edit"; materiale: MaterialeEdit };
@@ -94,6 +95,7 @@ export function MaterialeModal({ eventoId, mode, onClose }: Props) {
       preso,
       gia_disponibile: giaDisp,
       note: (fd.get("note") as string) || null,
+      pagato_da: (fd.get("pagato_da") as string) || null,
     };
     startTransition(async () => {
       const res =
@@ -306,6 +308,16 @@ export function MaterialeModal({ eventoId, mode, onClose }: Props) {
               />
             </button>
           </div>
+
+          <Field label="Pagato da">
+            <input
+              type="text"
+              name="pagato_da"
+              defaultValue={m?.pagato_da ?? ""}
+              className={INPUT_CLASS}
+              placeholder="Es. Luca, Eduardo… (lascia vuoto se Matazz)"
+            />
+          </Field>
 
           <Field label="Note">
             <textarea

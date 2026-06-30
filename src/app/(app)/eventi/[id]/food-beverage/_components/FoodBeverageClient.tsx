@@ -482,6 +482,8 @@ function FtSubgroupAcquisto({
               <Th align="right">Costo unit.</Th>
               <Th align="right">Vendita unit.</Th>
               <Th align="right">Consumo/p</Th>
+              <Th align="right">Qtà acquistata</Th>
+              <Th align="right">Costo acquisto</Th>
               <Th align="right">Stim. vendute</Th>
               <Th align="right">Guadagno stim.</Th>
               <Th align="center">
@@ -573,6 +575,8 @@ function FtRowAcquisto({
   }
   const qtyVend = qtyVendutaFood(row, persone);
   const guadagno = guadagnoFoodTruck(row, persone);
+  const qtaAcq = Number(row.quantita_acquistata ?? 0);
+  const costoAcquisto = Number(row.costo_unitario ?? 0) * qtaAcq;
   return (
     <tr
       onClick={onClick}
@@ -589,6 +593,12 @@ function FtRowAcquisto({
       </td>
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
         {Number(row.consumo_per_persona ?? 0)}
+      </td>
+      <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
+        {qtaAcq > 0 ? qtaAcq : "—"}
+      </td>
+      <td className="px-4 py-3 text-red-700 text-right tabular-nums font-medium">
+        {qtaAcq > 0 ? formatMoney(costoAcquisto) : "—"}
       </td>
       <td className="px-4 py-3 text-neutral-900 text-right tabular-nums">
         {qtyVend}

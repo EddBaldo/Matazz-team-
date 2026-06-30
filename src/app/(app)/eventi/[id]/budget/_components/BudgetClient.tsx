@@ -2,13 +2,15 @@
 
 import { useState, useTransition } from "react";
 import { formatMoney } from "@/lib/format";
-import { salvaStima } from "../actions";
+import { salvaStima, salvaIncassoRealeR } from "../actions";
 
 export type BudgetLine = {
   chiave: string;
   label: string;
   effettivo: number;
   stima: number;
+  isIncassoReale?: boolean;
+  effettivoIsOverridden?: boolean;
 };
 
 type Props = {
@@ -16,6 +18,7 @@ type Props = {
   uscite: BudgetLine[];
   entrate: BudgetLine[];
   saldoConto: number;
+  incassoRealeVendite: number | null;
 };
 
 export function BudgetClient({
@@ -23,6 +26,7 @@ export function BudgetClient({
   uscite,
   entrate,
   saldoConto,
+  incassoRealeVendite,
 }: Props) {
   // Stato locale delle stime (per immediate feedback)
   const [stimeUscite, setStimeUscite] = useState<Record<string, number>>(
@@ -88,6 +92,7 @@ export function BudgetClient({
         onStimaChange={(k, v) => updateStima(setStimeUscite, k, v)}
         totaleEffettivo={totaleEffUscite}
         totaleStimato={totaleStimUscite}
+        incassoRealeVendite={incassoRealeVendite}
       />
 
       <BudgetTable
@@ -100,6 +105,7 @@ export function BudgetClient({
         onStimaChange={(k, v) => updateStima(setStimeEntrate, k, v)}
         totaleEffettivo={totaleEffEntrate}
         totaleStimato={totaleStimEntrate}
+        incassoRealeVendite={incassoRealeVendite}
       />
 
       <p className="text-xs text-neutral-500">
@@ -195,6 +201,7 @@ function BudgetTable({
   onStimaChange,
   totaleEffettivo,
   totaleStimato,
+  incassoRealeVendite,
 }: {
   eventoId: string;
   title: string;
@@ -205,6 +212,7 @@ function BudgetTable({
   onStimaChange: (chiave: string, val: number) => void;
   totaleEffettivo: number;
   totaleStimato: number;
+  incassoRealeVendite: number | null;
 }) {
   return (
     <section>
@@ -226,22 +234,46 @@ function BudgetTable({
           <tbody>
             {lines.map((l) => {
               const s = stime[l.chiave] ?? 0;
+              const isOverridden =
+                l.effettivoIsOverridden && incassoRealeVendite != null;
               return (
                 <tr
                   key={l.chiave}
-                  className="border-b border-neutral-100 last:border-b-0"
+                  className={`border-b border-neutral-100 last:border-b-0 ${
+                    isOverridden ? "opacity-40" : ""
+                  } ${l.isIncassoReale ? "bg-amber-50/40" : ""}`}
                 >
-                  <td className="px-4 py-3 text-neutral-800">{l.label}</td>
+                  <td className="px-4 py-3 text-neutral-800">
+                    {l.label}
+                    {isOverridden && (
+                      <span className="ml-2 text-[10px] uppercase tracking-wide text-neutral-400">
+                        sostituita
+                      </span>
+                    )}
+                  </td>
                   <td className="px-4 py-2 text-right">
-                    <StimaInput
-                      eventoId={eventoId}
-                      chiave={l.chiave}
-                      value={s}
-                      onChange={(v) => onStimaChange(l.chiave, v)}
-                    />
+                    {l.isIncassoReale ? (
+                      <span className="text-xs text-neutral-400 italic">
+                        inserisci a fine evento →
+                      </span>
+                    ) : (
+                      <StimaInput
+                        eventoId={eventoId}
+                        chiave={l.chiave}
+                        value={s}
+                        onChange={(v) => onStimaChange(l.chiave, v)}
+                      />
+                    )}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums text-neutral-900">
-                    {formatMoney(l.effettivo)}
+                    {l.isIncassoReale ? (
+                      <IncassoRealeInput
+                        eventoId={eventoId}
+                        value={incassoRealeVendite}
+                      />
+                    ) : (
+                      formatMoney(l.effettivo)
+                    )}
                   </td>
                 </tr>
               );
@@ -313,6 +345,59 @@ function StimaInput({
           saved
             ? "border-green-400 bg-green-50"
             : "border-neutral-200 hover:border-neutral-300"
+        }`}
+      />
+    </div>
+  );
+}
+
+function IncassoRealeInput({
+  eventoId,
+  value,
+}: {
+  eventoId: string;
+  value: number | null;
+}) {
+  const [local, setLocal] = useState<string>(
+    value != null ? String(value) : "",
+  );
+  const [pending, startTransition] = useTransition();
+  const [saved, setSaved] = useState(false);
+
+  function commit() {
+    const trimmed = local.trim();
+    const val = trimmed === "" ? null : Number(trimmed);
+    if (val !== null && !Number.isFinite(val)) return;
+    startTransition(async () => {
+      const res = await salvaIncassoRealeR(eventoId, val);
+      if (res.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 1500);
+      }
+    });
+  }
+
+  return (
+    <div className="inline-flex items-center gap-1.5 justify-end">
+      <span className="text-xs text-neutral-400">CHF</span>
+      <input
+        type="number"
+        step="0.01"
+        min="0"
+        value={local}
+        placeholder="—"
+        onChange={(e) => setLocal(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+        }}
+        disabled={pending}
+        className={`w-28 px-2 py-1 rounded-lg text-sm tabular-nums text-right border transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+          saved
+            ? "border-green-400 bg-green-50"
+            : local.trim()
+              ? "border-amber-400 bg-amber-50"
+              : "border-neutral-200 hover:border-neutral-300"
         }`}
       />
     </div>

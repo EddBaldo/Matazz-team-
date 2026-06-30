@@ -46,7 +46,7 @@ export default async function FoodBeveragePage({ params }: Props) {
     sb
       .from("evento_food_truck")
       .select(
-        "id, nome, modello, incasso_lordo_stimato, percentuale_matazz, costo_unitario, prezzo_vendita, consumo_per_persona, selezionata, note",
+        "id, nome, modello, incasso_lordo_stimato, percentuale_matazz, costo_unitario, prezzo_vendita, consumo_per_persona, quantita_acquistata, selezionata, note",
       )
       .eq("evento_id", id)
       .order("modello", { ascending: true })

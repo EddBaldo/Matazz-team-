@@ -40,6 +40,7 @@ export function VociExtraClient({ eventoId, rows }: Props) {
                 <Th align="left">Voce</Th>
                 <Th align="left">Categoria</Th>
                 <Th align="left">Tipo</Th>
+                <Th align="left">Pagato da</Th>
                 <Th align="right">Importo</Th>
               </tr>
             </thead>
@@ -55,6 +56,15 @@ export function VociExtraClient({ eventoId, rows }: Props) {
                   </td>
                   <td className="px-4 py-3 text-neutral-700">
                     {r.categoria ?? "—"}
+                  </td>
+                  <td className="px-4 py-3">
+                    {r.tipo === "Uscita" && r.pagato_da ? (
+                      <span className="inline-block px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                        {r.pagato_da}
+                      </span>
+                    ) : (
+                      <span className="text-neutral-400">—</span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <span

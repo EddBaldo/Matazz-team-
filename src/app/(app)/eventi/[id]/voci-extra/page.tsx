@@ -12,7 +12,7 @@ export default async function EventoVociExtraPage({ params }: Props) {
 
   const { data, error } = await sb
     .from("evento_budget_extra")
-    .select("id, voce, importo, tipo, categoria, note")
+    .select("id, voce, importo, tipo, categoria, note, pagato_da")
     .eq("evento_id", id)
     .order("tipo")
     .order("voce");
