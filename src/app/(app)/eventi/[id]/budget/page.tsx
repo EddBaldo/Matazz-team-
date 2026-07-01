@@ -55,6 +55,8 @@ type EventoStimeRow = {
   bar_attivo: boolean;
   food_truck_attivo: boolean;
   incasso_reale_vendite: number | null;
+  bar_costo_reale_nostri: number | null;
+  bar_costo_reale_fornitori: number | null;
 };
 type EventoSponsorRow = { stato: string; importo: number };
 type StimaRow = { chiave: string; importo: number };
@@ -78,7 +80,7 @@ export default async function EventoBudgetPage({ params }: Props) {
   ] = await Promise.all([
     sb
       .from("eventi")
-      .select("persone_stimati, bar_attivo, food_truck_attivo, incasso_reale_vendite")
+      .select("persone_stimati, bar_attivo, food_truck_attivo, incasso_reale_vendite, bar_costo_reale_nostri, bar_costo_reale_fornitori")
       .eq("id", id)
       .maybeSingle(),
     sb
@@ -133,6 +135,8 @@ export default async function EventoBudgetPage({ params }: Props) {
     bar_attivo: true,
     food_truck_attivo: true,
     incasso_reale_vendite: null,
+    bar_costo_reale_nostri: null,
+    bar_costo_reale_fornitori: null,
   }) as EventoStimeRow;
   const personeStimati = Number(evento.persone_stimati ?? 0);
   const barAttivo = evento.bar_attivo ?? true;
@@ -239,6 +243,15 @@ export default async function EventoBudgetPage({ params }: Props) {
     stima: stimaOf(`voce_extra_${r.id}`),
   });
 
+  const realeAttivo = incassoRealeVendite != null;
+
+  const barCostoRealeN = evento.bar_costo_reale_nostri != null ? Number(evento.bar_costo_reale_nostri) : null;
+  const barCostoRealeF = evento.bar_costo_reale_fornitori != null ? Number(evento.bar_costo_reale_fornitori) : null;
+  const barCostoReale = (barCostoRealeN != null || barCostoRealeF != null)
+    ? (barCostoRealeN ?? 0) + (barCostoRealeF ?? 0)
+    : null;
+  const barCostoEffettivo = barAttivo ? (barCostoReale ?? barCosto) : 0;
+
   const uscite: BudgetLine[] = [
     {
       chiave: "artisti_fee",
@@ -278,8 +291,12 @@ export default async function EventoBudgetPage({ params }: Props) {
     },
     {
       chiave: "bar_costo",
-      label: barAttivo ? "Bar — costo merci" : "Bar — costo merci (escluso)",
-      effettivo: barAttivo ? barCosto : 0,
+      label: barAttivo
+        ? barCostoReale != null
+          ? "Bar — costo merci (reale)"
+          : "Bar — costo merci (stimato)"
+        : "Bar — costo merci (escluso)",
+      effettivo: barCostoEffettivo,
       stima: stimaOf("bar_costo"),
     },
     {
@@ -290,8 +307,6 @@ export default async function EventoBudgetPage({ params }: Props) {
     },
     ...usciteExtra.map(voceExtraLines),
   ];
-
-  const realeAttivo = incassoRealeVendite != null;
 
   const entrate: BudgetLine[] = [
     {

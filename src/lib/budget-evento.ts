@@ -26,7 +26,7 @@ export async function calcolaBudgetEvento(
   ] = await Promise.all([
     sb
       .from("eventi")
-      .select("persone_stimati, bar_attivo, food_truck_attivo, incasso_reale_vendite")
+      .select("persone_stimati, bar_attivo, food_truck_attivo, incasso_reale_vendite, bar_costo_reale_nostri, bar_costo_reale_fornitori")
       .eq("id", eventoId)
       .maybeSingle(),
     sb
@@ -99,11 +99,15 @@ export async function calcolaBudgetEvento(
     bar_attivo: true,
     food_truck_attivo: true,
     incasso_reale_vendite: null,
+    bar_costo_reale_nostri: null,
+    bar_costo_reale_fornitori: null,
   }) as {
     persone_stimati: number;
     bar_attivo: boolean;
     food_truck_attivo: boolean;
     incasso_reale_vendite: number | null;
+    bar_costo_reale_nostri: number | null;
+    bar_costo_reale_fornitori: number | null;
   };
   const personeStimati = Number(evento.persone_stimati ?? 0);
   const barAttivo = evento.bar_attivo ?? true;
@@ -206,7 +210,12 @@ export async function calcolaBudgetEvento(
     .filter((r) => r.tipo === "Entrata")
     .reduce((s, r) => s + Number(r.importo), 0);
 
-  const barCostoBudget = barAttivo ? barCosto : 0;
+  const barCostoRealeN = evento.bar_costo_reale_nostri != null ? Number(evento.bar_costo_reale_nostri) : null;
+  const barCostoRealeF = evento.bar_costo_reale_fornitori != null ? Number(evento.bar_costo_reale_fornitori) : null;
+  const barCostoReale = (barCostoRealeN != null || barCostoRealeF != null)
+    ? (barCostoRealeN ?? 0) + (barCostoRealeF ?? 0)
+    : null;
+  const barCostoBudget = barAttivo ? (barCostoReale ?? barCosto) : 0;
   const realeAttivo = incassoRealeVendite != null;
   const barRicavoBudget = barAttivo && !realeAttivo ? barRicavo : 0;
   const foodTruckAcqBudget = foodTruckAttivo && !realeAttivo ? totaleFoodTruckAcq : 0;

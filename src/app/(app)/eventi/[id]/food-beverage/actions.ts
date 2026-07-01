@@ -21,6 +21,7 @@ function toNumber(v: string | null | undefined, def: number): number {
 function revalidateFB(eventoId: string) {
   revalidatePath(`/eventi/${eventoId}`);
   revalidatePath(`/eventi/${eventoId}/food-beverage`);
+  revalidatePath(`/eventi/${eventoId}/budget`);
 }
 
 // ----- STIME EVENTO (persone + bevande/persona) --------------------------
@@ -81,6 +82,33 @@ export async function toggleFoodTruckAttivoR(
   if (error) {
     console.error("Errore toggle food truck attivo:", error);
     return { ok: false, error: "Errore. Riprova." };
+  }
+  revalidateFB(eventoId);
+  return { ok: true };
+}
+
+// ----- BAR COSTO REALE ---------------------------------------------------
+
+export async function aggiornaBarCostoRealeR(
+  eventoId: string,
+  fonte: "Nostri" | "Fornitori",
+  valore: number | null,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const sb = createServerClient();
+  const col =
+    fonte === "Nostri"
+      ? "bar_costo_reale_nostri"
+      : "bar_costo_reale_fornitori";
+  const val =
+    valore == null || !Number.isFinite(valore) ? null : Math.max(0, valore);
+  const { error } = await sb
+    .from("eventi")
+    .update({ [col]: val })
+    .eq("id", eventoId);
+  if (error) {
+    console.error("Errore salva costo reale bar:", error);
+    return { ok: false, error: "Errore nel salvataggio. Riprova." };
   }
   revalidateFB(eventoId);
   return { ok: true };

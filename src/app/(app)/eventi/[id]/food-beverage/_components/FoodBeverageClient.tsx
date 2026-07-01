@@ -5,6 +5,7 @@ import { Plus, Check, Circle, Power } from "lucide-react";
 import { formatMoney } from "@/lib/format";
 import {
   aggiornaStimePersoneR,
+  aggiornaBarCostoRealeR,
   toggleBarAttivoR,
   toggleFoodTruckAttivoR,
   toggleFoodTruckSelezionata,
@@ -19,6 +20,8 @@ type Props = {
   foodTruckAttivo: boolean;
   bar: BarEdit[];
   foodTruck: FoodTruckEdit[];
+  barCostoRealeNostri: number | null;
+  barCostoRealeFornitori: number | null;
 };
 
 type BarModalState = { kind: "add" } | { kind: "edit"; bar: BarEdit } | null;
@@ -54,6 +57,8 @@ export function FoodBeverageClient({
   foodTruckAttivo,
   bar,
   foodTruck,
+  barCostoRealeNostri,
+  barCostoRealeFornitori,
 }: Props) {
   const [barModal, setBarModal] = useState<BarModalState>(null);
   const [ftModal, setFtModal] = useState<FtModalState>(null);
@@ -173,16 +178,22 @@ export function FoodBeverageClient({
           <>
             <BarSubgroup
               label="Nostri"
+              fonte="Nostri"
+              eventoId={eventoId}
               items={barNoi}
               persone={personeStimati}
               totals={tNoi}
+              costoReale={barCostoRealeNostri}
               onRowClick={(b) => setBarModal({ kind: "edit", bar: b })}
             />
             <BarSubgroup
               label="Fornitori"
+              fonte="Fornitori"
+              eventoId={eventoId}
               items={barFornitore}
               persone={personeStimati}
               totals={tForn}
+              costoReale={barCostoRealeFornitori}
               showFornitore
               onRowClick={(b) => setBarModal({ kind: "edit", bar: b })}
             />
@@ -314,16 +325,22 @@ function PersoneAtteseEditor({
 
 function BarSubgroup({
   label,
+  fonte,
+  eventoId,
   items,
   persone,
   totals: t,
+  costoReale,
   showFornitore,
   onRowClick,
 }: {
   label: string;
+  fonte: "Nostri" | "Fornitori";
+  eventoId: string;
   items: BarEdit[];
   persone: number;
   totals: { ricavo: number; costo: number; margine: number };
+  costoReale: number | null;
   showFornitore?: boolean;
   onRowClick: (b: BarEdit) => void;
 }) {
@@ -343,7 +360,7 @@ function BarSubgroup({
           </strong>
         </span>
       </div>
-      <div className="bg-white rounded-3xl overflow-x-auto">
+      <div className="bg-white rounded-3xl overflow-hidden">
         <table className="w-full text-sm">
           <thead className="border-b border-neutral-200">
             <tr>
@@ -400,6 +417,86 @@ function BarSubgroup({
             })}
           </tbody>
         </table>
+        <BarCostoRealeRow
+          eventoId={eventoId}
+          fonte={fonte}
+          costoStimato={t.costo}
+          costoReale={costoReale}
+        />
+      </div>
+    </div>
+  );
+}
+
+function BarCostoRealeRow({
+  eventoId,
+  fonte,
+  costoStimato,
+  costoReale,
+}: {
+  eventoId: string;
+  fonte: "Nostri" | "Fornitori";
+  costoStimato: number;
+  costoReale: number | null;
+}) {
+  const [local, setLocal] = useState<string>(
+    costoReale != null ? String(costoReale) : "",
+  );
+  const [pending, startTransition] = useTransition();
+  const [saved, setSaved] = useState(false);
+
+  function commit() {
+    const trimmed = local.trim();
+    const val = trimmed === "" ? null : Number(trimmed);
+    if (val !== null && !Number.isFinite(val)) return;
+    startTransition(async () => {
+      const res = await aggiornaBarCostoRealeR(eventoId, fonte, val);
+      if (res.ok) {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 1500);
+      }
+    });
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-neutral-100 bg-neutral-50/60">
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-neutral-600 font-medium">
+          Costo reale post-evento
+        </span>
+        {costoReale == null && (
+          <span className="text-[10px] text-neutral-400">
+            (stima: {formatMoney(costoStimato)})
+          </span>
+        )}
+        {costoReale != null && (
+          <span className={`text-[10px] font-medium ${costoReale > costoStimato ? "text-red-600" : "text-green-600"}`}>
+            {costoReale > costoStimato ? "↑" : "↓"} stima era {formatMoney(costoStimato)}
+          </span>
+        )}
+      </div>
+      <div className="inline-flex items-center gap-1.5">
+        <span className="text-xs text-neutral-400">CHF</span>
+        <input
+          type="number"
+          step="0.01"
+          min="0"
+          value={local}
+          placeholder="—"
+          onChange={(e) => setLocal(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+          }}
+          disabled={pending}
+          className={`w-28 px-2 py-1 rounded-lg text-sm tabular-nums text-right border transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+            saved
+              ? "border-green-400 bg-green-50"
+              : local.trim()
+                ? "border-amber-400 bg-amber-50"
+                : "border-neutral-200 bg-white hover:border-neutral-300"
+          }`}
+        />
       </div>
     </div>
   );
