@@ -26,7 +26,7 @@ export async function calcolaBudgetEvento(
   ] = await Promise.all([
     sb
       .from("eventi")
-      .select("persone_stimati, bar_attivo, food_truck_attivo, incasso_reale_vendite, bar_costo_reale_nostri, bar_costo_reale_fornitori, food_truck_costo_reale_acquisto")
+      .select("persone_stimati, bar_attivo, food_truck_attivo, incasso_reale_vendite, bar_costo_reale_nostri, bar_costo_reale_fornitori")
       .eq("id", eventoId)
       .maybeSingle(),
     sb
