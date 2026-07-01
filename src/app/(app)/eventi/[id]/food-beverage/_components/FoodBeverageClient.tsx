@@ -360,7 +360,13 @@ function BarSubgroup({
           </strong>
         </span>
       </div>
-      <div className="bg-white rounded-3xl overflow-hidden">
+      <BarCostoRealeRow
+        eventoId={eventoId}
+        fonte={fonte}
+        costoStimato={t.costo}
+        costoReale={costoReale}
+      />
+      <div className="bg-white rounded-3xl overflow-hidden mt-2">
         <table className="w-full text-sm">
           <thead className="border-b border-neutral-200">
             <tr>
@@ -417,12 +423,6 @@ function BarSubgroup({
             })}
           </tbody>
         </table>
-        <BarCostoRealeRow
-          eventoId={eventoId}
-          fonte={fonte}
-          costoStimato={t.costo}
-          costoReale={costoReale}
-        />
       </div>
     </div>
   );
