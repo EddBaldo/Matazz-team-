@@ -459,24 +459,26 @@ function BarCostoRealeRow({
   }
 
   return (
-    <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-neutral-100 bg-neutral-50/60">
-      <div className="flex items-center gap-2">
-        <span className="text-xs text-neutral-600 font-medium">
-          Costo reale post-evento
-        </span>
-        {costoReale == null && (
-          <span className="text-[10px] text-neutral-400">
-            (stima: {formatMoney(costoStimato)})
+    <div className="inline-flex items-center gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-2 text-sm flex-wrap mb-2">
+      <span className="text-neutral-700 font-medium">Costo reale post-evento</span>
+      <span className="text-neutral-300">·</span>
+      <span className="text-neutral-500">
+        stima{" "}
+        <strong className="text-neutral-700">{formatMoney(costoStimato)}</strong>
+      </span>
+      {costoReale != null && (
+        <>
+          <span className="text-neutral-300">·</span>
+          <span className={`font-medium ${costoReale > costoStimato ? "text-red-700" : "text-green-700"}`}>
+            {costoReale > costoStimato ? "↑" : "↓"} reale{" "}
+            <strong>{formatMoney(costoReale)}</strong>
           </span>
-        )}
-        {costoReale != null && (
-          <span className={`text-[10px] font-medium ${costoReale > costoStimato ? "text-red-600" : "text-green-600"}`}>
-            {costoReale > costoStimato ? "↑" : "↓"} stima era {formatMoney(costoStimato)}
-          </span>
-        )}
-      </div>
+        </>
+      )}
+      <span className="text-neutral-300">·</span>
       <div className="inline-flex items-center gap-1.5">
-        <span className="text-xs text-neutral-400">CHF</span>
+        <span className="text-neutral-500">inserisci reale</span>
+        <span className="text-neutral-400 text-xs">CHF</span>
         <input
           type="number"
           step="0.01"
