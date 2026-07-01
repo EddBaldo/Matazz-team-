@@ -21,6 +21,9 @@ type EventoRow = {
   food_truck_attivo: boolean;
   bar_costo_reale_nostri: number | null;
   bar_costo_reale_fornitori: number | null;
+  bar_costo_pagato_da_nostri: string | null;
+  bar_costo_pagato_da_fornitori: string | null;
+  food_truck_costo_reale_acquisto: number | null;
 };
 
 type Props = {
@@ -34,7 +37,7 @@ export default async function FoodBeveragePage({ params }: Props) {
   const [evRes, barRes, ftRes] = await Promise.all([
     sb
       .from("eventi")
-      .select("persone_stimati, bar_attivo, food_truck_attivo, bar_costo_reale_nostri, bar_costo_reale_fornitori")
+      .select("persone_stimati, bar_attivo, food_truck_attivo, bar_costo_reale_nostri, bar_costo_reale_fornitori, bar_costo_pagato_da_nostri, bar_costo_pagato_da_fornitori, food_truck_costo_reale_acquisto")
       .eq("id", id)
       .maybeSingle(),
     sb
@@ -108,6 +111,9 @@ export default async function FoodBeveragePage({ params }: Props) {
         foodTruck={foodTruck}
         barCostoRealeNostri={evento.bar_costo_reale_nostri ?? null}
         barCostoRealeFornitori={evento.bar_costo_reale_fornitori ?? null}
+        barPagatoDaNostri={evento.bar_costo_pagato_da_nostri ?? null}
+        barPagatoDaFornitori={evento.bar_costo_pagato_da_fornitori ?? null}
+        foodTruckCostoRealeAcquisto={evento.food_truck_costo_reale_acquisto ?? null}
       />
     </div>
   );

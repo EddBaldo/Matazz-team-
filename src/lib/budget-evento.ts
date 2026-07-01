@@ -26,7 +26,7 @@ export async function calcolaBudgetEvento(
   ] = await Promise.all([
     sb
       .from("eventi")
-      .select("persone_stimati, bar_attivo, food_truck_attivo, incasso_reale_vendite, bar_costo_reale_nostri, bar_costo_reale_fornitori")
+      .select("persone_stimati, bar_attivo, food_truck_attivo, incasso_reale_vendite, bar_costo_reale_nostri, bar_costo_reale_fornitori, food_truck_costo_reale_acquisto")
       .eq("id", eventoId)
       .maybeSingle(),
     sb
@@ -62,7 +62,7 @@ export async function calcolaBudgetEvento(
     sb
       .from("evento_food_truck")
       .select(
-        "modello, incasso_lordo_stimato, percentuale_matazz, costo_unitario, prezzo_vendita, consumo_per_persona, selezionata",
+        "modello, incasso_lordo_stimato, percentuale_matazz, costo_unitario, prezzo_vendita, consumo_per_persona, selezionata, quantita_acquistata",
       )
       .eq("evento_id", eventoId),
     sb
@@ -101,6 +101,7 @@ export async function calcolaBudgetEvento(
     incasso_reale_vendite: null,
     bar_costo_reale_nostri: null,
     bar_costo_reale_fornitori: null,
+    food_truck_costo_reale_acquisto: null,
   }) as {
     persone_stimati: number;
     bar_attivo: boolean;
@@ -108,6 +109,7 @@ export async function calcolaBudgetEvento(
     incasso_reale_vendite: number | null;
     bar_costo_reale_nostri: number | null;
     bar_costo_reale_fornitori: number | null;
+    food_truck_costo_reale_acquisto: number | null;
   };
   const personeStimati = Number(evento.persone_stimati ?? 0);
   const barAttivo = evento.bar_attivo ?? true;
@@ -137,6 +139,7 @@ export async function calcolaBudgetEvento(
     prezzo_vendita: number | null;
     consumo_per_persona: number;
     selezionata: boolean;
+    quantita_acquistata: number | null;
   }[];
   const sponsor = (sponsorRes.data ?? []) as {
     stato: string;
@@ -221,6 +224,16 @@ export async function calcolaBudgetEvento(
   const foodTruckAcqBudget = foodTruckAttivo && !realeAttivo ? totaleFoodTruckAcq : 0;
   const foodTruckPercBudget = foodTruckAttivo ? totaleFoodTruckPerc : 0;
 
+  const foodTruckCostoRealeAcq = evento.food_truck_costo_reale_acquisto != null
+    ? Number(evento.food_truck_costo_reale_acquisto)
+    : null;
+  const totaleFoodTruckCostoAcqStimato = foodTruck
+    .filter((r) => r.selezionata && r.modello === "Acquisto")
+    .reduce((s, r) => s + Number(r.costo_unitario ?? 0) * Number(r.quantita_acquistata ?? 0), 0);
+  const foodTruckCostoAcqBudget = foodTruckAttivo
+    ? (foodTruckCostoRealeAcq ?? totaleFoodTruckCostoAcqStimato)
+    : 0;
+
   const uscite =
     totaleArtisti +
     totalePersonale +
@@ -229,6 +242,7 @@ export async function calcolaBudgetEvento(
     totaleMerch +
     barCostoBudget +
     totaleCatering +
+    foodTruckCostoAcqBudget +
     totaleUsciteExtra;
   const entrate =
     barRicavoBudget +

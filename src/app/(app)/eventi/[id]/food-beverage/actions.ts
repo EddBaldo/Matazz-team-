@@ -114,6 +114,40 @@ export async function aggiornaBarCostoRealeR(
   return { ok: true };
 }
 
+export async function aggiornaBarPagatoDaR(
+  eventoId: string,
+  fonte: "Nostri" | "Fornitori",
+  valore: string | null,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const sb = createServerClient();
+  const col =
+    fonte === "Nostri"
+      ? "bar_costo_pagato_da_nostri"
+      : "bar_costo_pagato_da_fornitori";
+  const val = valore?.trim() || null;
+  const { error } = await sb.from("eventi").update({ [col]: val }).eq("id", eventoId);
+  if (error) return { ok: false, error: "Errore nel salvataggio. Riprova." };
+  revalidateFB(eventoId);
+  return { ok: true };
+}
+
+export async function aggiornaFoodTruckCostoRealeR(
+  eventoId: string,
+  valore: number | null,
+): Promise<ActionResult> {
+  await requireCurrentIdentity();
+  const sb = createServerClient();
+  const val = valore == null || !Number.isFinite(valore) ? null : Math.max(0, valore);
+  const { error } = await sb
+    .from("eventi")
+    .update({ food_truck_costo_reale_acquisto: val })
+    .eq("id", eventoId);
+  if (error) return { ok: false, error: "Errore nel salvataggio. Riprova." };
+  revalidateFB(eventoId);
+  return { ok: true };
+}
+
 // ----- BAR ---------------------------------------------------------------
 
 export type BarInput = {

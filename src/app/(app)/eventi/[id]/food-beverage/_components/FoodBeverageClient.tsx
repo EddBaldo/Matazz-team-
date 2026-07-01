@@ -6,6 +6,8 @@ import { formatMoney } from "@/lib/format";
 import {
   aggiornaStimePersoneR,
   aggiornaBarCostoRealeR,
+  aggiornaBarPagatoDaR,
+  aggiornaFoodTruckCostoRealeR,
   toggleBarAttivoR,
   toggleFoodTruckAttivoR,
   toggleFoodTruckSelezionata,
@@ -22,6 +24,9 @@ type Props = {
   foodTruck: FoodTruckEdit[];
   barCostoRealeNostri: number | null;
   barCostoRealeFornitori: number | null;
+  barPagatoDaNostri: string | null;
+  barPagatoDaFornitori: string | null;
+  foodTruckCostoRealeAcquisto: number | null;
 };
 
 type BarModalState = { kind: "add" } | { kind: "edit"; bar: BarEdit } | null;
@@ -59,6 +64,9 @@ export function FoodBeverageClient({
   foodTruck,
   barCostoRealeNostri,
   barCostoRealeFornitori,
+  barPagatoDaNostri,
+  barPagatoDaFornitori,
+  foodTruckCostoRealeAcquisto,
 }: Props) {
   const [barModal, setBarModal] = useState<BarModalState>(null);
   const [ftModal, setFtModal] = useState<FtModalState>(null);
@@ -184,6 +192,7 @@ export function FoodBeverageClient({
               persone={personeStimati}
               totals={tNoi}
               costoReale={barCostoRealeNostri}
+              pagatoDa={barPagatoDaNostri}
               onRowClick={(b) => setBarModal({ kind: "edit", bar: b })}
             />
             <BarSubgroup
@@ -194,6 +203,7 @@ export function FoodBeverageClient({
               persone={personeStimati}
               totals={tForn}
               costoReale={barCostoRealeFornitori}
+              pagatoDa={barPagatoDaFornitori}
               showFornitore
               onRowClick={(b) => setBarModal({ kind: "edit", bar: b })}
             />
@@ -255,6 +265,7 @@ export function FoodBeverageClient({
               eventoId={eventoId}
               items={ftAcquisto}
               persone={personeStimati}
+              costoRealeAcquisto={foodTruckCostoRealeAcquisto}
               onRowClick={(f) => setFtModal({ kind: "edit", ft: f })}
             />
           </>
@@ -331,6 +342,7 @@ function BarSubgroup({
   persone,
   totals: t,
   costoReale,
+  pagatoDa,
   showFornitore,
   onRowClick,
 }: {
@@ -341,6 +353,7 @@ function BarSubgroup({
   persone: number;
   totals: { ricavo: number; costo: number; margine: number };
   costoReale: number | null;
+  pagatoDa: string | null;
   showFornitore?: boolean;
   onRowClick: (b: BarEdit) => void;
 }) {
@@ -365,6 +378,7 @@ function BarSubgroup({
         fonte={fonte}
         costoStimato={t.costo}
         costoReale={costoReale}
+        pagatoDa={pagatoDa}
       />
       <div className="bg-white rounded-3xl overflow-hidden mt-2">
         <table className="w-full text-sm">
@@ -428,16 +442,20 @@ function BarSubgroup({
   );
 }
 
-function BarCostoRealeRow({
+function CostoRealeRow({
   eventoId,
-  fonte,
+  label,
   costoStimato,
   costoReale,
+  onSave,
+  extra,
 }: {
   eventoId: string;
-  fonte: "Nostri" | "Fornitori";
+  label: string;
   costoStimato: number;
   costoReale: number | null;
+  onSave: (val: number | null) => Promise<{ ok: boolean }>;
+  extra?: React.ReactNode;
 }) {
   const [local, setLocal] = useState<string>(
     costoReale != null ? String(costoReale) : "",
@@ -450,7 +468,7 @@ function BarCostoRealeRow({
     const val = trimmed === "" ? null : Number(trimmed);
     if (val !== null && !Number.isFinite(val)) return;
     startTransition(async () => {
-      const res = await aggiornaBarCostoRealeR(eventoId, fonte, val);
+      const res = await onSave(val);
       if (res.ok) {
         setSaved(true);
         setTimeout(() => setSaved(false), 1500);
@@ -460,7 +478,7 @@ function BarCostoRealeRow({
 
   return (
     <div className="inline-flex items-center gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-2 text-sm flex-wrap mb-2">
-      <span className="text-neutral-700 font-medium">Costo reale post-evento</span>
+      <span className="text-neutral-700 font-medium">{label}</span>
       <span className="text-neutral-300">·</span>
       <span className="text-neutral-500">
         stima{" "}
@@ -469,7 +487,11 @@ function BarCostoRealeRow({
       {costoReale != null && (
         <>
           <span className="text-neutral-300">·</span>
-          <span className={`font-medium ${costoReale > costoStimato ? "text-red-700" : "text-green-700"}`}>
+          <span
+            className={`font-medium ${
+              costoReale > costoStimato ? "text-red-700" : "text-green-700"
+            }`}
+          >
             {costoReale > costoStimato ? "↑" : "↓"} reale{" "}
             <strong>{formatMoney(costoReale)}</strong>
           </span>
@@ -477,8 +499,7 @@ function BarCostoRealeRow({
       )}
       <span className="text-neutral-300">·</span>
       <div className="inline-flex items-center gap-1.5">
-        <span className="text-neutral-500">inserisci reale</span>
-        <span className="text-neutral-400 text-xs">CHF</span>
+        <span className="text-neutral-500 text-xs">inserisci reale CHF</span>
         <input
           type="number"
           step="0.01"
@@ -500,7 +521,66 @@ function BarCostoRealeRow({
           }`}
         />
       </div>
+      {extra}
     </div>
+  );
+}
+
+function BarCostoRealeRow({
+  eventoId,
+  fonte,
+  costoStimato,
+  costoReale,
+  pagatoDa,
+}: {
+  eventoId: string;
+  fonte: "Nostri" | "Fornitori";
+  costoStimato: number;
+  costoReale: number | null;
+  pagatoDa: string | null;
+}) {
+  const [localPagato, setLocalPagato] = useState<string>(pagatoDa ?? "");
+  const [pending, startTransition] = useTransition();
+
+  function commitPagato() {
+    const val = localPagato.trim() || null;
+    startTransition(async () => {
+      await aggiornaBarPagatoDaR(eventoId, fonte, val);
+    });
+  }
+
+  return (
+    <CostoRealeRow
+      eventoId={eventoId}
+      label="Costo reale post-evento"
+      costoStimato={costoStimato}
+      costoReale={costoReale}
+      onSave={(val) => aggiornaBarCostoRealeR(eventoId, fonte, val)}
+      extra={
+        <>
+          <span className="text-neutral-300">·</span>
+          <div className="inline-flex items-center gap-1.5">
+            <span className="text-neutral-500 text-xs">Pagato da</span>
+            <input
+              type="text"
+              value={localPagato}
+              placeholder="—"
+              onChange={(e) => setLocalPagato(e.target.value)}
+              onBlur={commitPagato}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+              }}
+              disabled={pending}
+              className={`w-32 px-2 py-1 rounded-lg text-sm border transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                localPagato.trim()
+                  ? "border-amber-400 bg-amber-50"
+                  : "border-neutral-200 bg-white hover:border-neutral-300"
+              }`}
+            />
+          </div>
+        </>
+      }
+    />
   );
 }
 
@@ -557,14 +637,22 @@ function FtSubgroupAcquisto({
   eventoId,
   items,
   persone,
+  costoRealeAcquisto,
   onRowClick,
 }: {
   eventoId: string;
   items: FoodTruckEdit[];
   persone: number;
+  costoRealeAcquisto: number | null;
   onRowClick: (f: FoodTruckEdit) => void;
 }) {
   if (items.length === 0) return null;
+
+  const costoStimatoTotale = items.reduce((s, r) => {
+    const qtaAcq = Number(r.quantita_acquistata ?? 0);
+    return s + Number(r.costo_unitario ?? 0) * qtaAcq;
+  }, 0);
+
   return (
     <div>
       <div className="flex items-baseline justify-between mb-1.5 px-1">
@@ -573,7 +661,14 @@ function FtSubgroupAcquisto({
         </span>
         <span className="text-xs text-neutral-500">{persone} persone</span>
       </div>
-      <div className="bg-white rounded-3xl overflow-x-auto">
+      <CostoRealeRow
+        eventoId={eventoId}
+        label="Costo acquisto reale"
+        costoStimato={costoStimatoTotale}
+        costoReale={costoRealeAcquisto}
+        onSave={(val) => aggiornaFoodTruckCostoRealeR(eventoId, val)}
+      />
+      <div className="bg-white rounded-3xl overflow-x-auto mt-2">
         <table className="w-full text-sm">
           <thead className="border-b border-neutral-200">
             <tr>
@@ -581,8 +676,6 @@ function FtSubgroupAcquisto({
               <Th align="right">Costo unit.</Th>
               <Th align="right">Vendita unit.</Th>
               <Th align="right">Consumo/p</Th>
-              <Th align="right">Qtà acquistata</Th>
-              <Th align="right">Costo acquisto</Th>
               <Th align="right">Stim. vendute</Th>
               <Th align="right">Guadagno stim.</Th>
               <Th align="center">
@@ -674,8 +767,6 @@ function FtRowAcquisto({
   }
   const qtyVend = qtyVendutaFood(row, persone);
   const guadagno = guadagnoFoodTruck(row, persone);
-  const qtaAcq = Number(row.quantita_acquistata ?? 0);
-  const costoAcquisto = Number(row.costo_unitario ?? 0) * qtaAcq;
   return (
     <tr
       onClick={onClick}
@@ -692,12 +783,6 @@ function FtRowAcquisto({
       </td>
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
         {Number(row.consumo_per_persona ?? 0)}
-      </td>
-      <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
-        {qtaAcq > 0 ? qtaAcq : "—"}
-      </td>
-      <td className="px-4 py-3 text-red-700 text-right tabular-nums font-medium">
-        {qtaAcq > 0 ? formatMoney(costoAcquisto) : "—"}
       </td>
       <td className="px-4 py-3 text-neutral-900 text-right tabular-nums">
         {qtyVend}
