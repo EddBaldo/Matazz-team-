@@ -79,6 +79,8 @@ export default async function EventoBudgetPage({ params }: Props) {
     foodTruckRes,
     sponsorRes,
     stimeRes,
+    barCostiRealiRes,
+    ftCostoRealeRes,
   ] = await Promise.all([
     sb
       .from("eventi")
@@ -130,6 +132,10 @@ export default async function EventoBudgetPage({ params }: Props) {
       .from("evento_budget_stime")
       .select("chiave, importo")
       .eq("evento_id", id),
+    // Graceful: table may not exist until migration 058 is applied
+    sb.from("evento_bar_costi_reali").select("costo_reale").eq("evento_id", id),
+    // Graceful: column may not exist until migration 058 is applied
+    sb.from("eventi").select("food_truck_costo_reale_acquisto").eq("id", id).maybeSingle(),
   ]);
 
   const evento = (eventoRes.data ?? {
@@ -248,16 +254,26 @@ export default async function EventoBudgetPage({ params }: Props) {
 
   const realeAttivo = incassoRealeVendite != null;
 
-  const barCostoRealeN = evento.bar_costo_reale_nostri != null ? Number(evento.bar_costo_reale_nostri) : null;
-  const barCostoRealeF = evento.bar_costo_reale_fornitori != null ? Number(evento.bar_costo_reale_fornitori) : null;
-  const barCostoReale = (barCostoRealeN != null || barCostoRealeF != null)
-    ? (barCostoRealeN ?? 0) + (barCostoRealeF ?? 0)
-    : null;
+  // Try new table first; fall back to old single columns
+  let barCostoReale: number | null = null;
+  if (!barCostiRealiRes.error && barCostiRealiRes.data) {
+    const withCosto = (barCostiRealiRes.data as { costo_reale: number | null }[]).filter(
+      (r) => r.costo_reale != null,
+    );
+    if (withCosto.length > 0)
+      barCostoReale = withCosto.reduce((s, r) => s + Number(r.costo_reale), 0);
+  } else {
+    const n = evento.bar_costo_reale_nostri != null ? Number(evento.bar_costo_reale_nostri) : null;
+    const f = evento.bar_costo_reale_fornitori != null ? Number(evento.bar_costo_reale_fornitori) : null;
+    if (n != null || f != null) barCostoReale = (n ?? 0) + (f ?? 0);
+  }
   const barCostoEffettivo = barAttivo ? (barCostoReale ?? barCosto) : 0;
 
-  const foodTruckCostoRealeAcq = evento.food_truck_costo_reale_acquisto != null
-    ? Number(evento.food_truck_costo_reale_acquisto)
-    : null;
+  const foodTruckCostoRealeAcq =
+    !ftCostoRealeRes.error && ftCostoRealeRes.data
+      ? ((ftCostoRealeRes.data as { food_truck_costo_reale_acquisto: number | null })
+          .food_truck_costo_reale_acquisto ?? null)
+      : null;
   const totaleFoodTruckCostoAcqStimato = foodTruck
     .filter((r) => r.selezionata && r.modello === "Acquisto")
     .reduce((s, r) => s + Number(r.costo_unitario ?? 0) * Number(r.quantita_acquistata ?? 0), 0);

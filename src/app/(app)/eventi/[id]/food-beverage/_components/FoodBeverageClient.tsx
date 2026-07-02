@@ -5,8 +5,7 @@ import { Plus, Check, Circle, Power } from "lucide-react";
 import { formatMoney } from "@/lib/format";
 import {
   aggiornaStimePersoneR,
-  aggiornaBarCostoRealeR,
-  aggiornaBarPagatoDaR,
+  upsertBarCostoRealeR,
   aggiornaFoodTruckCostoRealeR,
   toggleBarAttivoR,
   toggleFoodTruckAttivoR,
@@ -15,6 +14,8 @@ import {
 import { BarModal, type BarEdit } from "./BarModal";
 import { FoodTruckModal, type FoodTruckEdit } from "./FoodTruckModal";
 
+type BarCostoRealeEntry = { costo_reale: number | null; pagato_da: string | null };
+
 type Props = {
   eventoId: string;
   personeStimati: number;
@@ -22,37 +23,31 @@ type Props = {
   foodTruckAttivo: boolean;
   bar: BarEdit[];
   foodTruck: FoodTruckEdit[];
-  barCostoRealeNostri: number | null;
-  barCostoRealeFornitori: number | null;
-  barPagatoDaNostri: string | null;
-  barPagatoDaFornitori: string | null;
+  barCostiReali: Record<string, BarCostoRealeEntry>;
   foodTruckCostoRealeAcquisto: number | null;
 };
 
 type BarModalState = { kind: "add" } | { kind: "edit"; bar: BarEdit } | null;
-type FtModalState =
-  | { kind: "add" }
-  | { kind: "edit"; ft: FoodTruckEdit }
-  | null;
+type FtModalState = { kind: "add" } | { kind: "edit"; ft: FoodTruckEdit } | null;
 
-function qtyVendutaBar(b: BarEdit, persone: number): number {
-  return Math.round(persone * Number(b.consumo_per_persona ?? 0));
-}
-
-function qtyVendutaFood(f: FoodTruckEdit, persone: number): number {
-  return Math.round(persone * Number(f.consumo_per_persona ?? 0));
+function calcTotals(items: BarEdit[], persone: number) {
+  const ricavo = items.reduce(
+    (s, r) => s + Number(r.prezzo_vendita ?? 0) * Math.round(persone * Number(r.consumo_per_persona ?? 0)),
+    0,
+  );
+  const costo = items.reduce(
+    (s, r) => s + Number(r.costo_unitario ?? 0) * Math.round(persone * Number(r.consumo_per_persona ?? 0)),
+    0,
+  );
+  return { ricavo, costo, margine: ricavo - costo };
 }
 
 function guadagnoFoodTruck(ft: FoodTruckEdit, persone: number): number {
   if (ft.modello === "Acquisto") {
-    const qtyVend = qtyVendutaFood(ft, persone);
-    const margine =
-      Number(ft.prezzo_vendita ?? 0) - Number(ft.costo_unitario ?? 0);
-    return margine * qtyVend;
+    const qtyVend = Math.round(persone * Number(ft.consumo_per_persona ?? 0));
+    return (Number(ft.prezzo_vendita ?? 0) - Number(ft.costo_unitario ?? 0)) * qtyVend;
   }
-  return (
-    (Number(ft.incasso_lordo_stimato) * Number(ft.percentuale_matazz)) / 100
-  );
+  return (Number(ft.incasso_lordo_stimato) * Number(ft.percentuale_matazz)) / 100;
 }
 
 export function FoodBeverageClient({
@@ -62,10 +57,7 @@ export function FoodBeverageClient({
   foodTruckAttivo,
   bar,
   foodTruck,
-  barCostoRealeNostri,
-  barCostoRealeFornitori,
-  barPagatoDaNostri,
-  barPagatoDaFornitori,
+  barCostiReali,
   foodTruckCostoRealeAcquisto,
 }: Props) {
   const [barModal, setBarModal] = useState<BarModalState>(null);
@@ -73,99 +65,63 @@ export function FoodBeverageClient({
 
   const barNoi = bar.filter((b) => b.fonte === "Noi");
   const barFornitore = bar.filter((b) => b.fonte === "Fornitore");
+  const uniqueFornitori = [
+    ...new Set(barFornitore.map((b) => b.fornitore ?? "").filter(Boolean)),
+  ];
+  const barFornitoreNoNome = barFornitore.filter((b) => !b.fornitore);
 
-  function barTotals(items: BarEdit[]) {
-    const ricavo = items.reduce(
-      (s, r) =>
-        s +
-        Number(r.prezzo_vendita ?? 0) * qtyVendutaBar(r, personeStimati),
-      0,
-    );
-    const costo = items.reduce(
-      (s, r) =>
-        s +
-        Number(r.costo_unitario ?? 0) * qtyVendutaBar(r, personeStimati),
-      0,
-    );
-    return { ricavo, costo, margine: ricavo - costo };
-  }
-
-  const tNoi = barTotals(barNoi);
-  const tForn = barTotals(barFornitore);
-  const tBarTotale = barTotals(bar);
-
-  const mediaConsumoBar = bar.reduce(
-    (s, r) => s + Number(r.consumo_per_persona ?? 0),
-    0,
-  );
+  const tBarTotale = calcTotals(bar, personeStimati);
+  const mediaConsumoBar = bar.reduce((s, r) => s + Number(r.consumo_per_persona ?? 0), 0);
 
   const ftPercentuale = foodTruck.filter((f) => f.modello === "Percentuale");
   const ftAcquisto = foodTruck.filter((f) => f.modello === "Acquisto");
-
   const ftTotaleSel = foodTruck
     .filter((r) => r.selezionata)
     .reduce((s, r) => s + guadagnoFoodTruck(r, personeStimati), 0);
+  const ftCostoStimatoTotale = ftAcquisto.reduce(
+    (s, r) => s + Number(r.costo_unitario ?? 0) * Number(r.quantita_acquistata ?? 0),
+    0,
+  );
 
   return (
     <>
-      <PersoneAtteseEditor
-        eventoId={eventoId}
-        personeStimati={personeStimati}
-      />
+      <PersoneAtteseEditor eventoId={eventoId} personeStimati={personeStimati} />
 
-      {/* --- BAR --- */}
-      <section className={`space-y-3 ${barAttivo ? "" : "opacity-60"}`}>
-        <div className="flex items-baseline justify-between gap-3 flex-wrap">
+      {/* ---- BAR ---- */}
+      <section className={`space-y-4 ${barAttivo ? "" : "opacity-60"}`}>
+        <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="space-y-2">
             <h3 className="text-base font-semibold text-neutral-900 flex items-center gap-2 flex-wrap">
               <span aria-hidden>🍻</span>
               <span>Bar</span>
-              <span className="text-sm text-neutral-500 font-normal">
-                ({bar.length})
-              </span>
-              <SezioneToggle
-                eventoId={eventoId}
-                attivo={barAttivo}
-                kind="bar"
-              />
+              <span className="text-sm text-neutral-500 font-normal">({bar.length})</span>
+              <SezioneToggle eventoId={eventoId} attivo={barAttivo} kind="bar" />
               {!barAttivo && (
-                <span className="text-sm text-amber-700 font-medium">
-                  escluso dal budget
-                </span>
+                <span className="text-sm text-amber-700 font-medium">escluso dal budget</span>
               )}
             </h3>
-            <div className="inline-flex items-center gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-2 text-sm">
+            <div className="inline-flex items-center gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-2 text-sm flex-wrap">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 bg-neutral-200 rounded-full px-2 py-0.5">
+                Stime
+              </span>
               <span className="text-neutral-700">
                 Costo{" "}
-                <strong className="text-neutral-900">
-                  {formatMoney(tBarTotale.costo)}
-                </strong>
+                <strong className="text-neutral-900">{formatMoney(tBarTotale.costo)}</strong>
               </span>
               <span className="text-neutral-300">·</span>
               <span className="text-neutral-700">
                 Ricavo{" "}
-                <strong className="text-neutral-900">
-                  {formatMoney(tBarTotale.ricavo)}
-                </strong>
+                <strong className="text-neutral-900">{formatMoney(tBarTotale.ricavo)}</strong>
               </span>
               <span className="text-neutral-300">·</span>
-              <span
-                className={
-                  tBarTotale.margine >= 0
-                    ? "text-green-700"
-                    : "text-red-700"
-                }
-              >
-                Margine{" "}
-                <strong>{formatMoney(tBarTotale.margine)}</strong>
+              <span className={tBarTotale.margine >= 0 ? "text-green-700" : "text-red-700"}>
+                Margine <strong>{formatMoney(tBarTotale.margine)}</strong>
               </span>
             </div>
             {bar.length > 0 && (
               <p className="text-xs text-neutral-500">
                 Media consumo:{" "}
-                <strong className="text-neutral-700">
-                  {mediaConsumoBar.toFixed(1)}
-                </strong>{" "}
+                <strong className="text-neutral-700">{mediaConsumoBar.toFixed(1)}</strong>{" "}
                 bevande/persona
               </p>
             )}
@@ -184,61 +140,64 @@ export function FoodBeverageClient({
           <EmptyBox text="Nessun articolo. Aggiungi il primo." />
         ) : (
           <>
-            <BarSubgroup
-              label="Nostri"
-              fonte="Nostri"
-              eventoId={eventoId}
-              items={barNoi}
-              persone={personeStimati}
-              totals={tNoi}
-              costoReale={barCostoRealeNostri}
-              pagatoDa={barPagatoDaNostri}
-              onRowClick={(b) => setBarModal({ kind: "edit", bar: b })}
-            />
-            <BarSubgroup
-              label="Fornitori"
-              fonte="Fornitori"
-              eventoId={eventoId}
-              items={barFornitore}
-              persone={personeStimati}
-              totals={tForn}
-              costoReale={barCostoRealeFornitori}
-              pagatoDa={barPagatoDaFornitori}
-              showFornitore
-              onRowClick={(b) => setBarModal({ kind: "edit", bar: b })}
-            />
+            {barNoi.length > 0 && (
+              <BarSubgroup
+                label="Nostra spesa"
+                fonte="Nostri"
+                eventoId={eventoId}
+                items={barNoi}
+                persone={personeStimati}
+                entry={barCostiReali["Nostri"] ?? null}
+                onRowClick={(b) => setBarModal({ kind: "edit", bar: b })}
+              />
+            )}
+            {uniqueFornitori.map((fornitore) => (
+              <BarSubgroup
+                key={fornitore}
+                label={fornitore}
+                fonte={fornitore}
+                eventoId={eventoId}
+                items={barFornitore.filter((b) => (b.fornitore ?? "") === fornitore)}
+                persone={personeStimati}
+                entry={barCostiReali[fornitore] ?? null}
+                onRowClick={(b) => setBarModal({ kind: "edit", bar: b })}
+              />
+            ))}
+            {barFornitoreNoNome.length > 0 && (
+              <BarSubgroup
+                label="Fornitori (senza nome)"
+                fonte="Fornitori"
+                eventoId={eventoId}
+                items={barFornitoreNoNome}
+                persone={personeStimati}
+                entry={barCostiReali["Fornitori"] ?? null}
+                showFornitore
+                onRowClick={(b) => setBarModal({ kind: "edit", bar: b })}
+              />
+            )}
           </>
         )}
       </section>
 
-      {/* --- FOOD TRUCK --- */}
+      {/* ---- FOOD TRUCK ---- */}
       <section className={`space-y-3 ${foodTruckAttivo ? "" : "opacity-60"}`}>
         <div className="flex items-baseline justify-between gap-3 flex-wrap">
           <div className="space-y-2">
             <h3 className="text-base font-semibold text-neutral-900 flex items-center gap-2 flex-wrap">
               <span aria-hidden>🚚</span>
               <span>Food truck</span>
-              <span className="text-sm text-neutral-500 font-normal">
-                ({foodTruck.length})
-              </span>
-              <SezioneToggle
-                eventoId={eventoId}
-                attivo={foodTruckAttivo}
-                kind="food_truck"
-              />
+              <span className="text-sm text-neutral-500 font-normal">({foodTruck.length})</span>
+              <SezioneToggle eventoId={eventoId} attivo={foodTruckAttivo} kind="food_truck" />
               {!foodTruckAttivo && (
-                <span className="text-sm text-amber-700 font-medium">
-                  escluso dal budget
-                </span>
+                <span className="text-sm text-amber-700 font-medium">escluso dal budget</span>
               )}
             </h3>
-            <div className="inline-flex items-center gap-2 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-2 text-sm">
-              <span className="text-neutral-700">
-                Guadagno nostro selezionato:
+            <div className="inline-flex items-center gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-2 text-sm flex-wrap">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 bg-neutral-200 rounded-full px-2 py-0.5">
+                Stime
               </span>
-              <strong className="text-green-700">
-                {formatMoney(ftTotaleSel)}
-              </strong>
+              <span className="text-neutral-700">Guadagno selezionato:</span>
+              <strong className="text-green-700">{formatMoney(ftTotaleSel)}</strong>
             </div>
           </div>
           <button
@@ -266,25 +225,20 @@ export function FoodBeverageClient({
               items={ftAcquisto}
               persone={personeStimati}
               costoRealeAcquisto={foodTruckCostoRealeAcquisto}
+              costoStimatoTotale={ftCostoStimatoTotale}
               onRowClick={(f) => setFtModal({ kind: "edit", ft: f })}
             />
           </>
         )}
       </section>
 
-      <BarModal
-        eventoId={eventoId}
-        mode={barModal}
-        onClose={() => setBarModal(null)}
-      />
-      <FoodTruckModal
-        eventoId={eventoId}
-        mode={ftModal}
-        onClose={() => setFtModal(null)}
-      />
+      <BarModal eventoId={eventoId} mode={barModal} onClose={() => setBarModal(null)} />
+      <FoodTruckModal eventoId={eventoId} mode={ftModal} onClose={() => setFtModal(null)} />
     </>
   );
 }
+
+// ---- PersoneAtteseEditor ----
 
 function PersoneAtteseEditor({
   eventoId,
@@ -310,9 +264,7 @@ function PersoneAtteseEditor({
   return (
     <section className="bg-white rounded-3xl p-4 flex items-center gap-3 flex-wrap">
       <label className="flex items-center gap-2">
-        <span className="text-sm font-medium text-neutral-800">
-          Persone attese
-        </span>
+        <span className="text-sm font-medium text-neutral-800">Persone attese</span>
         <input
           type="number"
           min="0"
@@ -325,14 +277,14 @@ function PersoneAtteseEditor({
         />
       </label>
       <span className="text-sm text-neutral-500">
-        È il numero usato per stimare le vendite (bar e food truck acquisto).
+        Usato per stimare le vendite (bar e food truck acquisto).
       </span>
-      {savedFlash && (
-        <span className="text-xs text-green-700">Salvato ✓</span>
-      )}
+      {savedFlash && <span className="text-xs text-green-700">Salvato ✓</span>}
     </section>
   );
 }
+
+// ---- BarSubgroup ----
 
 function BarSubgroup({
   label,
@@ -340,47 +292,46 @@ function BarSubgroup({
   eventoId,
   items,
   persone,
-  totals: t,
-  costoReale,
-  pagatoDa,
-  showFornitore,
+  entry,
+  showFornitore = false,
   onRowClick,
 }: {
   label: string;
-  fonte: "Nostri" | "Fornitori";
+  fonte: string;
   eventoId: string;
   items: BarEdit[];
   persone: number;
-  totals: { ricavo: number; costo: number; margine: number };
-  costoReale: number | null;
-  pagatoDa: string | null;
+  entry: BarCostoRealeEntry | null;
   showFornitore?: boolean;
   onRowClick: (b: BarEdit) => void;
 }) {
   if (items.length === 0) return null;
+  const t = calcTotals(items, persone);
+
   return (
-    <div>
-      <div className="flex items-baseline justify-between gap-2 mb-1.5 px-1">
-        <span className="text-xs uppercase tracking-wide text-neutral-500 font-medium">
+    <div className="space-y-2">
+      <div className="flex items-baseline justify-between gap-2 px-1">
+        <span className="text-xs uppercase tracking-wide text-neutral-500 font-semibold">
           {label} ({items.length})
         </span>
-        <span className="text-xs text-neutral-500">
-          Costo {formatMoney(t.costo)} · Margine{" "}
-          <strong
-            className={t.margine >= 0 ? "text-green-700" : "text-red-700"}
-          >
+        <span className="text-xs text-neutral-400">
+          stima: costo{" "}
+          <span className="font-medium text-neutral-600">{formatMoney(t.costo)}</span>
+          {" · "}
+          margine{" "}
+          <span className={`font-medium ${t.margine >= 0 ? "text-green-600" : "text-red-600"}`}>
             {formatMoney(t.margine)}
-          </strong>
+          </span>
         </span>
       </div>
-      <BarCostoRealeRow
-        eventoId={eventoId}
+      <CostoRealeCard
         fonte={fonte}
+        eventoId={eventoId}
         costoStimato={t.costo}
-        costoReale={costoReale}
-        pagatoDa={pagatoDa}
+        costoReale={entry?.costo_reale ?? null}
+        pagatoDa={entry?.pagato_da ?? null}
       />
-      <div className="bg-white rounded-3xl overflow-hidden mt-2">
+      <div className="bg-white rounded-3xl overflow-hidden">
         <table className="w-full text-sm">
           <thead className="border-b border-neutral-200">
             <tr>
@@ -395,23 +346,18 @@ function BarSubgroup({
           </thead>
           <tbody>
             {items.map((r) => {
-              const qtyVend = qtyVendutaBar(r, persone);
-              const ricavo = Number(r.prezzo_vendita ?? 0) * qtyVend;
-              const costo = Number(r.costo_unitario ?? 0) * qtyVend;
-              const margine = ricavo - costo;
+              const qty = Math.round(persone * Number(r.consumo_per_persona ?? 0));
+              const margine =
+                (Number(r.prezzo_vendita ?? 0) - Number(r.costo_unitario ?? 0)) * qty;
               return (
                 <tr
                   key={r.id}
                   onClick={() => onRowClick(r)}
                   className="border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50 cursor-pointer"
                 >
-                  <td className="px-4 py-3 text-neutral-900 font-medium">
-                    {r.articolo}
-                  </td>
+                  <td className="px-4 py-3 text-neutral-900 font-medium">{r.articolo}</td>
                   {showFornitore && (
-                    <td className="px-4 py-3 text-neutral-700">
-                      {r.fornitore ?? "—"}
-                    </td>
+                    <td className="px-4 py-3 text-neutral-700">{r.fornitore ?? "—"}</td>
                   )}
                   <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
                     {formatMoney(Number(r.costo_unitario ?? 0))}
@@ -422,9 +368,7 @@ function BarSubgroup({
                   <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
                     {Number(r.consumo_per_persona ?? 0)}
                   </td>
-                  <td className="px-4 py-3 text-neutral-900 text-right tabular-nums">
-                    {qtyVend}
-                  </td>
+                  <td className="px-4 py-3 text-neutral-900 text-right tabular-nums">{qty}</td>
                   <td
                     className={`px-4 py-3 text-right tabular-nums font-medium ${
                       margine >= 0 ? "text-green-700" : "text-red-700"
@@ -442,147 +386,150 @@ function BarSubgroup({
   );
 }
 
-function CostoRealeRow({
-  eventoId,
-  label,
-  costoStimato,
-  costoReale,
-  onSave,
-  extra,
-}: {
-  eventoId: string;
-  label: string;
-  costoStimato: number;
-  costoReale: number | null;
-  onSave: (val: number | null) => Promise<{ ok: boolean }>;
-  extra?: React.ReactNode;
-}) {
-  const [local, setLocal] = useState<string>(
-    costoReale != null ? String(costoReale) : "",
-  );
-  const [pending, startTransition] = useTransition();
-  const [saved, setSaved] = useState(false);
+// ---- CostoRealeCard ----
 
-  function commit() {
-    const trimmed = local.trim();
-    const val = trimmed === "" ? null : Number(trimmed);
-    if (val !== null && !Number.isFinite(val)) return;
-    startTransition(async () => {
-      const res = await onSave(val);
-      if (res.ok) {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 1500);
-      }
-    });
-  }
-
-  return (
-    <div className="inline-flex items-center gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-2 text-sm flex-wrap mb-2">
-      <span className="text-neutral-700 font-medium">{label}</span>
-      <span className="text-neutral-300">·</span>
-      <span className="text-neutral-500">
-        stima{" "}
-        <strong className="text-neutral-700">{formatMoney(costoStimato)}</strong>
-      </span>
-      {costoReale != null && (
-        <>
-          <span className="text-neutral-300">·</span>
-          <span
-            className={`font-medium ${
-              costoReale > costoStimato ? "text-red-700" : "text-green-700"
-            }`}
-          >
-            {costoReale > costoStimato ? "↑" : "↓"} reale{" "}
-            <strong>{formatMoney(costoReale)}</strong>
-          </span>
-        </>
-      )}
-      <span className="text-neutral-300">·</span>
-      <div className="inline-flex items-center gap-1.5">
-        <span className="text-neutral-500 text-xs">inserisci reale CHF</span>
-        <input
-          type="number"
-          step="0.01"
-          min="0"
-          value={local}
-          placeholder="—"
-          onChange={(e) => setLocal(e.target.value)}
-          onBlur={commit}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-          }}
-          disabled={pending}
-          className={`w-28 px-2 py-1 rounded-lg text-sm tabular-nums text-right border transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-            saved
-              ? "border-green-400 bg-green-50"
-              : local.trim()
-                ? "border-amber-400 bg-amber-50"
-                : "border-neutral-200 bg-white hover:border-neutral-300"
-          }`}
-        />
-      </div>
-      {extra}
-    </div>
-  );
-}
-
-function BarCostoRealeRow({
-  eventoId,
+function CostoRealeCard({
   fonte,
+  eventoId,
   costoStimato,
-  costoReale,
-  pagatoDa,
+  costoReale: initCostoReale,
+  pagatoDa: initPagatoDa,
 }: {
+  fonte: string;
   eventoId: string;
-  fonte: "Nostri" | "Fornitori";
   costoStimato: number;
   costoReale: number | null;
   pagatoDa: string | null;
 }) {
-  const [localPagato, setLocalPagato] = useState<string>(pagatoDa ?? "");
+  const [mode, setMode] = useState<"display" | "edit">(
+    initCostoReale == null ? "edit" : "display",
+  );
+  const [localCosto, setLocalCosto] = useState(
+    initCostoReale != null ? String(initCostoReale) : "",
+  );
+  const [localPagato, setLocalPagato] = useState(initPagatoDa ?? "");
   const [pending, startTransition] = useTransition();
+  const [current, setCurrent] = useState<{
+    costo: number | null;
+    pagato: string | null;
+  }>({ costo: initCostoReale, pagato: initPagatoDa });
 
-  function commitPagato() {
-    const val = localPagato.trim() || null;
+  function save() {
+    const costoVal =
+      localCosto.trim() === "" ? null : Number(localCosto.trim());
+    if (costoVal !== null && !Number.isFinite(costoVal)) return;
+    const pagatoVal = localPagato.trim() || null;
     startTransition(async () => {
-      await aggiornaBarPagatoDaR(eventoId, fonte, val);
+      const res = await upsertBarCostoRealeR(eventoId, fonte, costoVal, pagatoVal);
+      if (res.ok) {
+        setCurrent({ costo: costoVal, pagato: pagatoVal });
+        if (costoVal != null) setMode("display");
+      }
     });
   }
 
+  function startEdit() {
+    setLocalCosto(current.costo != null ? String(current.costo) : "");
+    setLocalPagato(current.pagato ?? "");
+    setMode("edit");
+  }
+
+  if (mode === "display" && current.costo != null) {
+    return (
+      <div className="flex items-center justify-between gap-3 rounded-2xl bg-red-50 border border-red-200 px-4 py-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="text-xs font-bold uppercase tracking-widest text-red-400 bg-red-100 rounded-full px-2 py-0.5">
+            Costo reale
+          </span>
+          <span className="text-red-700 font-bold text-base tabular-nums">
+            {formatMoney(current.costo)}
+          </span>
+          <span
+            className={`text-xs font-medium ${
+              current.costo > costoStimato ? "text-red-500" : "text-green-600"
+            }`}
+          >
+            {current.costo > costoStimato ? "↑" : "↓"} stima{" "}
+            {formatMoney(costoStimato)}
+          </span>
+          {current.pagato && (
+            <span className="text-sm text-neutral-600">
+              · Pagato da{" "}
+              <strong className="text-neutral-800">{current.pagato}</strong>
+            </span>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={startEdit}
+          className="text-xs text-neutral-400 hover:text-neutral-700 underline shrink-0"
+        >
+          Modifica
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <CostoRealeRow
-      eventoId={eventoId}
-      label="Costo reale post-evento"
-      costoStimato={costoStimato}
-      costoReale={costoReale}
-      onSave={(val) => aggiornaBarCostoRealeR(eventoId, fonte, val)}
-      extra={
-        <>
-          <span className="text-neutral-300">·</span>
-          <div className="inline-flex items-center gap-1.5">
-            <span className="text-neutral-500 text-xs">Pagato da</span>
-            <input
-              type="text"
-              value={localPagato}
-              placeholder="—"
-              onChange={(e) => setLocalPagato(e.target.value)}
-              onBlur={commitPagato}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-              }}
-              disabled={pending}
-              className={`w-32 px-2 py-1 rounded-lg text-sm border transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                localPagato.trim()
-                  ? "border-amber-400 bg-amber-50"
-                  : "border-neutral-200 bg-white hover:border-neutral-300"
-              }`}
-            />
-          </div>
-        </>
-      }
-    />
+    <div className="flex items-center gap-3 rounded-2xl border border-dashed border-neutral-300 bg-white px-4 py-3 flex-wrap">
+      <span className="text-sm text-neutral-500 font-medium">Costo reale post-evento</span>
+      <span className="text-xs text-neutral-400">(stima: {formatMoney(costoStimato)})</span>
+      <span className="text-neutral-200">|</span>
+      <div className="inline-flex items-center gap-1.5">
+        <span className="text-xs text-neutral-400">CHF</span>
+        <input
+          type="number"
+          step="0.01"
+          min="0"
+          value={localCosto}
+          placeholder="—"
+          onChange={(e) => setLocalCosto(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") save();
+          }}
+          disabled={pending}
+          className="w-28 px-2 py-1 rounded-lg text-sm tabular-nums text-right border border-neutral-200 bg-white hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-red-400"
+        />
+      </div>
+      <div className="inline-flex items-center gap-1.5">
+        <span className="text-xs text-neutral-400">Pagato da</span>
+        <input
+          type="text"
+          value={localPagato}
+          placeholder="—"
+          onChange={(e) => setLocalPagato(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") save();
+          }}
+          disabled={pending}
+          className="w-32 px-2 py-1 rounded-lg text-sm border border-neutral-200 bg-white hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-red-400"
+        />
+      </div>
+      <div className="inline-flex items-center gap-2">
+        <button
+          type="button"
+          onClick={save}
+          disabled={pending}
+          className="px-3 py-1 rounded-full bg-neutral-900 text-white text-xs font-medium hover:bg-neutral-800 disabled:opacity-50"
+        >
+          Salva
+        </button>
+        {current.costo != null && (
+          <button
+            type="button"
+            onClick={() => setMode("display")}
+            disabled={pending}
+            className="text-xs text-neutral-400 hover:text-neutral-600"
+          >
+            Annulla
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
+
+// ---- Food Truck subgroups ----
 
 function FtSubgroupPercentuale({
   eventoId,
@@ -597,9 +544,9 @@ function FtSubgroupPercentuale({
 }) {
   if (items.length === 0) return null;
   return (
-    <div>
-      <div className="mb-1.5 px-1">
-        <span className="text-xs uppercase tracking-wide text-neutral-500 font-medium">
+    <div className="space-y-2">
+      <div className="px-1">
+        <span className="text-xs uppercase tracking-wide text-neutral-500 font-semibold">
           A percentuale ({items.length})
         </span>
       </div>
@@ -612,7 +559,7 @@ function FtSubgroupPercentuale({
               <Th align="right">% Matazz</Th>
               <Th align="right">Guadagno nostro</Th>
               <Th align="center">
-                <span className="sr-only">Selezionata</span>
+                <span className="sr-only">Sel.</span>
               </Th>
             </tr>
           </thead>
@@ -638,37 +585,31 @@ function FtSubgroupAcquisto({
   items,
   persone,
   costoRealeAcquisto,
+  costoStimatoTotale,
   onRowClick,
 }: {
   eventoId: string;
   items: FoodTruckEdit[];
   persone: number;
   costoRealeAcquisto: number | null;
+  costoStimatoTotale: number;
   onRowClick: (f: FoodTruckEdit) => void;
 }) {
   if (items.length === 0) return null;
-
-  const costoStimatoTotale = items.reduce((s, r) => {
-    const qtaAcq = Number(r.quantita_acquistata ?? 0);
-    return s + Number(r.costo_unitario ?? 0) * qtaAcq;
-  }, 0);
-
   return (
-    <div>
-      <div className="flex items-baseline justify-between mb-1.5 px-1">
-        <span className="text-xs uppercase tracking-wide text-neutral-500 font-medium">
+    <div className="space-y-2">
+      <div className="flex items-baseline justify-between px-1">
+        <span className="text-xs uppercase tracking-wide text-neutral-500 font-semibold">
           Acquisto e rivendita ({items.length})
         </span>
-        <span className="text-xs text-neutral-500">{persone} persone</span>
+        <span className="text-xs text-neutral-400">{persone} persone</span>
       </div>
-      <CostoRealeRow
+      <FtCostoRealeCard
         eventoId={eventoId}
-        label="Costo acquisto reale"
         costoStimato={costoStimatoTotale}
         costoReale={costoRealeAcquisto}
-        onSave={(val) => aggiornaFoodTruckCostoRealeR(eventoId, val)}
       />
-      <div className="bg-white rounded-3xl overflow-x-auto mt-2">
+      <div className="bg-white rounded-3xl overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="border-b border-neutral-200">
             <tr>
@@ -679,7 +620,7 @@ function FtSubgroupAcquisto({
               <Th align="right">Stim. vendute</Th>
               <Th align="right">Guadagno stim.</Th>
               <Th align="center">
-                <span className="sr-only">Selezionata</span>
+                <span className="sr-only">Sel.</span>
               </Th>
             </tr>
           </thead>
@@ -695,6 +636,109 @@ function FtSubgroupAcquisto({
             ))}
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+}
+
+function FtCostoRealeCard({
+  eventoId,
+  costoStimato,
+  costoReale: initCostoReale,
+}: {
+  eventoId: string;
+  costoStimato: number;
+  costoReale: number | null;
+}) {
+  const [mode, setMode] = useState<"display" | "edit">(
+    initCostoReale == null ? "edit" : "display",
+  );
+  const [local, setLocal] = useState(initCostoReale != null ? String(initCostoReale) : "");
+  const [pending, startTransition] = useTransition();
+  const [current, setCurrent] = useState<number | null>(initCostoReale);
+
+  function save() {
+    const val = local.trim() === "" ? null : Number(local.trim());
+    if (val !== null && !Number.isFinite(val)) return;
+    startTransition(async () => {
+      const res = await aggiornaFoodTruckCostoRealeR(eventoId, val);
+      if (res.ok) {
+        setCurrent(val);
+        if (val != null) setMode("display");
+      }
+    });
+  }
+
+  if (mode === "display" && current != null) {
+    return (
+      <div className="flex items-center justify-between gap-3 rounded-2xl bg-red-50 border border-red-200 px-4 py-3">
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="text-xs font-bold uppercase tracking-widest text-red-400 bg-red-100 rounded-full px-2 py-0.5">
+            Costo acquisto reale
+          </span>
+          <span className="text-red-700 font-bold text-base tabular-nums">
+            {formatMoney(current)}
+          </span>
+          <span
+            className={`text-xs font-medium ${
+              current > costoStimato ? "text-red-500" : "text-green-600"
+            }`}
+          >
+            {current > costoStimato ? "↑" : "↓"} stima {formatMoney(costoStimato)}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setLocal(String(current));
+            setMode("edit");
+          }}
+          className="text-xs text-neutral-400 hover:text-neutral-700 underline shrink-0"
+        >
+          Modifica
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-dashed border-neutral-300 bg-white px-4 py-3 flex-wrap">
+      <span className="text-sm text-neutral-500 font-medium">Costo acquisto reale</span>
+      <span className="text-xs text-neutral-400">(stima: {formatMoney(costoStimato)})</span>
+      <span className="text-neutral-200">|</span>
+      <div className="inline-flex items-center gap-1.5">
+        <span className="text-xs text-neutral-400">CHF</span>
+        <input
+          type="number"
+          step="0.01"
+          min="0"
+          value={local}
+          placeholder="—"
+          onChange={(e) => setLocal(e.target.value)}
+          onKeyDown={(e) => { if (e.key === "Enter") save(); }}
+          disabled={pending}
+          className="w-28 px-2 py-1 rounded-lg text-sm tabular-nums text-right border border-neutral-200 bg-white hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-red-400"
+        />
+      </div>
+      <div className="inline-flex items-center gap-2">
+        <button
+          type="button"
+          onClick={save}
+          disabled={pending}
+          className="px-3 py-1 rounded-full bg-neutral-900 text-white text-xs font-medium hover:bg-neutral-800 disabled:opacity-50"
+        >
+          Salva
+        </button>
+        {current != null && (
+          <button
+            type="button"
+            onClick={() => setMode("display")}
+            disabled={pending}
+            className="text-xs text-neutral-400 hover:text-neutral-600"
+          >
+            Annulla
+          </button>
+        )}
       </div>
     </div>
   );
@@ -737,11 +781,7 @@ function FtRowPercentuale({
         {formatMoney(guadagno)}
       </td>
       <td className="px-4 py-3 text-center">
-        <SelToggle
-          pending={pending}
-          selected={row.selezionata}
-          onClick={toggle}
-        />
+        <SelToggle pending={pending} selected={row.selezionata} onClick={toggle} />
       </td>
     </tr>
   );
@@ -765,7 +805,7 @@ function FtRowAcquisto({
       await toggleFoodTruckSelezionata(eventoId, row.id, !row.selezionata);
     });
   }
-  const qtyVend = qtyVendutaFood(row, persone);
+  const qtyVend = Math.round(persone * Number(row.consumo_per_persona ?? 0));
   const guadagno = guadagnoFoodTruck(row, persone);
   return (
     <tr
@@ -784,9 +824,7 @@ function FtRowAcquisto({
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
         {Number(row.consumo_per_persona ?? 0)}
       </td>
-      <td className="px-4 py-3 text-neutral-900 text-right tabular-nums">
-        {qtyVend}
-      </td>
+      <td className="px-4 py-3 text-neutral-900 text-right tabular-nums">{qtyVend}</td>
       <td
         className={`px-4 py-3 text-right tabular-nums font-medium ${
           guadagno >= 0 ? "text-green-700" : "text-red-700"
@@ -795,15 +833,13 @@ function FtRowAcquisto({
         {formatMoney(guadagno)}
       </td>
       <td className="px-4 py-3 text-center">
-        <SelToggle
-          pending={pending}
-          selected={row.selezionata}
-          onClick={toggle}
-        />
+        <SelToggle pending={pending} selected={row.selezionata} onClick={toggle} />
       </td>
     </tr>
   );
 }
+
+// ---- Utility components ----
 
 function SelToggle({
   pending,
@@ -827,11 +863,7 @@ function SelToggle({
           : "bg-neutral-100 text-neutral-500 hover:bg-neutral-200"
       }`}
     >
-      {selected ? (
-        <Check className="w-4 h-4" />
-      ) : (
-        <Circle className="w-4 h-4" />
-      )}
+      {selected ? <Check className="w-4 h-4" /> : <Circle className="w-4 h-4" />}
     </button>
   );
 }
@@ -849,11 +881,8 @@ function SezioneToggle({
   function onClick(e: React.MouseEvent) {
     e.stopPropagation();
     startTransition(async () => {
-      if (kind === "bar") {
-        await toggleBarAttivoR(eventoId, !attivo);
-      } else {
-        await toggleFoodTruckAttivoR(eventoId, !attivo);
-      }
+      if (kind === "bar") await toggleBarAttivoR(eventoId, !attivo);
+      else await toggleFoodTruckAttivoR(eventoId, !attivo);
     });
   }
   return (
@@ -861,11 +890,7 @@ function SezioneToggle({
       type="button"
       onClick={onClick}
       disabled={pending}
-      title={
-        attivo
-          ? "Sezione attiva — clicca per escluderla dal budget"
-          : "Sezione disattivata — clicca per riattivarla"
-      }
+      title={attivo ? "Clicca per escludere dal budget" : "Clicca per riattivare"}
       className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors disabled:opacity-50 ${
         attivo
           ? "bg-green-100 text-green-800 hover:bg-green-200"
@@ -894,11 +919,7 @@ function Th({
   align: "left" | "right" | "center";
 }) {
   const cls =
-    align === "right"
-      ? "text-right"
-      : align === "center"
-        ? "text-center"
-        : "text-left";
+    align === "right" ? "text-right" : align === "center" ? "text-center" : "text-left";
   return (
     <th
       className={`px-4 py-2.5 text-xs font-medium uppercase tracking-wide text-neutral-500 ${cls}`}

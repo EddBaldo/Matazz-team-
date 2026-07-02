@@ -23,6 +23,8 @@ export async function calcolaBudgetEvento(
     cateringRes,
     foodTruckRes,
     sponsorRes,
+    barCostiRealiRes,
+    ftCostoRealeRes,
   ] = await Promise.all([
     sb
       .from("eventi")
@@ -69,6 +71,8 @@ export async function calcolaBudgetEvento(
       .from("evento_sponsor")
       .select("stato, importo")
       .eq("evento_id", eventoId),
+    sb.from("evento_bar_costi_reali").select("costo_reale").eq("evento_id", eventoId),
+    sb.from("eventi").select("food_truck_costo_reale_acquisto").eq("id", eventoId).maybeSingle(),
   ]);
 
   const artisti = (artistiRes.data ?? []) as {
@@ -218,15 +222,29 @@ export async function calcolaBudgetEvento(
   const barCostoReale = (barCostoRealeN != null || barCostoRealeF != null)
     ? (barCostoRealeN ?? 0) + (barCostoRealeF ?? 0)
     : null;
-  const barCostoBudget = barAttivo ? (barCostoReale ?? barCosto) : 0;
+  // Try new table first; fall back to old single columns
+  let barCostoRealeFromTable: number | null = null;
+  if (!barCostiRealiRes.error && barCostiRealiRes.data) {
+    const withCosto = (barCostiRealiRes.data as { costo_reale: number | null }[]).filter(
+      (r) => r.costo_reale != null,
+    );
+    if (withCosto.length > 0)
+      barCostoRealeFromTable = withCosto.reduce((s, r) => s + Number(r.costo_reale), 0);
+  } else {
+    if (barCostoReale != null) barCostoRealeFromTable = barCostoReale;
+  }
+  const barCostoBudget = barAttivo ? (barCostoRealeFromTable ?? barCosto) : 0;
+
+  const foodTruckCostoRealeAcq =
+    !ftCostoRealeRes.error && ftCostoRealeRes.data
+      ? ((ftCostoRealeRes.data as { food_truck_costo_reale_acquisto: number | null })
+          .food_truck_costo_reale_acquisto ?? null)
+      : null;
   const realeAttivo = incassoRealeVendite != null;
   const barRicavoBudget = barAttivo && !realeAttivo ? barRicavo : 0;
   const foodTruckAcqBudget = foodTruckAttivo && !realeAttivo ? totaleFoodTruckAcq : 0;
   const foodTruckPercBudget = foodTruckAttivo ? totaleFoodTruckPerc : 0;
 
-  const foodTruckCostoRealeAcq = evento.food_truck_costo_reale_acquisto != null
-    ? Number(evento.food_truck_costo_reale_acquisto)
-    : null;
   const totaleFoodTruckCostoAcqStimato = foodTruck
     .filter((r) => r.selezionata && r.modello === "Acquisto")
     .reduce((s, r) => s + Number(r.costo_unitario ?? 0) * Number(r.quantita_acquistata ?? 0), 0);

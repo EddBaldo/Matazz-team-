@@ -87,47 +87,28 @@ export async function toggleFoodTruckAttivoR(
   return { ok: true };
 }
 
-// ----- BAR COSTO REALE ---------------------------------------------------
+// ----- BAR COSTO REALE (per fonte/fornitore) --------------------------------
 
-export async function aggiornaBarCostoRealeR(
+export async function upsertBarCostoRealeR(
   eventoId: string,
-  fonte: "Nostri" | "Fornitori",
-  valore: number | null,
+  fonte: string,
+  costoReale: number | null,
+  pagatoDa: string | null,
 ): Promise<ActionResult> {
   await requireCurrentIdentity();
   const sb = createServerClient();
-  const col =
-    fonte === "Nostri"
-      ? "bar_costo_reale_nostri"
-      : "bar_costo_reale_fornitori";
-  const val =
-    valore == null || !Number.isFinite(valore) ? null : Math.max(0, valore);
+  const costo = costoReale == null || !Number.isFinite(costoReale) ? null : Math.max(0, costoReale);
+  const pagato = pagatoDa?.trim() || null;
   const { error } = await sb
-    .from("eventi")
-    .update({ [col]: val })
-    .eq("id", eventoId);
+    .from("evento_bar_costi_reali")
+    .upsert(
+      { evento_id: eventoId, fonte, costo_reale: costo, pagato_da: pagato },
+      { onConflict: "evento_id,fonte" },
+    );
   if (error) {
     console.error("Errore salva costo reale bar:", error);
     return { ok: false, error: "Errore nel salvataggio. Riprova." };
   }
-  revalidateFB(eventoId);
-  return { ok: true };
-}
-
-export async function aggiornaBarPagatoDaR(
-  eventoId: string,
-  fonte: "Nostri" | "Fornitori",
-  valore: string | null,
-): Promise<ActionResult> {
-  await requireCurrentIdentity();
-  const sb = createServerClient();
-  const col =
-    fonte === "Nostri"
-      ? "bar_costo_pagato_da_nostri"
-      : "bar_costo_pagato_da_fornitori";
-  const val = valore?.trim() || null;
-  const { error } = await sb.from("eventi").update({ [col]: val }).eq("id", eventoId);
-  if (error) return { ok: false, error: "Errore nel salvataggio. Riprova." };
   revalidateFB(eventoId);
   return { ok: true };
 }
