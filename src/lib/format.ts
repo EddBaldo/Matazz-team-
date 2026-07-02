@@ -28,6 +28,11 @@ export function formatMoney(n: number | null | undefined): string {
   return `CHF ${sign}${withSep}.${decPart}`;
 }
 
+export function fmtOrDash(n: number | null | undefined): string {
+  if (n == null || n === 0) return "—";
+  return formatMoney(n);
+}
+
 export function formatTime(t: string | null | undefined): string {
   if (!t) return "";
   // Postgres time arriva come "HH:MM:SS"; mostriamo solo HH:MM

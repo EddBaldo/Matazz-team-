@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Plus, Check, Circle, Power } from "lucide-react";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, fmtOrDash } from "@/lib/format";
 import {
   aggiornaStimePersoneR,
   upsertBarCostoRealeR,
@@ -352,10 +352,10 @@ function BarSubgroup({
                     <td className="px-4 py-3 text-neutral-700">{r.fornitore ?? "—"}</td>
                   )}
                   <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
-                    {formatMoney(Number(r.costo_unitario ?? 0))}
+                    {fmtOrDash(Number(r.costo_unitario ?? 0))}
                   </td>
                   <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
-                    {formatMoney(Number(r.prezzo_vendita ?? 0))}
+                    {fmtOrDash(Number(r.prezzo_vendita ?? 0))}
                   </td>
                   <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
                     {Number(r.consumo_per_persona ?? 0)}

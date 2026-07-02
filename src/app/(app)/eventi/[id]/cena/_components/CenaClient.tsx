@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Plus, Check, Circle, Pencil, RefreshCw } from "lucide-react";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, fmtOrDash } from "@/lib/format";
 import {
   allineaCateringPersoneR,
   toggleCateringSelezionata,
@@ -366,7 +366,7 @@ function CateringRow({
         {row.descrizione ?? "—"}
       </td>
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
-        {isTotale ? "—" : formatMoney(Number(row.prezzo_per_persona))}
+        {isTotale ? "—" : fmtOrDash(Number(row.prezzo_per_persona))}
       </td>
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
         {isTotale ? "—" : row.numero_persone}

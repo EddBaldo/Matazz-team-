@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Plus, Check, Circle } from "lucide-react";
-import { formatMoney } from "@/lib/format";
+import { formatMoney, fmtOrDash } from "@/lib/format";
 import { togglePresoR } from "../actions";
 import {
   MaterialeModal,
@@ -130,7 +130,7 @@ function MaterialeRowItem({
     <tr
       onClick={onClick}
       className={`border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50 cursor-pointer ${
-        row.preso ? "opacity-60" : ""
+        row.preso ? "" : "opacity-60"
       }`}
     >
       <td className="px-3 py-3 text-center">
@@ -179,12 +179,10 @@ function MaterialeRowItem({
         )}
       </td>
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
-        {row.prezzo_unitario != null
-          ? formatMoney(Number(row.prezzo_unitario))
-          : "—"}
+        {fmtOrDash(Number(row.prezzo_unitario ?? 0))}
       </td>
       <td className="px-4 py-3 text-neutral-900 text-right tabular-nums font-medium">
-        {formatMoney(subtotale)}
+        {fmtOrDash(subtotale)}
       </td>
     </tr>
   );

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Plus, Check, Circle } from "lucide-react";
-import { formatMoney } from "@/lib/format";
+import { fmtOrDash } from "@/lib/format";
 import {
   CATEGORIE_PERSONALE,
   CATEGORIA_PERSONALE_EMOJI,
@@ -209,12 +209,10 @@ function PersonaleRowItem({
       </td>
       <td className="px-4 py-3 text-neutral-700">{row.presenza ?? "—"}</td>
       <td className="px-4 py-3 text-neutral-900 text-right tabular-nums font-medium">
-        {row.compenso != null ? formatMoney(Number(row.compenso)) : "—"}
+        {fmtOrDash(Number(row.compenso ?? 0))}
       </td>
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
-        {row.costi_trasporto != null && Number(row.costi_trasporto) > 0
-          ? formatMoney(Number(row.costi_trasporto))
-          : "—"}
+        {fmtOrDash(Number(row.costi_trasporto ?? 0))}
       </td>
       <td className="px-4 py-3 text-neutral-700">{row.note ?? "—"}</td>
       <td className="px-4 py-3 text-center">

@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Plus, Check, Circle, ExternalLink } from "lucide-react";
-import { formatMoney } from "@/lib/format";
+import { fmtOrDash } from "@/lib/format";
 import {
   MACRO_TIPI_ARTE,
   MACRO_EMOJI,
@@ -310,17 +310,13 @@ function ArtistaRowItem({
         />
       </td>
       <td className="px-4 py-3 text-neutral-900 text-right tabular-nums">
-        {row.artist_fee != null ? formatMoney(Number(row.artist_fee)) : "—"}
+        {fmtOrDash(Number(row.artist_fee ?? 0))}
       </td>
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
-        {row.costi_produzione != null
-          ? formatMoney(Number(row.costi_produzione))
-          : "—"}
+        {fmtOrDash(Number(row.costi_produzione ?? 0))}
       </td>
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
-        {row.costi_trasporto != null
-          ? formatMoney(Number(row.costi_trasporto))
-          : "—"}
+        {fmtOrDash(Number(row.costi_trasporto ?? 0))}
       </td>
       <td className="px-4 py-3 text-center">
         <ToggleBadge

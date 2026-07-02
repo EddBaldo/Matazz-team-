@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { formatMoney } from "@/lib/format";
+import { fmtOrDash } from "@/lib/format";
 import { VoceExtraModal, type VoceExtraEdit } from "./VoceExtraModal";
 
 type Props = {
@@ -83,7 +83,7 @@ export function VociExtraClient({ eventoId, rows }: Props) {
                     }`}
                   >
                     {r.tipo === "Entrata" ? "+" : "−"}
-                    {formatMoney(Number(r.importo))}
+                    {fmtOrDash(Number(r.importo))}
                   </td>
                 </tr>
               ))}
