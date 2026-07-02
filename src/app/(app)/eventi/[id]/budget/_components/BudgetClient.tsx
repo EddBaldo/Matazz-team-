@@ -61,27 +61,15 @@ export function BudgetClient({
 
   return (
     <>
-      {/* 2 card riepilogo: Costi effettivi (grande) | Budget (compatto) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <SummaryColumn
-          label="Costi effettivi"
-          description="Calcolati in automatico dalle tabelle dell'evento: artisti, sponsor, F&B, materiali, ecc."
-          entrate={totaleEffEntrate}
-          uscite={totaleEffUscite}
-          saldo={saldoEffettivo}
-          saldoConto={saldoConto}
-          large
-        />
-        <SummaryColumn
-          label="Budget previsto"
-          description="La nostra previsione editabile a mano."
-          entrate={totaleStimEntrate}
-          uscite={totaleStimUscite}
-          saldo={saldoStimato}
-          saldoConto={saldoConto}
-          compact
-        />
-      </div>
+      <SummaryCards
+        effEntrate={totaleEffEntrate}
+        effUscite={totaleEffUscite}
+        effSaldo={saldoEffettivo}
+        stimEntrate={totaleStimEntrate}
+        stimUscite={totaleStimUscite}
+        stimSaldo={saldoStimato}
+        saldoConto={saldoConto}
+      />
 
       <BudgetTable
         eventoId={eventoId}
@@ -120,98 +108,80 @@ export function BudgetClient({
   );
 }
 
-function SummaryColumn({
-  label,
-  description,
-  entrate,
-  uscite,
-  saldo,
+function SummaryCards({
+  effEntrate,
+  effUscite,
+  effSaldo,
+  stimEntrate,
+  stimUscite,
+  stimSaldo,
   saldoConto,
-  large,
-  compact,
 }: {
-  label: string;
-  description?: string;
-  entrate: number;
-  uscite: number;
-  saldo: number;
+  effEntrate: number;
+  effUscite: number;
+  effSaldo: number;
+  stimEntrate: number;
+  stimUscite: number;
+  stimSaldo: number;
   saldoConto: number;
-  large?: boolean;
-  compact?: boolean;
 }) {
-  if (compact) {
-    return (
-      <div className="rounded-3xl bg-white p-4 md:col-span-1 opacity-80">
-        <p className="text-[10px] uppercase tracking-wide text-neutral-400 font-medium">
-          {label}
-        </p>
-        {description && (
-          <p className="text-[10px] text-neutral-400 mt-0.5 leading-snug">
-            {description}
-          </p>
-        )}
-        <div className="grid grid-cols-2 gap-2 mt-3">
-          <div>
-            <p className="text-[9px] uppercase tracking-wide text-neutral-400 font-medium">Entrate</p>
-            <p className="text-sm font-semibold tabular-nums mt-0.5 text-green-600">
-              {formatMoney(entrate)}
-            </p>
-          </div>
-          <div>
-            <p className="text-[9px] uppercase tracking-wide text-neutral-400 font-medium">Uscite</p>
-            <p className="text-sm font-semibold tabular-nums mt-0.5 text-red-600">
-              {formatMoney(uscite)}
-            </p>
-          </div>
-        </div>
-        <div className="mt-3 pt-3 border-t border-neutral-100">
-          <p className="text-[9px] uppercase tracking-wide text-neutral-400 font-medium">Saldo previsto</p>
-          <p className={`text-lg font-semibold tabular-nums mt-0.5 ${saldo >= 0 ? "text-green-600" : "text-red-600"}`}>
-            {formatMoney(saldo)}
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className={`rounded-3xl bg-white p-6 ${large ? "md:col-span-2" : ""}`}>
-      <p className="text-xs uppercase tracking-wide text-neutral-500 font-medium">
-        {label}
-      </p>
-      {description && (
-        <p className="text-xs text-neutral-500 mt-1 leading-snug">
-          {description}
-        </p>
-      )}
-      <div className="grid grid-cols-2 gap-4 mt-4">
-        <div>
-          <p className="text-[10px] uppercase tracking-wide text-neutral-400 font-medium">
-            Entrate
-          </p>
-          <p className="text-2xl font-semibold tabular-nums mt-0.5 text-green-700">
-            {formatMoney(entrate)}
-          </p>
+    <div className="rounded-3xl bg-white overflow-hidden">
+      {/* Titoli */}
+      <div className="grid grid-cols-3 border-b border-neutral-100">
+        <div className="col-span-2 px-6 pt-5 pb-4 border-r border-neutral-100">
+          <p className="text-base font-bold text-neutral-900 tracking-tight">Costi effettivi</p>
+          <p className="text-xs text-neutral-500 mt-0.5">Calcolati automaticamente dalle tabelle dell&apos;evento.</p>
         </div>
-        <div>
-          <p className="text-[10px] uppercase tracking-wide text-neutral-400 font-medium">
-            Uscite
-          </p>
-          <p className="text-2xl font-semibold tabular-nums mt-0.5 text-red-700">
-            {formatMoney(uscite)}
-          </p>
+        <div className="px-5 pt-5 pb-4">
+          <p className="text-sm font-bold text-neutral-600 tracking-tight">Budget previsto</p>
+          <p className="text-[10px] text-neutral-400 mt-0.5">Previsione editabile a mano.</p>
         </div>
       </div>
-      <div className="mt-4 pt-4 border-t border-neutral-100">
-        <p className="text-[10px] uppercase tracking-wide text-neutral-400 font-medium">
-          Saldo (include conto)
-        </p>
-        <p className={`text-3xl font-semibold tabular-nums mt-1 ${saldo >= 0 ? "text-green-700" : "text-red-700"}`}>
-          {formatMoney(saldo)}
-        </p>
-        <p className="text-[10px] text-neutral-400 mt-1 tabular-nums">
-          Conto Matazz: {formatMoney(saldoConto)}
-        </p>
+
+      {/* Entrate / Uscite */}
+      <div className="grid grid-cols-3 border-b border-neutral-100">
+        <div className="col-span-2 px-6 py-5 border-r border-neutral-100">
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <p className="text-[10px] uppercase tracking-wide text-neutral-400 font-medium">Entrate</p>
+              <p className="text-2xl font-bold tabular-nums mt-1 text-green-700">{formatMoney(effEntrate)}</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wide text-neutral-400 font-medium">Uscite</p>
+              <p className="text-2xl font-bold tabular-nums mt-1 text-red-700">{formatMoney(effUscite)}</p>
+            </div>
+          </div>
+        </div>
+        <div className="px-5 py-5">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-[9px] uppercase tracking-wide text-neutral-400 font-medium">Entrate</p>
+              <p className="text-sm font-semibold tabular-nums mt-1 text-green-600">{formatMoney(stimEntrate)}</p>
+            </div>
+            <div>
+              <p className="text-[9px] uppercase tracking-wide text-neutral-400 font-medium">Uscite</p>
+              <p className="text-sm font-semibold tabular-nums mt-1 text-red-600">{formatMoney(stimUscite)}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Saldo */}
+      <div className="grid grid-cols-3">
+        <div className="col-span-2 px-6 py-5 border-r border-neutral-100">
+          <p className="text-[10px] uppercase tracking-wide text-neutral-400 font-medium">Saldo (include conto)</p>
+          <p className={`text-3xl font-bold tabular-nums mt-1 ${effSaldo >= 0 ? "text-green-700" : "text-red-700"}`}>
+            {formatMoney(effSaldo)}
+          </p>
+          <p className="text-[10px] text-neutral-400 mt-1 tabular-nums">Conto Matazz: {formatMoney(saldoConto)}</p>
+        </div>
+        <div className="px-5 py-5">
+          <p className="text-[9px] uppercase tracking-wide text-neutral-400 font-medium">Saldo previsto</p>
+          <p className={`text-lg font-bold tabular-nums mt-1 ${stimSaldo >= 0 ? "text-green-600" : "text-red-600"}`}>
+            {formatMoney(stimSaldo)}
+          </p>
+        </div>
       </div>
     </div>
   );
