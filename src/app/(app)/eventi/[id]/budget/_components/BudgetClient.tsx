@@ -130,11 +130,11 @@ function SummaryCards({
       {/* Titoli */}
       <div className="grid grid-cols-3 border-b border-neutral-100">
         <div className="col-span-2 px-6 pt-5 pb-4 border-r border-neutral-100">
-          <p className="text-base font-bold text-neutral-900 tracking-tight">Costi effettivi</p>
+          <p className="text-xl font-bold text-neutral-900 tracking-tight">Costi effettivi</p>
           <p className="text-xs text-neutral-500 mt-0.5">Calcolati automaticamente dalle tabelle dell&apos;evento.</p>
         </div>
         <div className="px-5 pt-5 pb-4">
-          <p className="text-sm font-bold text-neutral-600 tracking-tight">Budget previsto</p>
+          <p className="text-lg font-bold text-neutral-600 tracking-tight">Budget previsto</p>
           <p className="text-[10px] text-neutral-400 mt-0.5">Previsione editabile a mano.</p>
         </div>
       </div>
