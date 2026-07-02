@@ -311,8 +311,9 @@ function BarSubgroup({
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between gap-2 px-1">
-        <span className="text-xs uppercase tracking-wide text-neutral-500 font-semibold">
-          {label} ({items.length})
+        <span className="text-sm font-bold text-neutral-800">
+          {label}{" "}
+          <span className="text-neutral-400 font-normal text-xs">({items.length})</span>
         </span>
         <span className="text-xs text-neutral-400">
           stima: costo{" "}
@@ -436,11 +437,9 @@ function CostoRealeCard({
 
   if (mode === "display" && current.costo != null) {
     return (
-      <div className="flex items-center justify-between gap-3 rounded-2xl bg-red-50 border border-red-200 px-4 py-3">
+      <div className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-3">
         <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-xs font-bold uppercase tracking-widest text-red-400 bg-red-100 rounded-full px-2 py-0.5">
-            Costo reale
-          </span>
+          <span className="text-xs font-medium text-neutral-500">Costo reale post-evento</span>
           <span className="text-red-700 font-bold text-base tabular-nums">
             {formatMoney(current.costo)}
           </span>
@@ -617,6 +616,8 @@ function FtSubgroupAcquisto({
               <Th align="right">Costo unit.</Th>
               <Th align="right">Vendita unit.</Th>
               <Th align="right">Consumo/p</Th>
+              <Th align="right">Qtà acquistata</Th>
+              <Th align="right">Spesa acquisto</Th>
               <Th align="right">Stim. vendute</Th>
               <Th align="right">Guadagno stim.</Th>
               <Th align="center">
@@ -671,11 +672,9 @@ function FtCostoRealeCard({
 
   if (mode === "display" && current != null) {
     return (
-      <div className="flex items-center justify-between gap-3 rounded-2xl bg-red-50 border border-red-200 px-4 py-3">
+      <div className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-3">
         <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-xs font-bold uppercase tracking-widest text-red-400 bg-red-100 rounded-full px-2 py-0.5">
-            Costo acquisto reale
-          </span>
+          <span className="text-xs font-medium text-neutral-500">Costo acquisto reale</span>
           <span className="text-red-700 font-bold text-base tabular-nums">
             {formatMoney(current)}
           </span>
@@ -684,7 +683,7 @@ function FtCostoRealeCard({
               current > costoStimato ? "text-red-500" : "text-green-600"
             }`}
           >
-            {current > costoStimato ? "↑" : "↓"} stima {formatMoney(costoStimato)}
+            {current > costoStimato ? "↑" : "↓"} pianificato {formatMoney(costoStimato)}
           </span>
         </div>
         <button
@@ -806,6 +805,8 @@ function FtRowAcquisto({
     });
   }
   const qtyVend = Math.round(persone * Number(row.consumo_per_persona ?? 0));
+  const qtaAcq = Number(row.quantita_acquistata ?? 0);
+  const costoAcquisto = Number(row.costo_unitario ?? 0) * qtaAcq;
   const guadagno = guadagnoFoodTruck(row, persone);
   return (
     <tr
@@ -823,6 +824,12 @@ function FtRowAcquisto({
       </td>
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
         {Number(row.consumo_per_persona ?? 0)}
+      </td>
+      <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
+        {qtaAcq > 0 ? qtaAcq : "—"}
+      </td>
+      <td className="px-4 py-3 text-red-700 text-right tabular-nums font-medium">
+        {qtaAcq > 0 ? formatMoney(costoAcquisto) : "—"}
       </td>
       <td className="px-4 py-3 text-neutral-900 text-right tabular-nums">{qtyVend}</td>
       <td
