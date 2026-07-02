@@ -358,23 +358,41 @@ function IncassoRealeInput({
   eventoId: string;
   value: number | null;
 }) {
-  const [local, setLocal] = useState<string>(
-    value != null ? String(value) : "",
+  const [mode, setMode] = useState<"display" | "edit">(
+    value == null ? "edit" : "display",
   );
+  const [local, setLocal] = useState<string>(value != null ? String(value) : "");
+  const [current, setCurrent] = useState<number | null>(value);
   const [pending, startTransition] = useTransition();
-  const [saved, setSaved] = useState(false);
 
-  function commit() {
+  function save() {
     const trimmed = local.trim();
     const val = trimmed === "" ? null : Number(trimmed);
     if (val !== null && !Number.isFinite(val)) return;
     startTransition(async () => {
       const res = await salvaIncassoRealeR(eventoId, val);
       if (res.ok) {
-        setSaved(true);
-        setTimeout(() => setSaved(false), 1500);
+        setCurrent(val);
+        if (val != null) setMode("display");
       }
     });
+  }
+
+  if (mode === "display" && current != null) {
+    return (
+      <div className="inline-flex items-center gap-2 justify-end">
+        <span className="tabular-nums font-medium text-neutral-900">
+          {formatMoney(current)}
+        </span>
+        <button
+          type="button"
+          onClick={() => { setLocal(String(current)); setMode("edit"); }}
+          className="text-xs text-neutral-400 hover:text-neutral-700 underline"
+        >
+          Modifica
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -387,19 +405,28 @@ function IncassoRealeInput({
         value={local}
         placeholder="—"
         onChange={(e) => setLocal(e.target.value)}
-        onBlur={commit}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") (e.target as HTMLInputElement).blur();
-        }}
+        onKeyDown={(e) => { if (e.key === "Enter") save(); }}
         disabled={pending}
-        className={`w-28 px-2 py-1 rounded-lg text-sm tabular-nums text-right border transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-          saved
-            ? "border-green-400 bg-green-50"
-            : local.trim()
-              ? "border-amber-400 bg-amber-50"
-              : "border-neutral-200 hover:border-neutral-300"
-        }`}
+        className="w-28 px-2 py-1 rounded-lg text-sm tabular-nums text-right border border-neutral-200 hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-amber-500"
       />
+      <button
+        type="button"
+        onClick={save}
+        disabled={pending}
+        className="px-2 py-1 rounded-lg bg-neutral-900 text-white text-xs font-medium hover:bg-neutral-800 disabled:opacity-50"
+      >
+        Salva
+      </button>
+      {current != null && (
+        <button
+          type="button"
+          onClick={() => setMode("display")}
+          disabled={pending}
+          className="text-xs text-neutral-400 hover:text-neutral-600"
+        >
+          Annulla
+        </button>
+      )}
     </div>
   );
 }
