@@ -84,7 +84,7 @@ export function FoodBeverageClient({
       <section className={`space-y-4 ${barAttivo ? "" : "opacity-60"}`}>
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="space-y-2">
-            <h3 className="text-base font-semibold text-neutral-900 flex items-center gap-2 flex-wrap">
+            <h3 className="text-xl font-semibold text-neutral-900 flex items-center gap-2 flex-wrap">
               <span aria-hidden>🍻</span>
               <span>Bar</span>
               <span className="text-sm text-neutral-500 font-normal">({bar.length})</span>
@@ -176,7 +176,7 @@ export function FoodBeverageClient({
       <section className={`space-y-3 ${foodTruckAttivo ? "" : "opacity-60"}`}>
         <div className="flex items-baseline justify-between gap-3 flex-wrap">
           <div className="space-y-2">
-            <h3 className="text-base font-semibold text-neutral-900 flex items-center gap-2 flex-wrap">
+            <h3 className="text-xl font-semibold text-neutral-900 flex items-center gap-2 flex-wrap">
               <span aria-hidden>🚚</span>
               <span>Food truck</span>
               <span className="text-sm text-neutral-500 font-normal">({foodTruck.length})</span>
@@ -647,9 +647,7 @@ function FtRowPercentuale({
   return (
     <tr
       onClick={onClick}
-      className={`border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50 cursor-pointer ${
-        row.selezionata ? "bg-amber-50/40" : ""
-      }`}
+      className="border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50 cursor-pointer"
     >
       <td className="px-4 py-3 text-neutral-900 font-medium">{row.nome}</td>
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
@@ -693,9 +691,7 @@ function FtRowAcquisto({
   return (
     <tr
       onClick={onClick}
-      className={`border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50 cursor-pointer ${
-        row.selezionata ? "bg-amber-50/40" : ""
-      }`}
+      className="border-b border-neutral-100 last:border-b-0 hover:bg-neutral-50 cursor-pointer"
     >
       <td className="px-4 py-3 text-neutral-900 font-medium">{row.nome}</td>
       <td className="px-4 py-3 text-neutral-700 text-right tabular-nums">
