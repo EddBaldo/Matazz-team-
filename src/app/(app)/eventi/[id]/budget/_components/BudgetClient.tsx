@@ -61,17 +61,8 @@ export function BudgetClient({
 
   return (
     <>
-      {/* 2 card riepilogo: Budget | Costi effettivi */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <SummaryColumn
-          label="Budget"
-          description="La nostra previsione editabile a mano: quanto pensiamo di spendere e incassare per ogni voce."
-          entrate={totaleStimEntrate}
-          uscite={totaleStimUscite}
-          saldo={saldoStimato}
-          saldoConto={saldoConto}
-          subtle
-        />
+      {/* 2 card riepilogo: Costi effettivi (grande) | Budget (compatto) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <SummaryColumn
           label="Costi effettivi"
           description="Calcolati in automatico dalle tabelle dell'evento: artisti, sponsor, F&B, materiali, ecc."
@@ -79,6 +70,16 @@ export function BudgetClient({
           uscite={totaleEffUscite}
           saldo={saldoEffettivo}
           saldoConto={saldoConto}
+          large
+        />
+        <SummaryColumn
+          label="Budget previsto"
+          description="La nostra previsione editabile a mano."
+          entrate={totaleStimEntrate}
+          uscite={totaleStimUscite}
+          saldo={saldoStimato}
+          saldoConto={saldoConto}
+          compact
         />
       </div>
 
@@ -126,7 +127,8 @@ function SummaryColumn({
   uscite,
   saldo,
   saldoConto,
-  subtle,
+  large,
+  compact,
 }: {
   label: string;
   description?: string;
@@ -134,10 +136,46 @@ function SummaryColumn({
   uscite: number;
   saldo: number;
   saldoConto: number;
-  subtle?: boolean;
+  large?: boolean;
+  compact?: boolean;
 }) {
+  if (compact) {
+    return (
+      <div className="rounded-3xl bg-white p-4 md:col-span-1 opacity-80">
+        <p className="text-[10px] uppercase tracking-wide text-neutral-400 font-medium">
+          {label}
+        </p>
+        {description && (
+          <p className="text-[10px] text-neutral-400 mt-0.5 leading-snug">
+            {description}
+          </p>
+        )}
+        <div className="grid grid-cols-2 gap-2 mt-3">
+          <div>
+            <p className="text-[9px] uppercase tracking-wide text-neutral-400 font-medium">Entrate</p>
+            <p className="text-sm font-semibold tabular-nums mt-0.5 text-green-600">
+              {formatMoney(entrate)}
+            </p>
+          </div>
+          <div>
+            <p className="text-[9px] uppercase tracking-wide text-neutral-400 font-medium">Uscite</p>
+            <p className="text-sm font-semibold tabular-nums mt-0.5 text-red-600">
+              {formatMoney(uscite)}
+            </p>
+          </div>
+        </div>
+        <div className="mt-3 pt-3 border-t border-neutral-100">
+          <p className="text-[9px] uppercase tracking-wide text-neutral-400 font-medium">Saldo previsto</p>
+          <p className={`text-lg font-semibold tabular-nums mt-0.5 ${saldo >= 0 ? "text-green-600" : "text-red-600"}`}>
+            {formatMoney(saldo)}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="rounded-3xl bg-white p-6">
+    <div className={`rounded-3xl bg-white p-6 ${large ? "md:col-span-2" : ""}`}>
       <p className="text-xs uppercase tracking-wide text-neutral-500 font-medium">
         {label}
       </p>
@@ -151,11 +189,7 @@ function SummaryColumn({
           <p className="text-[10px] uppercase tracking-wide text-neutral-400 font-medium">
             Entrate
           </p>
-          <p
-            className={`text-xl font-semibold tabular-nums mt-0.5 ${
-              subtle ? "text-green-600" : "text-green-700"
-            }`}
-          >
+          <p className="text-2xl font-semibold tabular-nums mt-0.5 text-green-700">
             {formatMoney(entrate)}
           </p>
         </div>
@@ -163,11 +197,7 @@ function SummaryColumn({
           <p className="text-[10px] uppercase tracking-wide text-neutral-400 font-medium">
             Uscite
           </p>
-          <p
-            className={`text-xl font-semibold tabular-nums mt-0.5 ${
-              subtle ? "text-red-600" : "text-red-700"
-            }`}
-          >
+          <p className="text-2xl font-semibold tabular-nums mt-0.5 text-red-700">
             {formatMoney(uscite)}
           </p>
         </div>
@@ -176,11 +206,7 @@ function SummaryColumn({
         <p className="text-[10px] uppercase tracking-wide text-neutral-400 font-medium">
           Saldo (include conto)
         </p>
-        <p
-          className={`text-3xl font-semibold tabular-nums mt-1 ${
-            saldo >= 0 ? "text-green-700" : "text-red-700"
-          }`}
-        >
+        <p className={`text-3xl font-semibold tabular-nums mt-1 ${saldo >= 0 ? "text-green-700" : "text-red-700"}`}>
           {formatMoney(saldo)}
         </p>
         <p className="text-[10px] text-neutral-400 mt-1 tabular-nums">
@@ -284,10 +310,10 @@ function BudgetTable({
               <td className="px-4 py-3 text-xs uppercase tracking-wide text-neutral-500 font-medium">
                 Totale {title.toLowerCase()}
               </td>
-              <td className="px-4 py-3 text-right tabular-nums font-semibold text-neutral-700">
+              <td className={`px-4 py-3 text-right tabular-nums font-semibold ${toneAccent}`}>
                 {formatMoney(totaleStimato)}
               </td>
-              <td className="px-4 py-3 text-right tabular-nums font-semibold text-neutral-900">
+              <td className={`px-4 py-3 text-right tabular-nums font-semibold ${toneAccent}`}>
                 {formatMoney(totaleEffettivo)}
               </td>
             </tr>
@@ -381,9 +407,6 @@ function IncassoRealeInput({
   if (mode === "display" && current != null) {
     return (
       <div className="inline-flex items-center gap-2 justify-end">
-        <span className="tabular-nums font-medium text-neutral-900">
-          {formatMoney(current)}
-        </span>
         <button
           type="button"
           onClick={() => { setLocal(String(current)); setMode("edit"); }}
@@ -391,6 +414,9 @@ function IncassoRealeInput({
         >
           Modifica
         </button>
+        <span className="tabular-nums font-medium text-neutral-900">
+          {formatMoney(current)}
+        </span>
       </div>
     );
   }
