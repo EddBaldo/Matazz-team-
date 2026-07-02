@@ -22,6 +22,7 @@ export type FoodTruckEdit = {
   prezzo_vendita: number | null;
   consumo_per_persona: number;
   quantita_acquistata: number | null;
+  pagato_da: string | null;
   selezionata: boolean;
   note: string | null;
 };
@@ -82,6 +83,7 @@ export function FoodTruckModal({ eventoId, mode, onClose }: Props) {
         (fd.get("consumo_per_persona") as string) || null,
       quantita_acquistata:
         (fd.get("quantita_acquistata") as string) || null,
+      pagato_da: (fd.get("pagato_da") as string) || null,
       selezionata: selezionata,
       note: (fd.get("note") as string) || null,
     };
@@ -250,6 +252,15 @@ export function FoodTruckModal({ eventoId, mode, onClose }: Props) {
                   defaultValue={f?.quantita_acquistata ?? 0}
                   className={INPUT_CLASS}
                   placeholder="Es. 200"
+                />
+              </Field>
+              <Field label="Chi ha pagato">
+                <input
+                  type="text"
+                  name="pagato_da"
+                  defaultValue={f?.pagato_da ?? ""}
+                  className={INPUT_CLASS}
+                  placeholder="Es. Edu"
                 />
               </Field>
             </div>

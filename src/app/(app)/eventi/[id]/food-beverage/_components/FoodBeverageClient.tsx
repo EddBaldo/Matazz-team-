@@ -6,7 +6,6 @@ import { formatMoney } from "@/lib/format";
 import {
   aggiornaStimePersoneR,
   upsertBarCostoRealeR,
-  aggiornaFoodTruckCostoRealeR,
   toggleBarAttivoR,
   toggleFoodTruckAttivoR,
   toggleFoodTruckSelezionata,
@@ -24,7 +23,6 @@ type Props = {
   bar: BarEdit[];
   foodTruck: FoodTruckEdit[];
   barCostiReali: Record<string, BarCostoRealeEntry>;
-  foodTruckCostoRealeAcquisto: number | null;
 };
 
 type BarModalState = { kind: "add" } | { kind: "edit"; bar: BarEdit } | null;
@@ -58,7 +56,6 @@ export function FoodBeverageClient({
   bar,
   foodTruck,
   barCostiReali,
-  foodTruckCostoRealeAcquisto,
 }: Props) {
   const [barModal, setBarModal] = useState<BarModalState>(null);
   const [ftModal, setFtModal] = useState<FtModalState>(null);
@@ -78,10 +75,6 @@ export function FoodBeverageClient({
   const ftTotaleSel = foodTruck
     .filter((r) => r.selezionata)
     .reduce((s, r) => s + guadagnoFoodTruck(r, personeStimati), 0);
-  const ftCostoStimatoTotale = ftAcquisto.reduce(
-    (s, r) => s + Number(r.costo_unitario ?? 0) * Number(r.quantita_acquistata ?? 0),
-    0,
-  );
 
   return (
     <>
@@ -224,8 +217,6 @@ export function FoodBeverageClient({
               eventoId={eventoId}
               items={ftAcquisto}
               persone={personeStimati}
-              costoRealeAcquisto={foodTruckCostoRealeAcquisto}
-              costoStimatoTotale={ftCostoStimatoTotale}
               onRowClick={(f) => setFtModal({ kind: "edit", ft: f })}
             />
           </>
@@ -583,15 +574,11 @@ function FtSubgroupAcquisto({
   eventoId,
   items,
   persone,
-  costoRealeAcquisto,
-  costoStimatoTotale,
   onRowClick,
 }: {
   eventoId: string;
   items: FoodTruckEdit[];
   persone: number;
-  costoRealeAcquisto: number | null;
-  costoStimatoTotale: number;
   onRowClick: (f: FoodTruckEdit) => void;
 }) {
   if (items.length === 0) return null;
@@ -603,11 +590,6 @@ function FtSubgroupAcquisto({
         </span>
         <span className="text-xs text-neutral-400">{persone} persone</span>
       </div>
-      <FtCostoRealeCard
-        eventoId={eventoId}
-        costoStimato={costoStimatoTotale}
-        costoReale={costoRealeAcquisto}
-      />
       <div className="bg-white rounded-3xl overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="border-b border-neutral-200">
@@ -620,6 +602,7 @@ function FtSubgroupAcquisto({
               <Th align="right">Spesa acquisto</Th>
               <Th align="right">Stim. vendute</Th>
               <Th align="right">Guadagno stim.</Th>
+              <Th align="left">Chi ha pagato</Th>
               <Th align="center">
                 <span className="sr-only">Sel.</span>
               </Th>
@@ -637,107 +620,6 @@ function FtSubgroupAcquisto({
             ))}
           </tbody>
         </table>
-      </div>
-    </div>
-  );
-}
-
-function FtCostoRealeCard({
-  eventoId,
-  costoStimato,
-  costoReale: initCostoReale,
-}: {
-  eventoId: string;
-  costoStimato: number;
-  costoReale: number | null;
-}) {
-  const [mode, setMode] = useState<"display" | "edit">(
-    initCostoReale == null ? "edit" : "display",
-  );
-  const [local, setLocal] = useState(initCostoReale != null ? String(initCostoReale) : "");
-  const [pending, startTransition] = useTransition();
-  const [current, setCurrent] = useState<number | null>(initCostoReale);
-
-  function save() {
-    const val = local.trim() === "" ? null : Number(local.trim());
-    if (val !== null && !Number.isFinite(val)) return;
-    startTransition(async () => {
-      const res = await aggiornaFoodTruckCostoRealeR(eventoId, val);
-      if (res.ok) {
-        setCurrent(val);
-        if (val != null) setMode("display");
-      }
-    });
-  }
-
-  if (mode === "display" && current != null) {
-    return (
-      <div className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-3">
-        <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-xs font-medium text-neutral-500">Costo acquisto reale</span>
-          <span className="text-red-700 font-bold text-base tabular-nums">
-            {formatMoney(current)}
-          </span>
-          <span
-            className={`text-xs font-medium ${
-              current > costoStimato ? "text-red-500" : "text-green-600"
-            }`}
-          >
-            {current > costoStimato ? "↑" : "↓"} pianificato {formatMoney(costoStimato)}
-          </span>
-        </div>
-        <button
-          type="button"
-          onClick={() => {
-            setLocal(String(current));
-            setMode("edit");
-          }}
-          className="text-xs text-neutral-400 hover:text-neutral-700 underline shrink-0"
-        >
-          Modifica
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex items-center gap-3 rounded-2xl border border-dashed border-neutral-300 bg-white px-4 py-3 flex-wrap">
-      <span className="text-sm text-neutral-500 font-medium">Costo acquisto reale</span>
-      <span className="text-xs text-neutral-400">(stima: {formatMoney(costoStimato)})</span>
-      <span className="text-neutral-200">|</span>
-      <div className="inline-flex items-center gap-1.5">
-        <span className="text-xs text-neutral-400">CHF</span>
-        <input
-          type="number"
-          step="0.01"
-          min="0"
-          value={local}
-          placeholder="—"
-          onChange={(e) => setLocal(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") save(); }}
-          disabled={pending}
-          className="w-28 px-2 py-1 rounded-lg text-sm tabular-nums text-right border border-neutral-200 bg-white hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-red-400"
-        />
-      </div>
-      <div className="inline-flex items-center gap-2">
-        <button
-          type="button"
-          onClick={save}
-          disabled={pending}
-          className="px-3 py-1 rounded-full bg-neutral-900 text-white text-xs font-medium hover:bg-neutral-800 disabled:opacity-50"
-        >
-          Salva
-        </button>
-        {current != null && (
-          <button
-            type="button"
-            onClick={() => setMode("display")}
-            disabled={pending}
-            className="text-xs text-neutral-400 hover:text-neutral-600"
-          >
-            Annulla
-          </button>
-        )}
       </div>
     </div>
   );
@@ -838,6 +720,9 @@ function FtRowAcquisto({
         }`}
       >
         {formatMoney(guadagno)}
+      </td>
+      <td className="px-4 py-3 text-neutral-600 text-sm">
+        {row.pagato_da ?? <span className="text-neutral-300">—</span>}
       </td>
       <td className="px-4 py-3 text-center">
         <SelToggle pending={pending} selected={row.selezionata} onClick={toggle} />

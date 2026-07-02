@@ -42,6 +42,8 @@ type CateringRow = {
   selezionata: boolean;
 };
 type FoodTruckRow = {
+  id: string;
+  nome: string | null;
   modello: string | null;
   incasso_lordo_stimato: number | null;
   percentuale_matazz: number | null;
@@ -58,7 +60,6 @@ type EventoStimeRow = {
   incasso_reale_vendite: number | null;
   bar_costo_reale_nostri: number | null;
   bar_costo_reale_fornitori: number | null;
-  food_truck_costo_reale_acquisto: number | null;
 };
 type EventoSponsorRow = { stato: string; importo: number };
 type StimaRow = { chiave: string; importo: number };
@@ -80,7 +81,6 @@ export default async function EventoBudgetPage({ params }: Props) {
     sponsorRes,
     stimeRes,
     barCostiRealiRes,
-    ftCostoRealeRes,
   ] = await Promise.all([
     sb
       .from("eventi")
@@ -121,7 +121,7 @@ export default async function EventoBudgetPage({ params }: Props) {
     sb
       .from("evento_food_truck")
       .select(
-        "modello, incasso_lordo_stimato, percentuale_matazz, costo_unitario, prezzo_vendita, consumo_per_persona, selezionata, quantita_acquistata",
+        "id, nome, modello, incasso_lordo_stimato, percentuale_matazz, costo_unitario, prezzo_vendita, consumo_per_persona, selezionata, quantita_acquistata",
       )
       .eq("evento_id", id),
     sb
@@ -134,8 +134,6 @@ export default async function EventoBudgetPage({ params }: Props) {
       .eq("evento_id", id),
     // Graceful: table may not exist until migration 058 is applied
     sb.from("evento_bar_costi_reali").select("costo_reale").eq("evento_id", id),
-    // Graceful: column may not exist until migration 058 is applied
-    sb.from("eventi").select("food_truck_costo_reale_acquisto").eq("id", id).maybeSingle(),
   ]);
 
   const evento = (eventoRes.data ?? {
@@ -145,7 +143,6 @@ export default async function EventoBudgetPage({ params }: Props) {
     incasso_reale_vendite: null,
     bar_costo_reale_nostri: null,
     bar_costo_reale_fornitori: null,
-    food_truck_costo_reale_acquisto: null,
   }) as EventoStimeRow;
   const personeStimati = Number(evento.persone_stimati ?? 0);
   const barAttivo = evento.bar_attivo ?? true;
@@ -269,17 +266,9 @@ export default async function EventoBudgetPage({ params }: Props) {
   }
   const barCostoEffettivo = barAttivo ? (barCostoReale ?? barCosto) : 0;
 
-  const foodTruckCostoRealeAcq =
-    !ftCostoRealeRes.error && ftCostoRealeRes.data
-      ? ((ftCostoRealeRes.data as { food_truck_costo_reale_acquisto: number | null })
-          .food_truck_costo_reale_acquisto ?? null)
-      : null;
-  const totaleFoodTruckCostoAcqStimato = foodTruck
-    .filter((r) => r.selezionata && r.modello === "Acquisto")
-    .reduce((s, r) => s + Number(r.costo_unitario ?? 0) * Number(r.quantita_acquistata ?? 0), 0);
-  const foodTruckCostoAcqEffettivo = foodTruckAttivo
-    ? (foodTruckCostoRealeAcq ?? totaleFoodTruckCostoAcqStimato)
-    : 0;
+  const foodTruckAcquistoSel = foodTruck.filter(
+    (r) => r.selezionata && r.modello === "Acquisto",
+  );
 
   const uscite: BudgetLine[] = [
     {
@@ -334,16 +323,16 @@ export default async function EventoBudgetPage({ params }: Props) {
       effettivo: totaleCatering,
       stima: stimaOf("catering"),
     },
-    {
-      chiave: "food_truck_costo_acquisto",
+    ...foodTruckAcquistoSel.map((r) => ({
+      chiave: `food_truck_acq_${r.id}`,
       label: foodTruckAttivo
-        ? foodTruckCostoRealeAcq != null
-          ? "Food truck — costo acquisto (reale)"
-          : "Food truck — costo acquisto (stimato)"
-        : "Food truck — costo acquisto (escluso)",
-      effettivo: foodTruckCostoAcqEffettivo,
-      stima: stimaOf("food_truck_costo_acquisto"),
-    },
+        ? `${r.nome ?? "Food truck"} — costo acquisto`
+        : `${r.nome ?? "Food truck"} — costo acquisto (escluso)`,
+      effettivo: foodTruckAttivo
+        ? Number(r.costo_unitario ?? 0) * Number(r.quantita_acquistata ?? 0)
+        : 0,
+      stima: stimaOf(`food_truck_acq_${r.id}`),
+    })),
     ...usciteExtra.map(voceExtraLines),
   ];
 

@@ -248,6 +248,7 @@ export type FoodTruckInput = {
   prezzo_vendita: string | null;
   consumo_per_persona: string | null;
   quantita_acquistata: string | null;
+  pagato_da: string | null;
   // common
   selezionata: boolean;
   note: string | null;
@@ -279,6 +280,7 @@ function buildFoodTruckPayload(input: FoodTruckInput) {
     quantita_acquistata: isAcquisto
       ? Math.max(0, toNumber(input.quantita_acquistata, 0))
       : null,
+    pagato_da: isAcquisto ? trimOrNull(input.pagato_da) : null,
     selezionata: input.selezionata,
     note: trimOrNull(input.note),
   };

@@ -29,7 +29,7 @@ export default async function FoodBeveragePage({ params }: Props) {
   const { id } = await params;
   const sb = createServerClient();
 
-  const [evRes, barRes, ftRes, barCostiRealiRes, ftCostoRealeRes] =
+  const [evRes, barRes, ftRes, barCostiRealiRes] =
     await Promise.all([
       sb
         .from("eventi")
@@ -47,7 +47,7 @@ export default async function FoodBeveragePage({ params }: Props) {
       sb
         .from("evento_food_truck")
         .select(
-          "id, nome, modello, incasso_lordo_stimato, percentuale_matazz, costo_unitario, prezzo_vendita, consumo_per_persona, quantita_acquistata, selezionata, note",
+          "id, nome, modello, incasso_lordo_stimato, percentuale_matazz, costo_unitario, prezzo_vendita, consumo_per_persona, quantita_acquistata, pagato_da, selezionata, note",
         )
         .eq("evento_id", id)
         .order("modello", { ascending: true })
@@ -57,12 +57,6 @@ export default async function FoodBeveragePage({ params }: Props) {
         .from("evento_bar_costi_reali")
         .select("fonte, costo_reale, pagato_da")
         .eq("evento_id", id),
-      // Graceful: column may not exist until migration 058 is applied
-      sb
-        .from("eventi")
-        .select("food_truck_costo_reale_acquisto")
-        .eq("id", id)
-        .maybeSingle(),
     ]);
 
   if (!evRes.data) notFound();
@@ -84,6 +78,7 @@ export default async function FoodBeveragePage({ params }: Props) {
     (r) => ({
       ...r,
       modello: r.modello === "Acquisto" ? "Acquisto" : "Percentuale",
+      pagato_da: r.pagato_da ?? null,
     }),
   );
 
@@ -98,12 +93,6 @@ export default async function FoodBeveragePage({ params }: Props) {
     }),
     {} as Record<string, { costo_reale: number | null; pagato_da: string | null }>,
   );
-
-  const foodTruckCostoRealeAcquisto =
-    !ftCostoRealeRes.error && ftCostoRealeRes.data
-      ? ((ftCostoRealeRes.data as { food_truck_costo_reale_acquisto: number | null })
-          .food_truck_costo_reale_acquisto ?? null)
-      : null;
 
   const err = barRes.error ?? ftRes.error;
 
@@ -136,7 +125,6 @@ export default async function FoodBeveragePage({ params }: Props) {
         bar={bar}
         foodTruck={foodTruck}
         barCostiReali={barCostiReali}
-        foodTruckCostoRealeAcquisto={foodTruckCostoRealeAcquisto}
       />
     </div>
   );
