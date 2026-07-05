@@ -13,6 +13,7 @@ export const EVENTO_TABS: readonly EventoTab[] = [
   { label: "Merchandising", segment: "/merchandising" },
   { label: "Voci extra", segment: "/voci-extra" },
   { label: "Budget e Costi", segment: "/budget" },
+  { label: "Rimborsi", segment: "/rimborsi" },
 ];
 
 export function extractEventoId(pathname: string): string | null {
