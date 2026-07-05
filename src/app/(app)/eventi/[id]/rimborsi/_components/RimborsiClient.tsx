@@ -25,7 +25,7 @@ export function RimborsiClient({ eventoId, items }: Props) {
   const [localItems, setLocalItems] = useState<RimborsoItem[]>(items);
 
   const totaleDaRimborsare = localItems
-    .filter((i) => i.pagatoDa != null && !i.rimborsato)
+    .filter((i) => !i.rimborsato)
     .reduce((s, i) => s + i.importo, 0);
   const totaleRimborsato = localItems
     .filter((i) => i.rimborsato)
@@ -81,7 +81,7 @@ export function RimborsiClient({ eventoId, items }: Props) {
             <p className="text-3xl font-bold tabular-nums mt-1 text-red-700">
               {formatMoney(totaleDaRimborsare)}
             </p>
-            <p className="text-[10px] text-neutral-400 mt-1">Solo voci con "chi ha pagato" compilato</p>
+            <p className="text-[10px] text-neutral-400 mt-1">Tutte le spese non ancora rimborsate</p>
           </div>
           <div className="px-6 py-5">
             <p className="text-xs uppercase tracking-wide text-neutral-500 font-medium">Già rimborsato</p>
@@ -95,7 +95,7 @@ export function RimborsiClient({ eventoId, items }: Props) {
       {order.map((cat) => {
         const groupItems = grouped[cat];
         const totaleDa = groupItems
-          .filter((i) => i.pagatoDa != null && !i.rimborsato)
+          .filter((i) => !i.rimborsato)
           .reduce((s, i) => s + i.importo, 0);
         const label = groupItems[0].categoriaLabel;
 

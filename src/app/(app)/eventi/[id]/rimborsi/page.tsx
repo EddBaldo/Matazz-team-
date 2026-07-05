@@ -82,7 +82,7 @@ export default async function RimborsiPage({ params }: Props) {
   };
   for (const r of (materialiRes.data ?? []) as unknown as MaterialeDb[]) {
     const importo = Number(r.prezzo_unitario ?? 0) * Number(r.quantita ?? 1);
-    if (importo === 0 && r.pagato_da == null) continue;
+    if (importo === 0) continue;
     items.push({
       categoria: "materiali",
       categoriaLabel: "Materiali",
@@ -105,7 +105,7 @@ export default async function RimborsiPage({ params }: Props) {
   };
   for (const r of (merchandisingRes.data ?? []) as unknown as MerchandisingDb[]) {
     const importo = Number(r.costo_totale ?? 0);
-    if (importo === 0 && r.pagato_da == null) continue;
+    if (importo === 0) continue;
     items.push({
       categoria: "merchandising",
       categoriaLabel: "Merchandising",
@@ -127,7 +127,7 @@ export default async function RimborsiPage({ params }: Props) {
   };
   for (const r of (barRes.data ?? []) as unknown as BarDb[]) {
     const importo = Number(r.costo_reale ?? 0);
-    if (importo === 0 && r.pagato_da == null) continue;
+    if (importo === 0) continue;
     items.push({
       categoria: "bar",
       categoriaLabel: "Bar",
@@ -151,7 +151,7 @@ export default async function RimborsiPage({ params }: Props) {
   for (const r of (foodTruckRes.data ?? []) as unknown as FoodTruckDb[]) {
     const importo =
       Number(r.costo_unitario ?? 0) * Number(r.quantita_acquistata ?? 0);
-    if (importo === 0 && r.pagato_da == null) continue;
+    if (importo === 0) continue;
     items.push({
       categoria: "food_truck",
       categoriaLabel: "Food Truck",
@@ -183,8 +183,7 @@ export default async function RimborsiPage({ params }: Props) {
       { chiave: "trasp", label: "Trasporto", importo: Number(r.costi_trasporto ?? 0) },
     ];
     for (const v of voci) {
-      if (v.importo === 0 && r.pagato_da == null) continue;
-      if (v.importo === 0) continue; // never show zero sub-rows
+      if (v.importo === 0) continue;
       items.push({
         categoria: "artisti",
         categoriaLabel: "Artisti",
@@ -209,7 +208,7 @@ export default async function RimborsiPage({ params }: Props) {
   for (const r of (personaleRes.data ?? []) as unknown as PersonaleDb[]) {
     const importo =
       Number(r.compenso ?? 0) + Number(r.costi_trasporto ?? 0);
-    if (importo === 0 && r.pagato_da == null) continue;
+    if (importo === 0) continue;
     const nome = r.persona
       ? `${r.persona.nome} ${r.persona.cognome}`.trim()
       : "Personale";
@@ -234,7 +233,7 @@ export default async function RimborsiPage({ params }: Props) {
   };
   for (const r of (vociExtraRes.data ?? []) as unknown as VoceExtraDb[]) {
     const importo = Number(r.importo ?? 0);
-    if (importo === 0 && r.pagato_da == null) continue;
+    if (importo === 0) continue;
     items.push({
       categoria: "voci_extra",
       categoriaLabel: "Voci Extra",
