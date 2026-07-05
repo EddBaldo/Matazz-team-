@@ -37,8 +37,9 @@ export default async function RimborsiPage({ params }: Props) {
       .eq("evento_id", id),
     sb
       .from("evento_merchandising")
-      .select("id, articolo, costo_totale, pagato_da")
-      .eq("evento_id", id),
+      .select("id, articolo, costo_totale, pagato_da, inclusa_nel_budget")
+      .eq("evento_id", id)
+      .eq("inclusa_nel_budget", true),
     sb
       .from("evento_bar_costi_reali")
       .select("id, fonte, costo_reale, pagato_da")
@@ -99,6 +100,7 @@ export default async function RimborsiPage({ params }: Props) {
     articolo: string;
     costo_totale: number | null;
     pagato_da: string | null;
+    inclusa_nel_budget: boolean;
   };
   for (const r of (merchandisingRes.data ?? []) as unknown as MerchandisingDb[]) {
     const importo = Number(r.costo_totale ?? 0);
