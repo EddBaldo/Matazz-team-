@@ -87,6 +87,7 @@ export default async function RimborsiPage({ params }: Props) {
       categoria: "materiali",
       categoriaLabel: "Materiali",
       sourceId: r.id,
+      pagatoDaSourceId: r.id,
       descrizione: r.articolo,
       importo,
       pagatoDa: r.pagato_da,
@@ -109,6 +110,7 @@ export default async function RimborsiPage({ params }: Props) {
       categoria: "merchandising",
       categoriaLabel: "Merchandising",
       sourceId: r.id,
+      pagatoDaSourceId: r.id,
       descrizione: r.articolo,
       importo,
       pagatoDa: r.pagato_da,
@@ -130,6 +132,7 @@ export default async function RimborsiPage({ params }: Props) {
       categoria: "bar",
       categoriaLabel: "Bar",
       sourceId: r.id,
+      pagatoDaSourceId: r.id,
       descrizione: r.fonte,
       importo,
       pagatoDa: r.pagato_da,
@@ -153,6 +156,7 @@ export default async function RimborsiPage({ params }: Props) {
       categoria: "food_truck",
       categoriaLabel: "Food Truck",
       sourceId: r.id,
+      pagatoDaSourceId: r.id,
       descrizione: r.nome ?? "Food Truck",
       importo,
       pagatoDa: r.pagato_da,
@@ -160,7 +164,7 @@ export default async function RimborsiPage({ params }: Props) {
     });
   }
 
-  // Artisti
+  // Artisti — one row per cost type (fee / produzione / trasporto)
   type ArtistaDb = {
     id: string;
     artist_fee: number | null;
@@ -170,23 +174,28 @@ export default async function RimborsiPage({ params }: Props) {
     artista: { nome: string; cognome: string } | null;
   };
   for (const r of (artistiRes.data ?? []) as unknown as ArtistaDb[]) {
-    const importo =
-      Number(r.artist_fee ?? 0) +
-      Number(r.costi_produzione ?? 0) +
-      Number(r.costi_trasporto ?? 0);
-    if (importo === 0 && r.pagato_da == null) continue;
     const nome = r.artista
       ? `${r.artista.nome} ${r.artista.cognome}`.trim()
       : "Artista";
-    items.push({
-      categoria: "artisti",
-      categoriaLabel: "Artisti",
-      sourceId: r.id,
-      descrizione: nome,
-      importo,
-      pagatoDa: r.pagato_da,
-      rimborsato: rimb("artisti", r.id),
-    });
+    const voci: { chiave: string; label: string; importo: number }[] = [
+      { chiave: "fee", label: "Fee", importo: Number(r.artist_fee ?? 0) },
+      { chiave: "prod", label: "Produzione", importo: Number(r.costi_produzione ?? 0) },
+      { chiave: "trasp", label: "Trasporto", importo: Number(r.costi_trasporto ?? 0) },
+    ];
+    for (const v of voci) {
+      if (v.importo === 0 && r.pagato_da == null) continue;
+      if (v.importo === 0) continue; // never show zero sub-rows
+      items.push({
+        categoria: "artisti",
+        categoriaLabel: "Artisti",
+        sourceId: `${r.id}_${v.chiave}`,
+        pagatoDaSourceId: r.id,
+        descrizione: `${nome} — ${v.label}`,
+        importo: v.importo,
+        pagatoDa: r.pagato_da,
+        rimborsato: rimb("artisti", `${r.id}_${v.chiave}`),
+      });
+    }
   }
 
   // Personale
@@ -208,6 +217,7 @@ export default async function RimborsiPage({ params }: Props) {
       categoria: "personale",
       categoriaLabel: "Personale",
       sourceId: r.id,
+      pagatoDaSourceId: r.id,
       descrizione: nome,
       importo,
       pagatoDa: r.pagato_da,
@@ -229,6 +239,7 @@ export default async function RimborsiPage({ params }: Props) {
       categoria: "voci_extra",
       categoriaLabel: "Voci Extra",
       sourceId: r.id,
+      pagatoDaSourceId: r.id,
       descrizione: r.voce,
       importo,
       pagatoDa: r.pagato_da,

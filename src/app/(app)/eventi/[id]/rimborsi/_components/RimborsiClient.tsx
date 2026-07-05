@@ -8,7 +8,8 @@ import { toggleRimborsatoR, aggiornaPagatoDaR } from "../actions";
 export type RimborsoItem = {
   categoria: string;
   categoriaLabel: string;
-  sourceId: string;
+  sourceId: string;        // unique key used for rimborsato tracking
+  pagatoDaSourceId: string; // DB row id for pagato_da updates (may differ from sourceId)
   descrizione: string;
   importo: number;
   pagatoDa: string | null;
@@ -31,11 +32,25 @@ export function RimborsiClient({ eventoId, items }: Props) {
     .reduce((s, i) => s + i.importo, 0);
 
   function updateItem(sourceId: string, categoria: string, patch: Partial<RimborsoItem>) {
-    setLocalItems((prev) =>
-      prev.map((i) =>
+    setLocalItems((prev) => {
+      // When updating pagato_da, propagate to all items sharing the same pagatoDaSourceId
+      // (e.g. multiple sub-rows for the same artista)
+      if ("pagatoDa" in patch) {
+        const target = prev.find(
+          (i) => i.sourceId === sourceId && i.categoria === categoria,
+        );
+        if (target) {
+          return prev.map((i) =>
+            i.pagatoDaSourceId === target.pagatoDaSourceId && i.categoria === categoria
+              ? { ...i, ...patch }
+              : i,
+          );
+        }
+      }
+      return prev.map((i) =>
         i.sourceId === sourceId && i.categoria === categoria ? { ...i, ...patch } : i,
-      ),
-    );
+      );
+    });
   }
 
   // Group preserving insertion order
@@ -165,6 +180,7 @@ function RimborsoRow({
           eventoId={eventoId}
           categoria={item.categoria}
           sourceId={item.sourceId}
+          pagatoDaSourceId={item.pagatoDaSourceId}
           value={item.pagatoDa}
           onChange={onPagatoDaChange}
         />
@@ -186,12 +202,14 @@ function PagatoDaInput({
   eventoId,
   categoria,
   sourceId,
+  pagatoDaSourceId,
   value,
   onChange,
 }: {
   eventoId: string;
   categoria: string;
   sourceId: string;
+  pagatoDaSourceId: string;
   value: string | null;
   onChange: (v: string | null) => void;
 }) {
@@ -205,7 +223,7 @@ function PagatoDaInput({
     if (newVal === value) return;
     onChange(newVal);
     startTransition(async () => {
-      const res = await aggiornaPagatoDaR(eventoId, categoria, sourceId, newVal);
+      const res = await aggiornaPagatoDaR(eventoId, categoria, pagatoDaSourceId, newVal);
       if (res.ok) {
         setSaved(true);
         setTimeout(() => setSaved(false), 1200);
