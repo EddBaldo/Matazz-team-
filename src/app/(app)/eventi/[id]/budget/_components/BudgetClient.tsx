@@ -97,15 +97,9 @@ export function BudgetClient({
         totaleStimato={totaleStimEntrate}
         incassoRealeVendite={incassoRealeVendite}
         budgetEditable={false}
+        effettivoLabel="Entrate effettive"
       />
 
-      <p className="text-xs text-neutral-400 leading-relaxed">
-        A sinistra il <strong className="text-neutral-600">budget che decidiamo di stanziare</strong> per l&apos;evento —
-        editabile a mano voce per voce. A destra i <strong className="text-neutral-600">costi effettivi e le entrate</strong>,
-        che si aggiornano automaticamente man mano che riempite artisti, sponsor, food &amp; beverage,
-        materiali e voci extra. Prima dell&apos;evento i numeri sono stime; una volta chiuso l&apos;evento
-        i dati diventeranno reali e definitivi.
-      </p>
     </>
   );
 }
@@ -176,7 +170,7 @@ function SummaryCards({
             </div>
             <div>
               <p className="text-[10px] uppercase tracking-wide text-neutral-400 font-medium">Saldo finale</p>
-              <p className="text-3xl font-bold tabular-nums mt-1 text-slate-700">
+              <p className="text-xl font-semibold tabular-nums mt-1 text-slate-700">
                 {formatMoney(effSaldo)}
               </p>
               <p className="text-[10px] text-neutral-400 mt-1">Conto Matazz: {formatMoney(saldoConto)}</p>
@@ -201,6 +195,7 @@ function BudgetTable({
   totaleStimato,
   incassoRealeVendite,
   budgetEditable = true,
+  effettivoLabel = "Costi effettivi",
 }: {
   eventoId: string;
   title: string;
@@ -213,6 +208,7 @@ function BudgetTable({
   totaleStimato: number;
   incassoRealeVendite: number | null;
   budgetEditable?: boolean;
+  effettivoLabel?: string;
 }) {
   return (
     <section>
@@ -228,7 +224,7 @@ function BudgetTable({
             <tr>
               <Th align="left">Voce</Th>
               <Th align="right">Budget</Th>
-              <Th align="right">Costi effettivi</Th>
+              <Th align="right">{effettivoLabel}</Th>
             </tr>
           </thead>
           <tbody>
@@ -286,7 +282,7 @@ function BudgetTable({
               <td className="px-4 py-3 text-xs uppercase tracking-wide text-neutral-500 font-medium">
                 Totale {title.toLowerCase()}
               </td>
-              <td className="px-4 py-3 text-right tabular-nums text-neutral-300">
+              <td className="px-4 py-3 text-right tabular-nums text-neutral-500 font-medium">
                 {budgetEditable ? formatMoney(totaleStimato) : "—"}
               </td>
               <td className={`px-4 py-3 text-right tabular-nums font-semibold ${toneAccent}`}>
