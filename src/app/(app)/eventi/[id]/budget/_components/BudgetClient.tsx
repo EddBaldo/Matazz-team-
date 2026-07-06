@@ -183,12 +183,7 @@ function SummaryCards({
             </div>
           </div>
         </div>
-        <div className="px-5 py-5">
-          <p className="text-[9px] uppercase tracking-wide text-neutral-400 font-medium">Saldo previsto</p>
-          <p className={`text-lg font-bold tabular-nums mt-1 ${stimSaldo >= 0 ? "text-green-600" : "text-red-600"}`}>
-            {formatMoney(stimSaldo)}
-          </p>
-        </div>
+        <div className="px-5 py-5" />
       </div>
     </div>
   );
@@ -291,8 +286,8 @@ function BudgetTable({
               <td className="px-4 py-3 text-xs uppercase tracking-wide text-neutral-500 font-medium">
                 Totale {title.toLowerCase()}
               </td>
-              <td className={`px-4 py-3 text-right tabular-nums font-semibold ${toneAccent}`}>
-                {formatMoney(totaleStimato)}
+              <td className="px-4 py-3 text-right tabular-nums text-neutral-300">
+                {budgetEditable ? formatMoney(totaleStimato) : "—"}
               </td>
               <td className={`px-4 py-3 text-right tabular-nums font-semibold ${toneAccent}`}>
                 {formatMoney(totaleEffettivo)}
