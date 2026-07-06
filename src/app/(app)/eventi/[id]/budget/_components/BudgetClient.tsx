@@ -158,16 +158,8 @@ function SummaryCards({
           </div>
         </div>
         <div className="px-5 py-5">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <p className="text-[9px] uppercase tracking-wide text-neutral-400 font-medium">Entrate</p>
-              <p className="text-sm font-semibold tabular-nums mt-1 text-green-600">{formatMoney(stimEntrate)}</p>
-            </div>
-            <div>
-              <p className="text-[9px] uppercase tracking-wide text-neutral-400 font-medium">Uscite</p>
-              <p className="text-sm font-semibold tabular-nums mt-1 text-red-600">{formatMoney(stimUscite)}</p>
-            </div>
-          </div>
+          <p className="text-[9px] uppercase tracking-wide text-neutral-400 font-medium">Uscite previste</p>
+          <p className="text-sm font-semibold tabular-nums mt-1 text-red-600">{formatMoney(stimUscite)}</p>
         </div>
       </div>
 
