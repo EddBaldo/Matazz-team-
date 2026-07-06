@@ -139,11 +139,7 @@ function SummaryCards({
         </div>
         <div className="px-5 pt-5 pb-4">
           <p className="text-lg font-bold text-neutral-600 tracking-tight">Budget previsto</p>
-          <p className="text-[10px] text-neutral-400 mt-0.5">Quanto decidiamo di stanziare per l&apos;evento.</p>
-          <p className="text-xs text-neutral-500 mt-2">
-            Il budget stanziato ammonta a{" "}
-            <span className="font-semibold text-neutral-700 tabular-nums">{formatMoney(stimUscite)}</span>
-          </p>
+          <p className="text-[10px] text-neutral-400 mt-0.5">Le uscite che decidiamo di stanziare prima dell&apos;evento. Non include le entrate, che per natura sono stime.</p>
         </div>
       </div>
 
@@ -162,8 +158,8 @@ function SummaryCards({
           </div>
         </div>
         <div className="px-5 py-5">
-          <p className="text-[9px] uppercase tracking-wide text-neutral-400 font-medium">Uscite previste</p>
-          <p className="text-sm font-semibold tabular-nums mt-1 text-red-600">{formatMoney(stimUscite)}</p>
+          <p className="text-[10px] text-neutral-400">Budget stanziato per l&apos;evento ammonta a</p>
+          <p className="text-2xl font-bold tabular-nums mt-1 text-neutral-800">{formatMoney(stimUscite)}</p>
         </div>
       </div>
 
