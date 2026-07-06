@@ -94,9 +94,7 @@ export function FoodBeverageClient({
               )}
             </h3>
             <div className="inline-flex items-center gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-2 text-sm flex-wrap">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 bg-neutral-200 rounded-full px-2 py-0.5">
-                Stime
-              </span>
+              <StimaBadge />
               <span className="text-neutral-700">
                 Costo{" "}
                 <strong className="text-neutral-900">{formatMoney(tBarTotale.costo)}</strong>
@@ -132,7 +130,7 @@ export function FoodBeverageClient({
         {bar.length === 0 ? (
           <EmptyBox text="Nessun articolo. Aggiungi il primo." />
         ) : (
-          <>
+          <div className="space-y-5">
             {barNoi.length > 0 && (
               <BarSubgroup
                 label="Nostra spesa"
@@ -168,7 +166,7 @@ export function FoodBeverageClient({
                 onRowClick={(b) => setBarModal({ kind: "edit", bar: b })}
               />
             )}
-          </>
+          </div>
         )}
       </section>
 
@@ -186,9 +184,7 @@ export function FoodBeverageClient({
               )}
             </h3>
             <div className="inline-flex items-center gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-2 text-sm flex-wrap">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 bg-neutral-200 rounded-full px-2 py-0.5">
-                Stime
-              </span>
+              <StimaBadge />
               <span className="text-neutral-700">Guadagno selezionato:</span>
               <strong className="text-green-700">{formatMoney(ftTotaleSel)}</strong>
             </div>
@@ -300,32 +296,25 @@ function BarSubgroup({
   const t = calcTotals(items, persone);
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-baseline justify-between gap-2 px-1">
+    <div className="rounded-3xl border border-neutral-200 overflow-hidden">
+      {/* Header: label + costo reale sulla stessa riga */}
+      <div className="flex items-center justify-between gap-3 px-4 py-3 bg-neutral-50 border-b border-neutral-200 flex-wrap">
         <span className="text-sm font-bold text-neutral-800">
           {label}{" "}
           <span className="text-neutral-400 font-normal text-xs">({items.length})</span>
         </span>
-        <span className="text-xs text-neutral-400">
-          stima: costo{" "}
-          <span className="font-medium text-neutral-600">{formatMoney(t.costo)}</span>
-          {" · "}
-          margine{" "}
-          <span className={`font-medium ${t.margine >= 0 ? "text-green-600" : "text-red-600"}`}>
-            {formatMoney(t.margine)}
-          </span>
-        </span>
+        <CostoRealeCard
+          fonte={fonte}
+          eventoId={eventoId}
+          costoStimato={t.costo}
+          costoReale={entry?.costo_reale ?? null}
+          pagatoDa={entry?.pagato_da ?? null}
+        />
       </div>
-      <CostoRealeCard
-        fonte={fonte}
-        eventoId={eventoId}
-        costoStimato={t.costo}
-        costoReale={entry?.costo_reale ?? null}
-        pagatoDa={entry?.pagato_da ?? null}
-      />
-      <div className="bg-white rounded-3xl overflow-hidden">
+      {/* Tabella */}
+      <div className="bg-white overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="border-b border-neutral-200">
+          <thead className="border-b border-neutral-100">
             <tr>
               <Th align="left">Articolo</Th>
               {showFornitore && <Th align="left">Fornitore</Th>}
@@ -373,6 +362,17 @@ function BarSubgroup({
             })}
           </tbody>
         </table>
+      </div>
+      {/* Footer: stima in fondo */}
+      <div className="flex items-center justify-end gap-3 px-4 py-2.5 bg-neutral-50 border-t border-neutral-100 text-xs">
+        <StimaBadge />
+        <span className="text-neutral-600">
+          costo <strong className="text-neutral-700">{formatMoney(t.costo)}</strong>
+        </span>
+        <span className="text-neutral-300">·</span>
+        <span className={t.margine >= 0 ? "text-green-600" : "text-red-600"}>
+          margine <strong>{formatMoney(t.margine)}</strong>
+        </span>
       </div>
     </div>
   );
@@ -428,31 +428,20 @@ function CostoRealeCard({
 
   if (mode === "display" && current.costo != null) {
     return (
-      <div className="flex items-center justify-between gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-3">
-        <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-xs font-medium text-neutral-500">Costo reale post-evento</span>
-          <span className="text-red-700 font-bold text-base tabular-nums">
-            {formatMoney(current.costo)}
+      <div className="flex items-center gap-2 flex-wrap">
+        <CostoRealeBadge />
+        <span className="text-amber-700 font-bold text-sm tabular-nums">
+          {formatMoney(current.costo)}
+        </span>
+        {current.pagato && (
+          <span className="text-xs text-neutral-500">
+            · <strong className="text-neutral-700">{current.pagato}</strong>
           </span>
-          <span
-            className={`text-xs font-medium ${
-              current.costo > costoStimato ? "text-red-500" : "text-green-600"
-            }`}
-          >
-            {current.costo > costoStimato ? "↑" : "↓"} stima{" "}
-            {formatMoney(costoStimato)}
-          </span>
-          {current.pagato && (
-            <span className="text-sm text-neutral-600">
-              · Pagato da{" "}
-              <strong className="text-neutral-800">{current.pagato}</strong>
-            </span>
-          )}
-        </div>
+        )}
         <button
           type="button"
           onClick={startEdit}
-          className="text-xs text-neutral-400 hover:text-neutral-700 underline shrink-0"
+          className="text-xs text-neutral-400 hover:text-neutral-700 underline"
         >
           Modifica
         </button>
@@ -461,11 +450,10 @@ function CostoRealeCard({
   }
 
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-dashed border-neutral-300 bg-white px-4 py-3 flex-wrap">
-      <span className="text-sm text-neutral-500 font-medium">Costo reale post-evento</span>
-      <span className="text-xs text-neutral-400">(stima: {formatMoney(costoStimato)})</span>
-      <span className="text-neutral-200">|</span>
-      <div className="inline-flex items-center gap-1.5">
+    <div className="flex items-center gap-2 flex-wrap">
+      <CostoRealeBadge />
+      <span className="text-neutral-300">|</span>
+      <div className="inline-flex items-center gap-1">
         <span className="text-xs text-neutral-400">CHF</span>
         <input
           type="number"
@@ -474,33 +462,29 @@ function CostoRealeCard({
           value={localCosto}
           placeholder="—"
           onChange={(e) => setLocalCosto(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") save();
-          }}
+          onKeyDown={(e) => { if (e.key === "Enter") save(); }}
           disabled={pending}
-          className="w-28 px-2 py-1 rounded-lg text-sm tabular-nums text-right border border-neutral-200 bg-white hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-red-400"
+          className="w-24 px-2 py-0.5 rounded-lg text-xs tabular-nums text-right border border-neutral-200 bg-white hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-red-400"
         />
       </div>
-      <div className="inline-flex items-center gap-1.5">
-        <span className="text-xs text-neutral-400">Pagato da</span>
+      <div className="inline-flex items-center gap-1">
+        <span className="text-xs text-neutral-400">da</span>
         <input
           type="text"
           value={localPagato}
           placeholder="—"
           onChange={(e) => setLocalPagato(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") save();
-          }}
+          onKeyDown={(e) => { if (e.key === "Enter") save(); }}
           disabled={pending}
-          className="w-32 px-2 py-1 rounded-lg text-sm border border-neutral-200 bg-white hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-red-400"
+          className="w-28 px-2 py-0.5 rounded-lg text-xs border border-neutral-200 bg-white hover:border-neutral-300 focus:outline-none focus:ring-2 focus:ring-red-400"
         />
       </div>
-      <div className="inline-flex items-center gap-2">
+      <div className="inline-flex items-center gap-1.5">
         <button
           type="button"
           onClick={save}
           disabled={pending}
-          className="px-3 py-1 rounded-full bg-neutral-900 text-white text-xs font-medium hover:bg-neutral-800 disabled:opacity-50"
+          className="px-2.5 py-0.5 rounded-full bg-neutral-900 text-white text-xs font-medium hover:bg-neutral-800 disabled:opacity-50"
         >
           Salva
         </button>
@@ -788,6 +772,22 @@ function SezioneToggle({
       <Power className="w-3.5 h-3.5" />
       {attivo ? "attivo" : "spento"}
     </button>
+  );
+}
+
+function StimaBadge() {
+  return (
+    <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 bg-blue-50 border border-blue-200 rounded-full px-2 py-0.5 shrink-0">
+      Stima
+    </span>
+  );
+}
+
+function CostoRealeBadge() {
+  return (
+    <span className="text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5 shrink-0">
+      Costo reale
+    </span>
   );
 }
 
