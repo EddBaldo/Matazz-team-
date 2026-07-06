@@ -139,7 +139,11 @@ function SummaryCards({
         </div>
         <div className="px-5 pt-5 pb-4">
           <p className="text-lg font-bold text-neutral-600 tracking-tight">Budget previsto</p>
-          <p className="text-[10px] text-neutral-400 mt-0.5">Previsione editabile a mano.</p>
+          <p className="text-[10px] text-neutral-400 mt-0.5">Quanto decidiamo di stanziare per l&apos;evento.</p>
+          <p className="text-xs text-neutral-500 mt-2">
+            Il budget stanziato ammonta a{" "}
+            <span className="font-semibold text-neutral-700 tabular-nums">{formatMoney(stimUscite)}</span>
+          </p>
         </div>
       </div>
 
