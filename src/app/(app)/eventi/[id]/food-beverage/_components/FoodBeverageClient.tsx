@@ -95,31 +95,33 @@ export function FoodBeverageClient({
                 <span className="text-sm text-amber-700 font-medium">escluso dal budget</span>
               )}
             </h3>
-            <div className="inline-flex items-center gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-2 text-sm flex-wrap">
-              <StimaBadge />
-              <span className="text-neutral-700">
-                Costo{" "}
-                <strong className="text-neutral-900">{formatMoney(tBarTotale.costo)}</strong>
-              </span>
-              <span className="text-neutral-300">·</span>
-              <span className="text-neutral-700">
-                Ricavo{" "}
-                <strong className="text-neutral-900">{formatMoney(tBarTotale.ricavo)}</strong>
-              </span>
-              <span className="text-neutral-300">·</span>
-              <span className={tBarTotale.margine >= 0 ? "text-green-700" : "text-red-700"}>
-                Margine <strong>{formatMoney(tBarTotale.margine)}</strong>
-              </span>
-            </div>
-            {barCostoRealeEntries.length > 0 && (
-              <div className="inline-flex items-center gap-3 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-2 text-sm flex-wrap">
-                <CostoRealeBadge />
+            <div className="flex flex-col gap-2">
+              <div className="inline-flex items-center gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-2 text-sm flex-wrap">
+                <StimaBadge />
                 <span className="text-neutral-700">
                   Costo{" "}
-                  <strong className="text-amber-800">{formatMoney(totaleCostoRealeBar)}</strong>
+                  <strong className="text-neutral-900">{formatMoney(tBarTotale.costo)}</strong>
+                </span>
+                <span className="text-neutral-300">·</span>
+                <span className="text-neutral-700">
+                  Ricavo{" "}
+                  <strong className="text-neutral-900">{formatMoney(tBarTotale.ricavo)}</strong>
+                </span>
+                <span className="text-neutral-300">·</span>
+                <span className={tBarTotale.margine >= 0 ? "text-green-700" : "text-red-700"}>
+                  Margine <strong>{formatMoney(tBarTotale.margine)}</strong>
                 </span>
               </div>
-            )}
+              {barCostoRealeEntries.length > 0 && (
+                <div className="inline-flex items-center gap-3 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-2 text-sm flex-wrap">
+                  <CostoRealeBadge />
+                  <span className="text-neutral-700">
+                    Costo{" "}
+                    <strong className="text-amber-800">{formatMoney(totaleCostoRealeBar)}</strong>
+                  </span>
+                </div>
+              )}
+            </div>
             {bar.length > 0 && (
               <p className="text-xs text-neutral-500">
                 Media consumo:{" "}
