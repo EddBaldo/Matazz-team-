@@ -393,12 +393,10 @@ export default async function EventoBudgetPage({ params }: Props) {
           Budget e Costi
         </h2>
         <p className="text-sm text-neutral-600 mt-1">
-          Il quadro economico dell&apos;evento: budget previsto contro costi
-          effettivi. Il saldo non parte da zero ma dal nostro conto attuale —
-          così vedete subito dove ci troveremo dopo l&apos;evento. Il budget è
-          la nostra previsione editabile a mano; i costi effettivi si
-          aggiornano automaticamente man mano che riempite artisti, sponsor,
-          food &amp; beverage, materiali e voci extra.
+          Il quadro economico dell&apos;evento: budget previsto contro costi effettivi.
+          Il budget è la nostra previsione editabile a mano; i costi effettivi si aggiornano
+          automaticamente man mano che riempite artisti, sponsor, food &amp; beverage,
+          materiali e voci extra.
         </p>
       </div>
 

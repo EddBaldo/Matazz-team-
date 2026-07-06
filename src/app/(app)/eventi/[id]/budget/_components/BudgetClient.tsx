@@ -174,11 +174,12 @@ function SummaryCards({
               </p>
               <p className="text-[10px] text-neutral-400 mt-1">Solo entrate − uscite evento</p>
             </div>
-            <div className="ml-auto text-right">
+            <div>
               <p className="text-[10px] uppercase tracking-wide text-neutral-400 font-medium">Saldo finale</p>
-              <p className={`text-base font-semibold tabular-nums mt-1 ${effSaldo >= 0 ? "text-indigo-600" : "text-indigo-400"}`}>
+              <p className="text-3xl font-bold tabular-nums mt-1 text-slate-700">
                 {formatMoney(effSaldo)}
               </p>
+              <p className="text-[10px] text-neutral-400 mt-1">Conto Matazz: {formatMoney(saldoConto)}</p>
             </div>
           </div>
         </div>
