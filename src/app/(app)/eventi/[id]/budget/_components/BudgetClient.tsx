@@ -99,12 +99,12 @@ export function BudgetClient({
         budgetEditable={false}
       />
 
-      <p className="text-xs text-neutral-500">
-        I costi effettivi si calcolano automaticamente dalle altre tabelle
-        (artisti, sponsor, F&amp;B, materiali, voci extra). Il budget è la
-        nostra previsione editabile — clicca su un valore per modificarlo.
-        Il saldo finale include sempre il conto Matazz attuale (così vedete
-        dove saremo dopo l&apos;evento, non solo il netto dell&apos;evento).
+      <p className="text-xs text-neutral-400 leading-relaxed">
+        A sinistra il <strong className="text-neutral-600">budget che decidiamo di stanziare</strong> per l&apos;evento —
+        editabile a mano voce per voce. A destra i <strong className="text-neutral-600">costi effettivi e le entrate</strong>,
+        che si aggiornano automaticamente man mano che riempite artisti, sponsor, food &amp; beverage,
+        materiali e voci extra. Prima dell&apos;evento i numeri sono stime; una volta chiuso l&apos;evento
+        i dati diventeranno reali e definitivi.
       </p>
     </>
   );
@@ -139,7 +139,7 @@ function SummaryCards({
         </div>
         <div className="px-5 pt-5 pb-4">
           <p className="text-lg font-bold text-neutral-600 tracking-tight">Budget previsto</p>
-          <p className="text-[10px] text-neutral-400 mt-0.5">Le uscite che decidiamo di stanziare prima dell&apos;evento. Non include le entrate, che per natura sono stime.</p>
+          <p className="text-[10px] text-neutral-400 mt-0.5">Le uscite che decidiamo di stanziare prima dell&apos;evento.</p>
         </div>
       </div>
 
@@ -174,12 +174,11 @@ function SummaryCards({
               </p>
               <p className="text-[10px] text-neutral-400 mt-1">Solo entrate − uscite evento</p>
             </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-wide text-neutral-400 font-medium">Saldo finale (include conto)</p>
-              <p className={`text-xl font-bold tabular-nums mt-1 ${effSaldo >= 0 ? "text-green-700" : "text-red-700"}`}>
+            <div className="ml-auto text-right">
+              <p className="text-[10px] uppercase tracking-wide text-neutral-400 font-medium">Saldo finale</p>
+              <p className={`text-base font-semibold tabular-nums mt-1 ${effSaldo >= 0 ? "text-indigo-600" : "text-indigo-400"}`}>
                 {formatMoney(effSaldo)}
               </p>
-              <p className="text-[10px] text-neutral-400 mt-1 tabular-nums">Conto Matazz: {formatMoney(saldoConto)}</p>
             </div>
           </div>
         </div>
