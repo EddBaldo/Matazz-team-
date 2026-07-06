@@ -69,6 +69,7 @@ export function BudgetClient({
         stimUscite={totaleStimUscite}
         stimSaldo={saldoStimato}
         saldoConto={saldoConto}
+        risultatoEvento={totaleEffEntrate - totaleEffUscite}
       />
 
       <BudgetTable
@@ -95,6 +96,7 @@ export function BudgetClient({
         totaleEffettivo={totaleEffEntrate}
         totaleStimato={totaleStimEntrate}
         incassoRealeVendite={incassoRealeVendite}
+        budgetEditable={false}
       />
 
       <p className="text-xs text-neutral-500">
@@ -116,6 +118,7 @@ function SummaryCards({
   stimUscite,
   stimSaldo,
   saldoConto,
+  risultatoEvento,
 }: {
   effEntrate: number;
   effUscite: number;
@@ -124,6 +127,7 @@ function SummaryCards({
   stimUscite: number;
   stimSaldo: number;
   saldoConto: number;
+  risultatoEvento: number;
 }) {
   return (
     <div className="rounded-3xl bg-white overflow-hidden">
@@ -167,14 +171,25 @@ function SummaryCards({
         </div>
       </div>
 
-      {/* Saldo */}
+      {/* Risultato evento + Saldo */}
       <div className="grid grid-cols-3">
         <div className="col-span-2 px-6 py-5 border-r border-neutral-100">
-          <p className="text-[10px] uppercase tracking-wide text-neutral-400 font-medium">Saldo (include conto)</p>
-          <p className={`text-3xl font-bold tabular-nums mt-1 ${effSaldo >= 0 ? "text-green-700" : "text-red-700"}`}>
-            {formatMoney(effSaldo)}
-          </p>
-          <p className="text-[10px] text-neutral-400 mt-1 tabular-nums">Conto Matazz: {formatMoney(saldoConto)}</p>
+          <div className="flex items-start gap-8 flex-wrap">
+            <div>
+              <p className="text-[10px] uppercase tracking-wide text-neutral-400 font-medium">Risultato evento</p>
+              <p className={`text-3xl font-bold tabular-nums mt-1 ${risultatoEvento >= 0 ? "text-green-700" : "text-red-700"}`}>
+                {risultatoEvento >= 0 ? "+" : ""}{formatMoney(risultatoEvento)}
+              </p>
+              <p className="text-[10px] text-neutral-400 mt-1">Solo entrate − uscite evento</p>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wide text-neutral-400 font-medium">Saldo finale (include conto)</p>
+              <p className={`text-xl font-bold tabular-nums mt-1 ${effSaldo >= 0 ? "text-green-700" : "text-red-700"}`}>
+                {formatMoney(effSaldo)}
+              </p>
+              <p className="text-[10px] text-neutral-400 mt-1 tabular-nums">Conto Matazz: {formatMoney(saldoConto)}</p>
+            </div>
+          </div>
         </div>
         <div className="px-5 py-5">
           <p className="text-[9px] uppercase tracking-wide text-neutral-400 font-medium">Saldo previsto</p>
@@ -198,6 +213,7 @@ function BudgetTable({
   totaleEffettivo,
   totaleStimato,
   incassoRealeVendite,
+  budgetEditable = true,
 }: {
   eventoId: string;
   title: string;
@@ -209,6 +225,7 @@ function BudgetTable({
   totaleEffettivo: number;
   totaleStimato: number;
   incassoRealeVendite: number | null;
+  budgetEditable?: boolean;
 }) {
   return (
     <section>
@@ -248,7 +265,9 @@ function BudgetTable({
                     )}
                   </td>
                   <td className="px-4 py-2 text-right">
-                    {l.isIncassoReale ? (
+                    {!budgetEditable ? (
+                      <span className="text-xs text-neutral-300">—</span>
+                    ) : l.isIncassoReale ? (
                       <span className="text-xs text-neutral-400 italic">
                         inserisci a fine evento →
                       </span>
