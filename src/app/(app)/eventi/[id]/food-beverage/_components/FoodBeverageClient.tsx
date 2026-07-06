@@ -48,6 +48,20 @@ function guadagnoFoodTruck(ft: FoodTruckEdit, persone: number): number {
   return (Number(ft.incasso_lordo_stimato) * Number(ft.percentuale_matazz)) / 100;
 }
 
+function calcFtTotals(items: FoodTruckEdit[], persone: number) {
+  let costo = 0, ricavo = 0;
+  for (const r of items) {
+    if (r.modello === "Acquisto") {
+      const qty = Math.round(persone * Number(r.consumo_per_persona ?? 0));
+      costo += Number(r.costo_unitario ?? 0) * qty;
+      ricavo += Number(r.prezzo_vendita ?? 0) * qty;
+    } else {
+      ricavo += (Number(r.incasso_lordo_stimato) * Number(r.percentuale_matazz)) / 100;
+    }
+  }
+  return { costo, ricavo, margine: ricavo - costo };
+}
+
 export function FoodBeverageClient({
   eventoId,
   personeStimati,
@@ -77,6 +91,7 @@ export function FoodBeverageClient({
   const ftTotaleSel = foodTruck
     .filter((r) => r.selezionata)
     .reduce((s, r) => s + guadagnoFoodTruck(r, personeStimati), 0);
+  const tFtTotale = calcFtTotals(foodTruck.filter((r) => r.selezionata), personeStimati);
   const ftCostoReale = ftAcquisto.reduce(
     (s, r) => s + Number(r.quantita_acquistata ?? 0) * Number(r.costo_unitario ?? 0),
     0,
@@ -121,7 +136,7 @@ export function FoodBeverageClient({
                   <CostoRealeBadge />
                   <span className="text-neutral-700">
                     Costo{" "}
-                    <strong className="text-neutral-900">{formatMoney(totaleCostoRealeBar)}</strong>
+                    <strong className="text-amber-700">{formatMoney(totaleCostoRealeBar)}</strong>
                   </span>
                 </div>
               )}
@@ -203,15 +218,26 @@ export function FoodBeverageClient({
             <div className="flex flex-col gap-2">
               <div className="inline-flex items-center gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-2 text-sm flex-wrap">
                 <StimaBadge />
-                <span className="text-neutral-700">Guadagno selezionato:</span>
-                <strong className="text-green-700">{formatMoney(ftTotaleSel)}</strong>
+                <span className="text-neutral-700">
+                  Costo{" "}
+                  <strong className="text-neutral-900">{formatMoney(tFtTotale.costo)}</strong>
+                </span>
+                <span className="text-neutral-300">·</span>
+                <span className="text-neutral-700">
+                  Ricavo{" "}
+                  <strong className="text-neutral-900">{formatMoney(tFtTotale.ricavo)}</strong>
+                </span>
+                <span className="text-neutral-300">·</span>
+                <span className={tFtTotale.margine >= 0 ? "text-green-700" : "text-red-700"}>
+                  Margine <strong>{formatMoney(tFtTotale.margine)}</strong>
+                </span>
               </div>
               {ftCostoReale > 0 && (
                 <div className="inline-flex items-center gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-2 text-sm flex-wrap">
                   <CostoRealeBadge />
                   <span className="text-neutral-700">
                     Costo acquisto{" "}
-                    <strong className="text-neutral-900">{formatMoney(ftCostoReale)}</strong>
+                    <strong className="text-amber-700">{formatMoney(ftCostoReale)}</strong>
                   </span>
                 </div>
               )}
