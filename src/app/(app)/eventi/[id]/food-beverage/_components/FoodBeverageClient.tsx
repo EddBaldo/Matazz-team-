@@ -77,6 +77,10 @@ export function FoodBeverageClient({
   const ftTotaleSel = foodTruck
     .filter((r) => r.selezionata)
     .reduce((s, r) => s + guadagnoFoodTruck(r, personeStimati), 0);
+  const ftCostoReale = ftAcquisto.reduce(
+    (s, r) => s + Number(r.quantita_acquistata ?? 0) * Number(r.costo_unitario ?? 0),
+    0,
+  );
 
   return (
     <>
@@ -113,11 +117,11 @@ export function FoodBeverageClient({
                 </span>
               </div>
               {barCostoRealeEntries.length > 0 && (
-                <div className="inline-flex items-center gap-3 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-2 text-sm flex-wrap">
+                <div className="inline-flex items-center gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-2 text-sm flex-wrap">
                   <CostoRealeBadge />
                   <span className="text-neutral-700">
                     Costo{" "}
-                    <strong className="text-amber-800">{formatMoney(totaleCostoRealeBar)}</strong>
+                    <strong className="text-neutral-900">{formatMoney(totaleCostoRealeBar)}</strong>
                   </span>
                 </div>
               )}
@@ -196,10 +200,21 @@ export function FoodBeverageClient({
                 <span className="text-sm text-amber-700 font-medium">escluso dal budget</span>
               )}
             </h3>
-            <div className="inline-flex items-center gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-2 text-sm flex-wrap">
-              <StimaBadge />
-              <span className="text-neutral-700">Guadagno selezionato:</span>
-              <strong className="text-green-700">{formatMoney(ftTotaleSel)}</strong>
+            <div className="flex flex-col gap-2">
+              <div className="inline-flex items-center gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-2 text-sm flex-wrap">
+                <StimaBadge />
+                <span className="text-neutral-700">Guadagno selezionato:</span>
+                <strong className="text-green-700">{formatMoney(ftTotaleSel)}</strong>
+              </div>
+              {ftCostoReale > 0 && (
+                <div className="inline-flex items-center gap-3 rounded-2xl bg-neutral-50 border border-neutral-200 px-4 py-2 text-sm flex-wrap">
+                  <CostoRealeBadge />
+                  <span className="text-neutral-700">
+                    Costo acquisto{" "}
+                    <strong className="text-neutral-900">{formatMoney(ftCostoReale)}</strong>
+                  </span>
+                </div>
+              )}
             </div>
           </div>
           <button
