@@ -69,6 +69,8 @@ export function FoodBeverageClient({
 
   const tBarTotale = calcTotals(bar, personeStimati);
   const mediaConsumoBar = bar.reduce((s, r) => s + Number(r.consumo_per_persona ?? 0), 0);
+  const barCostoRealeEntries = Object.values(barCostiReali).filter(e => e.costo_reale != null);
+  const totaleCostoRealeBar = barCostoRealeEntries.reduce((s, e) => s + (e.costo_reale ?? 0), 0);
 
   const ftPercentuale = foodTruck.filter((f) => f.modello === "Percentuale");
   const ftAcquisto = foodTruck.filter((f) => f.modello === "Acquisto");
@@ -109,6 +111,15 @@ export function FoodBeverageClient({
                 Margine <strong>{formatMoney(tBarTotale.margine)}</strong>
               </span>
             </div>
+            {barCostoRealeEntries.length > 0 && (
+              <div className="inline-flex items-center gap-3 rounded-2xl bg-amber-50 border border-amber-200 px-4 py-2 text-sm flex-wrap">
+                <CostoRealeBadge />
+                <span className="text-neutral-700">
+                  Costo{" "}
+                  <strong className="text-amber-800">{formatMoney(totaleCostoRealeBar)}</strong>
+                </span>
+              </div>
+            )}
             {bar.length > 0 && (
               <p className="text-xs text-neutral-500">
                 Media consumo:{" "}
