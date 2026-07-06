@@ -17,6 +17,7 @@ export default async function RimborsiPage({ params }: Props) {
     barRes,
     foodTruckRes,
     vociExtraRes,
+    cateringRes,
     rimborsiRes,
   ] = await Promise.all([
     sb
@@ -54,6 +55,11 @@ export default async function RimborsiPage({ params }: Props) {
       .select("id, voce, importo, pagato_da")
       .eq("evento_id", id)
       .eq("tipo", "Uscita"),
+    sb
+      .from("evento_catering")
+      .select("id, nome_fornitore, modello, prezzo_per_persona, numero_persone, prezzo_totale")
+      .eq("evento_id", id)
+      .eq("selezionata", true),
     sb
       .from("evento_rimborsi")
       .select("categoria, source_id, rimborsato")
@@ -221,6 +227,33 @@ export default async function RimborsiPage({ params }: Props) {
       importo,
       pagatoDa: r.pagato_da,
       rimborsato: rimb("personale", r.id),
+    });
+  }
+
+  // Catering (offerte selezionate)
+  type CateringRimborsoDb = {
+    id: string;
+    nome_fornitore: string;
+    modello: string;
+    prezzo_per_persona: number;
+    numero_persone: number;
+    prezzo_totale: number;
+  };
+  for (const r of (cateringRes.data ?? []) as unknown as CateringRimborsoDb[]) {
+    const importo =
+      r.modello === "Totale"
+        ? Number(r.prezzo_totale)
+        : Number(r.prezzo_per_persona) * Number(r.numero_persone);
+    if (importo === 0) continue;
+    items.push({
+      categoria: "catering",
+      categoriaLabel: "Cena",
+      sourceId: r.id,
+      pagatoDaSourceId: r.id,
+      descrizione: r.nome_fornitore,
+      importo,
+      pagatoDa: null,
+      rimborsato: rimb("catering", r.id),
     });
   }
 
