@@ -35,6 +35,8 @@ type BarArticoloRow = {
   consumo_per_persona: number;
 };
 type CateringRow = {
+  id: string;
+  nome_fornitore: string;
   modello: string;
   prezzo_per_persona: number;
   numero_persone: number;
@@ -115,7 +117,7 @@ export default async function EventoBudgetPage({ params }: Props) {
     sb
       .from("evento_catering")
       .select(
-        "modello, prezzo_per_persona, numero_persone, prezzo_totale, selezionata",
+        "id, nome_fornitore, modello, prezzo_per_persona, numero_persone, prezzo_totale, selezionata",
       )
       .eq("evento_id", id),
     sb
@@ -317,12 +319,20 @@ export default async function EventoBudgetPage({ params }: Props) {
       effettivo: barCostoEffettivo,
       stima: stimaOf("bar_costo"),
     },
-    {
-      chiave: "catering",
-      label: "Cena (offerte selezionate)",
-      effettivo: totaleCatering,
-      stima: stimaOf("catering"),
-    },
+    ...catering
+      .filter((r) => r.selezionata)
+      .map((r) => {
+        const effettivo =
+          r.modello === "Totale"
+            ? Number(r.prezzo_totale)
+            : Number(r.prezzo_per_persona) * Number(r.numero_persone);
+        return {
+          chiave: `catering_${r.id}`,
+          label: `Cena — ${r.nome_fornitore}`,
+          effettivo,
+          stima: stimaOf(`catering_${r.id}`),
+        };
+      }),
     ...foodTruckAcquistoSel.map((r) => ({
       chiave: `food_truck_acq_${r.id}`,
       label: foodTruckAttivo
