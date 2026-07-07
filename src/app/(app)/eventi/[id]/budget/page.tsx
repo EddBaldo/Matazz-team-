@@ -403,11 +403,10 @@ export default async function EventoBudgetPage({ params }: Props) {
           Budget e Costi
         </h2>
         <p className="text-sm text-neutral-600 mt-1 leading-relaxed">
-          A sinistra il <strong>budget che decidiamo di stanziare</strong> per l&apos;evento —
-          editabile a mano voce per voce. A destra i <strong>costi effettivi e le entrate</strong>,
-          che si aggiornano automaticamente man mano che riempite artisti, sponsor, food &amp; beverage,
-          materiali e voci extra. Prima dell&apos;evento i numeri sono stime; una volta chiuso l&apos;evento
-          i dati diventeranno reali e definitivi.
+          Qui trovate il <strong>quadro economico dell&apos;evento</strong>: il budget che decidiamo di stanziare
+          voce per voce, e i <strong>costi effettivi e le entrate</strong> che si aggiornano automaticamente
+          man mano che riempite artisti, sponsor, food &amp; beverage, materiali e voci extra.
+          Prima dell&apos;evento i numeri sono stime; una volta chiuso l&apos;evento i dati diventeranno reali e definitivi.
         </p>
       </div>
 
